@@ -3281,6 +3281,11 @@ function keyPressed(e) {
         default: break; // do not block other keys
     }
 
+    //reset esc
+    if (key == 27) {
+        reset = true;
+    }
+
     //player 0-Red
     if (key == 39) {
         if (menu == 1) {
