@@ -67,6 +67,12 @@ var right = [];
 var left = [];
 var directionFacing = [];
 
+var jumpSpeed = 600;//was -15
+var playerSpeed = 320; //it was 8 at fps = 25(40)
+var zombieSpeed = 240; //it was 6 at fps = 25(40)
+var playerFallSpeed = 40; // was 1
+var playerLungeSpeed = 600; // was 15
+
 //dogs
 var dog = [];
 var dogxpos = [];
@@ -591,7 +597,7 @@ function init() {
 
     then = Date.now();
     map[1].onload = function () {
-        startGameLoop(context);
+        startGameLoop();//context
         //setTimeout(function () { startGameLoop(context) }, 1000);
     };
     
@@ -781,8 +787,8 @@ function resetGame() {
     }
 }
 
-function startGameLoop(contex) {
-    setInterval(function () { gameLoop(contex) }, fps);
+function startGameLoop() {//contex
+    setInterval(gameLoop, 0); //it was fps - function () { gameLoop(contex); }
 }
 
 function loadMap() {
@@ -1067,7 +1073,9 @@ function loadMap() {
     }
 }
 
-function render(ctx) {
+function render() {//ctx
+    var ctx = canvas.getContext("2d");
+
     ctx.clearRect( 0 , 0 , gameWidth , gameHeight);
 
     //background -> CYAn 
@@ -1395,7 +1403,7 @@ function render(ctx) {
                     else ctx.drawImage(gunLeft[gun[i][equip[i]] - 1], (xpos[i] - 1) * scale, (ypos[i] + 4) * scale, 17 * scale, 3 * scale);
                 }
                 if (gun[i][equip[i]] == 7) {
-                    if (xdir[i] != 0 && lunge[i] == false) {
+                    if ([i] != 0 && lunge[i] == false) {
                         if (directionFacing[i] == 1) ctx.drawImage(gunRight[gun[i][equip[i]] - 1], (xpos[i] - 6) * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
                         else ctx.drawImage(gunLeft[gun[i][equip[i]] - 1], (xpos[i] + 6) * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
                     } else if (xdir[i] == 0 && directionFacing[i] == 1 && lunge[i] == false) ctx.drawImage(swordStill[1], (xpos[i] + 7) * scale, (ypos[i] - 6) * scale, 20 * scale, 20 * scale);
@@ -1638,25 +1646,26 @@ function render(ctx) {
     ctx.fillText(actual + "", 5 * scale, 10 * scale);
 }
 
-/*
-function render(ctx) {
-    ctx.clearRect(0, 0, gameWidth, gameHeight);
-
-    ctx.fillStyle = "rgba(211, 20, 211 , 1)"; //light purp
-    ctx.fillRect(0, 0, gameWidth, gameHeight);
-
-    //ctx.drawImage(check[1], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
-}
-*/
-
-function gameLoop(conte) {
+function gameLoop() {//conte
    
-    update();
-    render(conte);
+    var now = Date.now();
+    var delta = now - then;
 
+    update(delta / 1000);
+    render();
+
+    then = now;
+
+
+    //it was 40 fps and 8 movement = 320 pixel movement/s
+    //changing player movement speeds a lot to compensate for max fps
+    //update(delta/1000000);//(delta / 1000)
+    //render();
+
+    //then = now;
 }
 
-function update() {
+function update(modifier) {
 
     //reset/rematch
     if (reset == true || rematch == true) {
@@ -1708,7 +1717,7 @@ function update() {
         }
     }
     //zombies increase in numbers
-    /*if (zombie == true) {
+    if (zombie == true) {
 
         for (i = zombieAlive; i <= 23; i++) {
 
@@ -1717,7 +1726,7 @@ function update() {
 
         }
 
-    }*/
+    }
 
     if (play == true) {
 
@@ -1874,7 +1883,7 @@ function update() {
                         if (dogxpos[i] >= dogtargetx[i] - 20 && dogxpos[i] <= dogtargetx[i] + 20 && dogupPath[i] == false) {
                             dogleft[i] = false;
                             dogright[i] = false;
-                            dogxdir[i] = 0;
+                            dogxdi[i] = 0;
 
                         }
                     }
@@ -1900,7 +1909,7 @@ function update() {
                             dogleft[i] = true;
                             dogright[i] = false;
                             if (dogxpos[i] <= 20 && dogydir[i] == 0 && dogypos[i] == dogground[i] - 20) {
-                                dogydir[i] = -15;
+                                dogydir[i] = -jumpSpeed;
                             }
                         } else if (dogupPath[i] == true && block[t] == true && dogypos[i] > blocky[t] && blocky[t] + 100 > dogypos[i]) {
                             if ((dogxpos[i] <= blockx[t] + blockw[t] && dogright[i] == true) || (dogxpos[i] >= blockx[t] && dogleft[i] == true)) //this line needs to be altered to fix the ai
@@ -1910,7 +1919,7 @@ function update() {
                                     dogxdir[i] = 0;
                                 }
                                 if (dogydir[i] == 0 && dogypos[i] == dogground[i] - 20) {
-                                    dogydir[i] = -15;
+                                    dogydir[i] = -jumpSpeed;
                                 }
                             }
                         }
@@ -1986,7 +1995,7 @@ function update() {
                                             xdir[i] = 0;
                                         }
                                         if (ydir[i] == 0 && ypos[i] == ground[i] - 20) {
-                                            ydir[i] = -15;
+                                            ydir[i] = -jumpSpeed;
                                         } else {
                                             if (fuel[i] > 0 && streak[i] >= 3) jetpack[i] = true;
                                             else jetpack[i] = false;
@@ -2042,7 +2051,7 @@ function update() {
                                         shooting[i] = true;
                                     }
                                     if (ydir[i] == 0 && ypos[i] == ground[i] - 20) {
-                                        ydir[i] = -15;
+                                        ydir[i] = -jumpSpeed;
                                     } else {
                                         if (fuel[i] > 0 && streak[i] >= 3) jetpack[i] = true;
                                         else jetpack[i] = false;
@@ -2059,7 +2068,7 @@ function update() {
                                     }
 
                                     if (ydir[i] == 0 && ypos[i] == ground[i] - 20) {
-                                        ydir[i] = -15;
+                                        ydir[i] = -jumpSpeed;
                                     } else {
                                         if (fuel[i] > 0 && streak[i] >= 3) jetpack[i] = true;
                                         else jetpack[i] = false;
@@ -2250,7 +2259,7 @@ function update() {
                                 shotsFired[i]++;
                                 b[i][k] = true;
                                 if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 10;
+                                    bxdir[i][k] = 400;//was 10
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2259,7 +2268,7 @@ function update() {
                                     shotType[i][k] = 1;
                                     k = 100;
                                 } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -10;
+                                    bxdir[i][k] = -400;//-10
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2280,7 +2289,7 @@ function update() {
                                 shotsFired[i]++;
                                 b[i][k] = true;
                                 if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 14;
+                                    bxdir[i][k] = 560;//was 14
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2289,7 +2298,7 @@ function update() {
                                     shotType[i][k] = 2;
                                     k = 100;
                                 } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -14;
+                                    bxdir[i][k] = -560;//-14
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2310,7 +2319,7 @@ function update() {
                                 shotsFired[i]++;
                                 b[i][k] = true;
                                 if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 14;
+                                    bxdir[i][k] = 560; // was 14
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2319,7 +2328,7 @@ function update() {
                                     shotType[i][k] = 3;
                                     k = 100;
                                 } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -14;
+                                    bxdir[i][k] = -560;//was -14
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2340,7 +2349,7 @@ function update() {
                                 shotsFired[i]++;
                                 b[i][k] = true;
                                 if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 20;
+                                    bxdir[i][k] = 800;//was 20
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2349,7 +2358,7 @@ function update() {
                                     shootCount[i] = 0;
                                     k = 100;
                                 } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -20;
+                                    bxdir[i][k] = -800;//was -20
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2371,7 +2380,7 @@ function update() {
                                 b[i][k] = true;
                                 if (directionFacing[i] == 1) {
                                     flameDis[i][k] = xpos[i] + 200;
-                                    bxdir[i][k] = 11;
+                                    bxdir[i][k] = 440; // was 11
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2382,7 +2391,7 @@ function update() {
                                     k = 100;
                                 } else if (directionFacing[i] == 0) {
                                     flameDis[i][k] = xpos[i] - 180;
-                                    bxdir[i][k] = -11;
+                                    bxdir[i][k] = -440;// was -11
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2407,8 +2416,8 @@ function update() {
                                     if (directionFacing[i] == 1) {
                                         //shotgunDis[i][k+r] =xpos[i]+220;
                                         shotgunDis[i][k + r] = xpos[i] + 160;
-                                        bxdir[i][k + r] = 15;
-                                        bydir[i][k + r] = -2 + r;
+                                        bxdir[i][k + r] = 600;//was 15
+                                        bydir[i][k + r] = -80 + (r*40);//-2
                                         bx[i][k + r] = xpos[i];
                                         by[i][k + r] = ypos[i] + 4;
                                         shotType[i][k + r] = 6;
@@ -2416,8 +2425,8 @@ function update() {
                                     } else if (directionFacing[i] == 0) {
                                         //shotgunDis[i][k+r] =xpos[i]-200;
                                         shotgunDis[i][k + r] = xpos[i] - 140;
-                                        bxdir[i][k + r] = -15;
-                                        bydir[i][k + r] = -2 + r;
+                                        bxdir[i][k + r] = -600;//was 15
+                                        bydir[i][k + r] = -80 + (r*40);//-2
                                         bx[i][k + r] = xpos[i];
                                         by[i][k + r] = ypos[i] + 4;
                                         shotType[i][k + r] = 6;
@@ -2888,8 +2897,8 @@ function update() {
         //bullet movement
         for (i = 0; i < players; i++) {
             for (k = 0; k <= 99; k++) {
-                bx[i][k] = bx[i][k] + bxdir[i][k];
-                by[i][k] = by[i][k] + bydir[i][k];
+                bx[i][k] = bx[i][k] + (bxdir[i][k] * modifier);
+                by[i][k] = by[i][k] + (bydir[i][k] * modifier);
                 if ((bx[i][k] < -20 || bx[i][k] > 720) && level != 5) {
                     b[i][k] = false;
                     bxdir[i][k] = 0;
@@ -3089,7 +3098,7 @@ function update() {
             for (q = 0; q <= 14; q++) {
                 if ((block[q] == true && gunx[i] + 10 >= blockx[q] && gunx[i] <= blockx[q] + blockw[q] && guny[i] + 20 <= blocky[q] + blockh[q] && guny[i] + 20 >= blocky[q]) || guny[i] >= 410) {
                     q = 15;
-                } else if (q == 14) guny[i] = guny[i] + 2;
+                } else if (q == 14) guny[i] = guny[i] + (2 * modifier);
             }
         }
 
@@ -3164,7 +3173,7 @@ function update() {
             fuelCount[i]++;
 
             //y movement
-            ydir[i]++;
+            ydir[i] = ydir[i] + playerFallSpeed;
             if (ypos[i] + 20 >= ground[i] && ydir[i] > 0) {
                 ydir[i] = 0;
                 ypos[i] = ground[i] - 20;
@@ -3181,36 +3190,36 @@ function update() {
 
             //x movement
             if (right[i] == true) {
-                xdir[i] = 8;
-                if (zombie == true && i > 0) xdir[i] = 6;
+                xdir[i] = playerSpeed;
+                if (zombie == true && i > 0) xdir[i] = zombieSpeed;
                 directionFacing[i] = 1;
             } else if (left[i] == true) {
-                xdir[i] = -8;1
-                if (zombie == true && i > 0) xdir[i] = -6;
+                xdir[i] = -playerSpeed;
+                if (zombie == true && i > 0) xdir[i] = -zombieSpeed;
                 directionFacing[i] = 0;
             } else if (left[i] == false && right[i] == false) {
                 xdir[i] = 0;
             }
             if (directionFacing[i] == 1 && lunge[i] == true && gun[i][equip[i]] == 7) {
-                xdir[i] = 15;
+                xdir[i] = playerLungeSpeed;
             } else if (directionFacing[i] == 0 && lunge[i] == true && gun[i][equip[i]] == 7) {
-                xdir[i] = -15;
+                xdir[i] = -playerLungeSpeed;
             }
 
 
             if (dog[i] == true) {
                 //y movement
-                dogydir[i]++;
+                dogydir[i] = dogydir[i] + playerFallSpeed;
                 if (dogypos[i] + 20 >= dogground[i] && dogydir[i] > 0) {
                     dogydir[i] = 0;
                     dogypos[i] = dogground[i] - 20;
                 }
                 //x movement
                 if (dogright[i] == true) {
-                    dogxdir[i] = 8;
+                    dogxdir[i] = playerSpeed;
                     dogdirectionFacing[i] = 1;
                 } else if (dogleft[i] == true) {
-                    dogxdir[i] = -8;
+                    dogxdir[i] = -playerSpeed;
                     dogdirectionFacing[i] = 0;
                 } else if (dogleft[i] == false && dogright[i] == false) {
                     dogxdir[i] = 0;
@@ -3234,7 +3243,6 @@ function update() {
                 jumpCount[i]++;
                 xdir[i] = 0;
                 ydir[i] = 0;
-                ydir[i] = 0;
 
                 if (jumpCount[i] == 2) {
                     if (right[i] == true || directionFacing[i] == 1) xpos[i] = xpos[i] + 20;
@@ -3257,10 +3265,10 @@ function update() {
 
                 }
             }
-            xpos[i] = xpos[i] + xdir[i];
-            ypos[i] = ypos[i] + ydir[i];
-            dogxpos[i] = dogxpos[i] + dogxdir[i];
-            dogypos[i] = dogypos[i] + dogydir[i];
+            xpos[i] = xpos[i] + (xdir[i] * modifier);
+            ypos[i] = ypos[i] + (ydir[i] * modifier);
+            dogxpos[i] = dogxpos[i] + (dogxdir[i] * modifier);
+            dogypos[i] = dogypos[i] + (dogydir[i] * modifier);
 
 
         }
@@ -3393,7 +3401,7 @@ function keyPressed(e) {
         //in game
         if (play == true && cpu[0] == false) {
             if (ydir[0] == 0 && ypos[0] == ground[0] - 20) {
-                ydir[0] = -15;
+                ydir[0] = -jumpSpeed;
             } else {
                 if (fuel[0] > 0 && streak[0] >= 3) jetpack[0] = true;
             }
@@ -3479,7 +3487,7 @@ function keyPressed(e) {
     if (key == 87) {
         if (play == true && cpu[1] == false) {
             if (ydir[1] == 0 && ypos[1] == ground[1] - 20) {
-                ydir[1] = -15;
+                ydir[1] = -jumpSpeed;
             } else {
                 if (fuel[1] > 0 && streak[1] >= 3) jetpack[1] = true;
             }
@@ -3523,7 +3531,7 @@ function keyPressed(e) {
     if (key == 56) {
         if (play == true && cpu[2] == false) {
             if (ydir[2] == 0 && ypos[2] == ground[2] - 20) {
-                ydir[2] = -15;
+                ydir[2] = -jumpSpeed;
             } else {
                 if (fuel[2] > 0 && streak[2] >= 3) jetpack[2] = true;
             }
@@ -3566,7 +3574,7 @@ function keyPressed(e) {
     if (key == 85) {
         if (play == true && cpu[3] == false) {
             if (ydir[3] == 0 && ypos[3] == ground[3] - 20) {
-                ydir[3] = -15;
+                ydir[3] = -jumpSpeed;//was -15
             } else {
                 if (fuel[3] > 0 && streak[3] >= 3) jetpack[3] = true;
             }
