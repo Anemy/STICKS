@@ -14,7 +14,7 @@ var classicHeight = 450;
 
 var fps = 25;
 
-var then;
+var then = 0;
 
 //java script b weird
 var i = 0;
@@ -1642,14 +1642,17 @@ function render() {//ctx
         ctx.drawImage(check[1], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
 
     }
-    //ctx.font =(font);
-    ctx.fillText(actual + "", 5 * scale, 10 * scale);
 }
+
+//document.getElementById("p1").innerHTML = "New text!";
+
 
 function gameLoop() {//conte
    
     var now = Date.now();
     var delta = now - then;
+
+    //document.getElementById("p1").innerHTML = "Delta time: " + delta + " now: " + now + "  then: "+ then;
 
     update(delta / 1000);
     render();
