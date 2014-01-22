@@ -7,7 +7,7 @@
 var canvas;
 var gameWidth;
 var gameHeight;
-var scale = 1.08571428571;//fb default: 1.08571428571
+var scale = 1.8;//fb default: 1.08571428571
 
 var classicWidth = 700;
 var classicHeight = 450;
@@ -67,11 +67,11 @@ var right = [];
 var left = [];
 var directionFacing = [];
 
-var jumpSpeed = 600;//was -15
-var playerSpeed = 320; //it was 8 at fps = 25(40)
-var zombieSpeed = 240; //it was 6 at fps = 25(40)
-var playerFallSpeed = 40; // was 1
-var playerLungeSpeed = 600; // was 15
+var jumpSpeed = -15 * fps;//was -15
+var playerSpeed = 8 * fps; //it was 8 at fps = 25(40)
+var zombieSpeed = 6 * fps; //it was 6 at fps = 25(40)
+var playerFallSpeed = 1 * fps; // was 1
+var playerLungeSpeed = 15 * fps; // was 15
 
 //dogs
 var dog = [];
@@ -1722,12 +1722,12 @@ function update(modifier) {
     //zombies increase in numbers
     if (zombie == true) {
 
-        for (i = zombieAlive; i <= 23; i++) {
+        /*for (i = zombieAlive; i <= 23; i++) {
 
             ypos[i + 1] = -1000;
             ydir[i + 1] = -1000;
 
-        }
+        }*/
 
     }
 
@@ -2186,8 +2186,8 @@ function update(modifier) {
             if (streak[i] >= 3 && ydir[i] != 0 && jetpack[i] == true) {
                 if (fuel[i] > 0) {
                     fuel[i]--;
-                    if (ydir[i] >= -7) {
-                        ydir[i] = ydir[i] - 3;
+                    if (ydir[i] >= -7 * fps) {//was -7
+                        ydir[i] = ydir[i] - (3 * fps);//was - 3
                     }
                 }
                 else
@@ -2262,7 +2262,7 @@ function update(modifier) {
                                 shotsFired[i]++;
                                 b[i][k] = true;
                                 if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 400;//was 10
+                                    bxdir[i][k] = 10 * fps;//was 10
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2271,7 +2271,7 @@ function update(modifier) {
                                     shotType[i][k] = 1;
                                     k = 100;
                                 } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -400;//-10
+                                    bxdir[i][k] = -10 * fps;//-10
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2292,7 +2292,7 @@ function update(modifier) {
                                 shotsFired[i]++;
                                 b[i][k] = true;
                                 if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 560;//was 14
+                                    bxdir[i][k] = 14 * fps;//was 14
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2301,7 +2301,7 @@ function update(modifier) {
                                     shotType[i][k] = 2;
                                     k = 100;
                                 } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -560;//-14
+                                    bxdir[i][k] = -14 * fps;//-14
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2322,7 +2322,7 @@ function update(modifier) {
                                 shotsFired[i]++;
                                 b[i][k] = true;
                                 if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 560; // was 14
+                                    bxdir[i][k] = 14 * fps; // was 14
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2331,7 +2331,7 @@ function update(modifier) {
                                     shotType[i][k] = 3;
                                     k = 100;
                                 } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -560;//was -14
+                                    bxdir[i][k] = -14 * fps;//was -14
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2352,7 +2352,7 @@ function update(modifier) {
                                 shotsFired[i]++;
                                 b[i][k] = true;
                                 if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 800;//was 20
+                                    bxdir[i][k] = 20 * fps;//was 20
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2361,7 +2361,7 @@ function update(modifier) {
                                     shootCount[i] = 0;
                                     k = 100;
                                 } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -800;//was -20
+                                    bxdir[i][k] = -20 * fps;//was -20
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2383,7 +2383,7 @@ function update(modifier) {
                                 b[i][k] = true;
                                 if (directionFacing[i] == 1) {
                                     flameDis[i][k] = xpos[i] + 200;
-                                    bxdir[i][k] = 440; // was 11
+                                    bxdir[i][k] = 11 * fps; // was 11
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2394,7 +2394,7 @@ function update(modifier) {
                                     k = 100;
                                 } else if (directionFacing[i] == 0) {
                                     flameDis[i][k] = xpos[i] - 180;
-                                    bxdir[i][k] = -440;// was -11
+                                    bxdir[i][k] = -11 * fps;// was -11
                                     bydir[i][k] = 0;
                                     bx[i][k] = xpos[i];
                                     by[i][k] = ypos[i] + 4;
@@ -2419,8 +2419,8 @@ function update(modifier) {
                                     if (directionFacing[i] == 1) {
                                         //shotgunDis[i][k+r] =xpos[i]+220;
                                         shotgunDis[i][k + r] = xpos[i] + 160;
-                                        bxdir[i][k + r] = 600;//was 15
-                                        bydir[i][k + r] = -80 + (r*40);//-2
+                                        bxdir[i][k + r] = 15 * fps;//was 15
+                                        bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
                                         bx[i][k + r] = xpos[i];
                                         by[i][k + r] = ypos[i] + 4;
                                         shotType[i][k + r] = 6;
@@ -2428,8 +2428,8 @@ function update(modifier) {
                                     } else if (directionFacing[i] == 0) {
                                         //shotgunDis[i][k+r] =xpos[i]-200;
                                         shotgunDis[i][k + r] = xpos[i] - 140;
-                                        bxdir[i][k + r] = -600;//was 15
-                                        bydir[i][k + r] = -80 + (r*40);//-2
+                                        bxdir[i][k + r] = -15 * fps;//was 15
+                                        bydir[i][k + r] = (-80 * fps) + (r * fps);//-2
                                         bx[i][k + r] = xpos[i];
                                         by[i][k + r] = ypos[i] + 4;
                                         shotType[i][k + r] = 6;
@@ -2509,10 +2509,10 @@ function update(modifier) {
                                     bloodx[t][r] = xpos[t] + (Math.random() * 20);
                                     bloody[t][r] = ypos[t] + (Math.random() * 10);
                                     if (xdir[t] > 0)
-                                        bloodxdir[t][r] = -1 + (Math.random() * 7);
+                                        bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
                                     else
-                                        bloodxdir[t][r] = -5 + (Math.random() * 7);
-                                    bloodydir[t][r] = 2 - (Math.random() * 5);
+                                        bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
+                                    bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
                                     bloodCount[t][r] = 0;
                                 }
                             }
@@ -2653,9 +2653,9 @@ function update(modifier) {
                         } else if (level == 4 && bloody[i][k] >= 430) {
                             q = 15;
                         } else if (q == 14) {
-                            bloodx[i][k] = bloodx[i][k] + bloodxdir[i][k];
-                            bloody[i][k] = bloody[i][k] + bloodydir[i][k];
-                            if (bloodydir[i][k] < 10) bloodydir[i][k]++;
+                            bloodx[i][k] = bloodx[i][k] + bloodxdir[i][k] * modifier;
+                            bloody[i][k] = bloody[i][k] + bloodydir[i][k] * modifier;
+                            if (bloodydir[i][k] < 10 * fps) bloodydir[i][k] = bloodydir[i][k] + fps;
                         }
                     }
                     bloodCount[i][k]++;
@@ -2677,9 +2677,9 @@ function update(modifier) {
                                     blood[0][r] = true;
                                     bloodx[0][r] = xpos[0] + (Math.random() * 20);
                                     bloody[0][r] = ypos[0] + (Math.random() * 10);
-                                    if (xdir[i] > 0) bloodxdir[0][r] = -1 + (Math.random() * 7);
-                                    else bloodxdir[0][r] = -5 + (Math.random() * 7);
-                                    bloodydir[0][r] = 2 - (Math.random() * 5);
+                                    if (xdir[i] > 0) bloodxdir[0][r] = (-1 + (Math.random() * 7)) * fps;
+                                    else bloodxdir[0][r] = (-5 + (Math.random() * 7)) * fps;
+                                    bloodydir[0][r] = (2 - (Math.random() * 5)) * fps;
                                     bloodCount[0][r] = 0;
                                 }
                             } else if ((q + num) > 999) {
@@ -2687,9 +2687,9 @@ function update(modifier) {
                                     blood[0][r] = true;
                                     bloodx[0][r] = xpos[0] + (Math.random() * 20);
                                     bloody[0][r] = ypos[0] + (Math.random() * 10);
-                                    if (xdir[i] > 0) bloodxdir[0][r] = -1 + (Math.random() * 7);
-                                    else bloodxdir[0][r] = -5 + (Math.random() * 7);
-                                    bloodydir[0][r] = 2 - (Math.random() * 5);
+                                    if (xdir[i] > 0) bloodxdir[0][r] = (-1 + (Math.random() * 7)) * fps;
+                                    else bloodxdir[0][r] = (-5 + (Math.random() * 7)) * fps;
+                                    bloodydir[0][r] = (2 - (Math.random() * 5)) * fps;
                                     bloodCount[0][r] = 0;
                                 }
                             }
@@ -2721,9 +2721,9 @@ function update(modifier) {
                                             blood[t][r] = true;
                                             bloodx[t][r] = xpos[t] + (Math.random() * 20);
                                             bloody[t][r] = ypos[t] + (Math.random() * 10);
-                                            if (bxdir[i][k] > 0) bloodxdir[t][r] = -1 + (Math.random() * 7);
-                                            else bloodxdir[t][r] = -5 + (Math.random() * 7);
-                                            bloodydir[t][r] = 2 - (Math.random() * 5);
+                                            if (bxdir[i][k] > 0) bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
+                                            else bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
+                                            bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
                                             bloodCount[t][r] = 0;
                                         }
                                     } else if ((q + num) > 999) {
@@ -2731,9 +2731,9 @@ function update(modifier) {
                                             blood[t][r] = true;
                                             bloodx[t][r] = xpos[t] + (Math.random() * 20);
                                             bloody[t][r] = ypos[t] + (Math.random() * 10);
-                                            if (bxdir[i][k] > 0) bloodxdir[t][r] = -1 + (Math.random() * 7);
-                                            else bloodxdir[t][r] = -5 + (Math.random() * 7);
-                                            bloodydir[t][r] = 2 - (Math.random() * 5);
+                                            if (bxdir[i][k] > 0) bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
+                                            else bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
+                                            bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
                                             bloodCount[t][r] = 0;
                                         }
                                     }
@@ -2794,9 +2794,9 @@ function update(modifier) {
                                                     blood[t][r] = true;
                                                     bloodx[t][r] = xpos[t] - 20 + (Math.random() * 60);
                                                     bloody[t][r] = ypos[t] + (Math.random() * 20);
-                                                    if (bxdir[i][k] > 0) bloodxdir[t][r] = -5 + (Math.random() * 10);
-                                                    else bloodxdir[t][r] = -5 + (Math.random() * 10);
-                                                    bloodydir[t][r] = 5 - (Math.random() * 20);
+                                                    if (bxdir[i][k] > 0) bloodxdir[t][r] = (-5 + (Math.random() * 10)) * fps;
+                                                    else bloodxdir[t][r] = (-5 + (Math.random() * 10)) * fps;
+                                                    bloodydir[t][r] = (5 - (Math.random() * 20)) * fps;
                                                     bloodCount[t][r] = 0;
                                                 }
                                             }
@@ -3101,7 +3101,7 @@ function update(modifier) {
             for (q = 0; q <= 14; q++) {
                 if ((block[q] == true && gunx[i] + 10 >= blockx[q] && gunx[i] <= blockx[q] + blockw[q] && guny[i] + 20 <= blocky[q] + blockh[q] && guny[i] + 20 >= blocky[q]) || guny[i] >= 410) {
                     q = 15;
-                } else if (q == 14) guny[i] = guny[i] + (2 * modifier);
+                } else if (q == 14) guny[i] = guny[i] + ((2 * fps) * modifier);
             }
         }
 
@@ -3157,7 +3157,7 @@ function update(modifier) {
         for (i = 0; i < players; i++) {
             //global collision
             for (k = 0; k <= 14; k++) {
-                if (block[k] == true && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 <= blocky[k] + ydir[i] && ypos[i] + 20 >= blocky[k]) {
+                if (block[k] == true && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 <= blocky[k] + (ydir[i] * modifier) && ypos[i] + 20 >= blocky[k]) {
                     ground[i] = blocky[k];
                     k = 15;
                 } else if (k == 14) {
@@ -3165,7 +3165,7 @@ function update(modifier) {
                 }
             }
             for (k = 0; k <= 14; k++) {
-                if (dog[i] == true && block[k] == true && dogxpos[i] + 10 >= blockx[k] && dogxpos[i] <= blockx[k] + blockw[k] && dogypos[i] + 20 <= blocky[k] + dogydir[i] && dogypos[i] + 20 >= blocky[k]) {
+                if (dog[i] == true && block[k] == true && dogxpos[i] + 10 >= blockx[k] && dogxpos[i] <= blockx[k] + blockw[k] && dogypos[i] + 20 <= blocky[k] + (dogydir[i] * modifier) && dogypos[i] + 20 >= blocky[k]) {
                     dogground[i] = blocky[k];
                     k = 15;
                 } else if (k == 14 && dog[i] == true) {
@@ -3233,33 +3233,33 @@ function update(modifier) {
             //do movement
 
             if (stun[i] == true) {
-                stunCount[i]++;
+                stunCount[i] = stunCount[i] + fps * modifier;
                 xdir[i] = 0;
                 ydir[i] = 0;
                 shooting[i] = false;
-                if (stunCount[i] >= 10) {
+                if (stunCount[i] >= 10 * fps) {
                     stun[i] = false;
                     stunCount[i] = 0;
                 }
             }
             if (jump[i] == true) {
-                jumpCount[i]++;
+                jumpCount[i] = jumpCount[i] + fps * modifier;
                 xdir[i] = 0;
                 ydir[i] = 0;
 
-                if (jumpCount[i] == 2) {
+                if (jumpCount[i] == 2 * fps) {
                     if (right[i] == true || directionFacing[i] == 1) xpos[i] = xpos[i] + 20;
                     if (left[i] == true || directionFacing[i] == 0) xpos[i] = xpos[i] - 20;
 
                 }
-                if (jumpCount[i] == 6) {
+                if (jumpCount[i] == 6 * fps) {
 
                     if (right[i] == true || directionFacing[i] == 1) xpos[i] = xpos[i] - 40;
                     if (left[i] == true || directionFacing[i] == 0) xpos[i] = xpos[i] + 40;
 
 
                 }
-                if (jumpCount[i] == 10) {
+                if (jumpCount[i] == 10 * fps) {
 
                     jump[i] = false;
                     jumpCount[i] = 0;
