@@ -67,7 +67,7 @@ var directionFacing = [];
 
 var fps = 40;
 
-var jumpSpeed = 25 * fps;//was -15
+var jumpSpeed = 15 * fps;//was -15 then 25
 var playerSpeed = 8 * fps; //it was 8 at fps = 25(40)
 var zombieSpeed = 6 * fps; //it was 6 at fps = 25(40)
 var playerFallSpeed = 40 * fps; // was 1
@@ -1653,7 +1653,7 @@ function gameLoop() {//conte
     var delta = now - then;
 
     if (play) {
-        document.getElementById("p1").innerHTML = "Player x Velo: " + xdir[0] + " player y dir: " + ydir[0] + " biggest y: "+bigY;
+        document.getElementById("p1").innerHTML = "Player x Velo: " + xdir[0] + " player y dir: " + ydir[0] + "  swap: "+swapCount[0];
         if (ypos[0] < bigY)
             bigY = ypos[0];
     }
@@ -2205,7 +2205,7 @@ function update(modifier) {
             for (k = 0; k <= 4; k++) {
                 onCount[k] = 0;
                 for (i = 0; i < players; i++) {
-                    if (level == 4 && block[k] == true && xpos[i] + 10 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 <= blocky[k] && ypos[i] + 20 >= blocky[k]) {// + ydir[i] * modifier <-- 2nd top last && with blocky
+                    if (level == 4 && block[k] == true && xpos[i] + 10 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 <= blocky[k] + ydir[i] * modifier && ypos[i] + 20 >= blocky[k]) {// <-- 2nd top last && with blocky
                         if (blocky[k] < 410) {
                             blocky[k]++;
                             ground[i] = blocky[k];
@@ -2475,7 +2475,7 @@ function update(modifier) {
                 lungeCount[i] = 0;
             }
             if (lunge[i] == true && (gun[i][equip[i]] == 7 || gun[i][equip[i]] == 8) && ((i <= 3 && custom == true) || (i == 0 && zombie == true))) {
-                lungeCount[i]++;
+                lungeCount[i] = lungeCount[i] + fps * modifier;
                 if (lungeCount[i] >= 10) {
                     lungeCount[i] = 0;
                     lunge[i] = false;
@@ -2964,7 +2964,7 @@ function update(modifier) {
         //holding down
         for (i = 0; i < players; i++) {
             if (down[i] == true) {
-                downCount[i]++;
+                downCount[i] = downCount[i] + fps * modifier;
             }
         }
         //survival mode
@@ -3116,7 +3116,7 @@ function update(modifier) {
         for (i = 0; i < players; i++) {
             if (swap[i] == true) {
                 swapCount[i] = swapCount[i] + fps * modifier;
-                if (swapCount[i] == 15) {
+                if (swapCount[i] > 15) {
                     if (reload[i] == true) {
                         reload[i] = false;
                         clips[i][equip[i]]++;
@@ -3128,6 +3128,7 @@ function update(modifier) {
                         equip[i] = 0;
                     }
                     swap[i] = false;
+                    swapCount[i] = 0;
                 }
             }
         }
@@ -3164,7 +3165,7 @@ function update(modifier) {
         for (i = 0; i < players; i++) {
             //global collision
             for (k = 0; k <= 14; k++) {
-                if (block[k] == true && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 <= blocky[k] && ypos[i] + 20 >= blocky[k]) {// + (ydir[i]) 5
+                if (block[k] == true && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 <= blocky[k] + (ydir[i] * modifier) && ypos[i] + 20 >= blocky[k]) {// + (ydir[i]) 5
                     ground[i] = blocky[k];
                     k = 15;
                 } else if (k == 14) {
@@ -3172,7 +3173,7 @@ function update(modifier) {
                 }
             }
             for (k = 0; k <= 14; k++) {
-                if (dog[i] == true && block[k] == true && dogxpos[i] + 10 >= blockx[k] && dogxpos[i] <= blockx[k] + blockw[k] && dogypos[i] + 20 <= blocky[k] + (dogydir[i]) && dogypos[i] + 20 >= blocky[k]) {
+                if (dog[i] == true && block[k] == true && dogxpos[i] + 10 >= blockx[k] && dogxpos[i] <= blockx[k] + blockw[k] && dogypos[i] + 20 <= blocky[k] + (dogydir[i] * modifier) && dogypos[i] + 20 >= blocky[k]) {
                     dogground[i] = blocky[k];
                     k = 15;
                 } else if (k == 14 && dog[i] == true) {
