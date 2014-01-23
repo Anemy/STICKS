@@ -261,6 +261,7 @@ var zombieR;
 var zombieL;
 var zombieLm = []; //2
 var zombieRm = [];
+var zombieHitCount = 0;
 
 var hp;
 var am;
@@ -1653,7 +1654,7 @@ function gameLoop() {//conte
     var delta = now - then;
 
     if (play) {
-        document.getElementById("p1").innerHTML = "Player x Velo: " + xdir[0] + " player y dir: " + ydir[0] + "  swap: "+swapCount[0];
+        document.getElementById("p1").innerHTML = "Player x Velo: " + xdir[0] + " player y dir: " + ydir[0] + "  bloodCount: " ;
         if (ypos[0] < bigY)
             bigY = ypos[0];
     }
@@ -2659,10 +2660,10 @@ function update(modifier) {
                         } else if (q == 14) {
                             bloodx[i][k] = bloodx[i][k] + bloodxdir[i][k] * modifier;
                             bloody[i][k] = bloody[i][k] + bloodydir[i][k] * modifier;
-                            if (bloodydir[i][k] < 10 * fps) bloodydir[i][k] = bloodydir[i][k] + fps * modifier;
+                            if (bloodydir[i][k] * modifier < 10) bloodydir[i][k] = bloodydir[i][k] + playerFallSpeed * modifier;
                         }
                     }
-                    bloodCount[i][k]++;
+                    bloodCount[i][k] = bloodCount[i][k] + fps * modifier;
                     if (bloodCount[i][k] >= 700) {
                         blood[i][k] = false;
                     }
@@ -2673,38 +2674,38 @@ function update(modifier) {
         if (zombie == true) {
             for (i = 1; i <= 24; i++) {
                 if (xpos[i] + 20 >= xpos[0] && xpos[i] <= xpos[0] + 20 && ypos[i] + 20 >= ypos[0] && ypos[i] <= ypos[0] + 20 && ypos[i] > 0) {
-                    for (q = 0; q <= 999; q++) {
-                        if (blood[0][q] == false) {
-                            num = (Math.random() * 15 + 5);
-                            if ((q + num) <= 999) {
-                                for (r = q; r <= q + num; r++) {
-                                    blood[0][r] = true;
-                                    bloodx[0][r] = xpos[0] + (Math.random() * 20);
-                                    bloody[0][r] = ypos[0] + (Math.random() * 10);
-                                    if (xdir[i] > 0) bloodxdir[0][r] = (-1 + (Math.random() * 7)) * fps;
-                                    else bloodxdir[0][r] = (-5 + (Math.random() * 7)) * fps;
-                                    bloodydir[0][r] = (2 - (Math.random() * 5)) * fps;
-                                    bloodCount[0][r] = 0;
+                    zombieHitCount = zombieHitCount + fps * modifier;
+                    if (zombieHitCount > 3) {
+                        zombieHitCount = 0;
+                        for (q = 0; q <= 999; q++) {
+                            if (blood[0][q] == false) {
+                                num = (Math.random() * 15 + 5);
+                                if ((q + num) <= 999) {
+                                    for (r = q; r <= q + num; r++) {
+                                        blood[0][r] = true;
+                                        bloodx[0][r] = xpos[0] + (Math.random() * 20);
+                                        bloody[0][r] = ypos[0] + (Math.random() * 10);
+                                        if (xdir[i] > 0) bloodxdir[0][r] = (-1 + (Math.random() * 7)) * fps;
+                                        else bloodxdir[0][r] = (-5 + (Math.random() * 7)) * fps;
+                                        bloodydir[0][r] = (2 - (Math.random() * 5)) * fps;
+                                        bloodCount[0][r] = 0;
+                                    }
+                                } else if ((q + num) > 999) {
+                                    for (r = q; r <= 999; r++) {
+                                        blood[0][r] = true;
+                                        bloodx[0][r] = xpos[0] + (Math.random() * 20);
+                                        bloody[0][r] = ypos[0] + (Math.random() * 10);
+                                        if (xdir[i] > 0) bloodxdir[0][r] = (-1 + (Math.random() * 7)) * fps;
+                                        else bloodxdir[0][r] = (-5 + (Math.random() * 7)) * fps;
+                                        bloodydir[0][r] = (2 - (Math.random() * 5)) * fps;
+                                        bloodCount[0][r] = 0;
+                                    }
                                 }
-                            } else if ((q + num) > 999) {
-                                for (r = q; r <= 999; r++) {
-                                    blood[0][r] = true;
-                                    bloodx[0][r] = xpos[0] + (Math.random() * 20);
-                                    bloody[0][r] = ypos[0] + (Math.random() * 10);
-                                    if (xdir[i] > 0) bloodxdir[0][r] = (-1 + (Math.random() * 7)) * fps;
-                                    else bloodxdir[0][r] = (-5 + (Math.random() * 7)) * fps;
-                                    bloodydir[0][r] = (2 - (Math.random() * 5)) * fps;
-                                    bloodCount[0][r] = 0;
-                                }
+                                q = 1000;
                             }
-                            q = 1000;
                         }
-                    }
-                    random = (Math.random() * 5);
-                    if (random > 1 && random < 3) {
                         health[0] = health[0] - 1;
                     }
-
                 }
             }
         }
