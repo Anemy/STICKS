@@ -1654,12 +1654,14 @@ function gameLoop() {//conte
     var delta = now - then;
 
     if (play) {
-        document.getElementById("p1").innerHTML = "Player x Velo: " + xdir[0] + " player y dir: " + ydir[0] + "  bloodCount: " ;
+        //document.getElementById("p1").innerHTML = "Player x Velo: " + xdir[0] + " player y dir: " + ydir[0] + "  bloodCount: " ;
         if (ypos[0] < bigY)
             bigY = ypos[0];
     }
 
-    update(delta / 1000);
+    //avoid update if low fps
+    if(delta / 1000 < .100)
+	update(delta / 1000);
     render();
 
     then = now;
@@ -3472,7 +3474,7 @@ function keyPressed(e) {
             //}
         }
     }
-    if (key == 222) {
+    if (key == 222 || key == 96) {
         if (play == true && cpu[0] == false) {
             if (shooting[0] == false && reload[0] == false && stun[0] == false) {
                 shooting[0] = true;
