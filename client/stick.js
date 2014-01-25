@@ -67,7 +67,7 @@ var directionFacing = [];
 
 var fps = 40;
 
-var jumpSpeed = 15 * fps;//was -15 then 25
+var jumpSpeed = 15 * fps;//was then 25
 var playerSpeed = 8 * fps; //it was 8 at fps = 25(40)
 var zombieSpeed = 6 * fps; //it was 6 at fps = 25(40)
 var playerFallSpeed = 40 * fps; // was 1
