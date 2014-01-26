@@ -1505,7 +1505,7 @@ function render() {//ctx
         }
 
         //falling guns
-        ctx.drawImage(am, gunx[0] * scale, guny[0 * scale], 20 * scale, 20 * scale);
+        ctx.drawImage(am, gunx[0] * scale, guny[0] * scale, 20 * scale, 20 * scale);
         ctx.drawImage(gunRight[1], gunx[1] * scale, guny[1] * scale, 17 * scale, 3 * scale);
         ctx.drawImage(gunRight[2], gunx[2] * scale, guny[2] * scale, 11 * scale, 5 * scale);
         ctx.drawImage(gunRight[3], gunx[3] * scale, guny[3] * scale, 28 * scale, 7 * scale);
@@ -3258,7 +3258,7 @@ function update(modifier) {
 
             //y movement
             ydir[i] = ydir[i] + playerFallSpeed * modifier;// used to be 1
-            if (ypos[i] + 20 >= ground[i] && ydir[i] > 0) {
+            if (ypos[i] + 20 + (ydir[i] * modifier) >= ground[i] && ydir[i] > 0) {
                 ydir[i] = 0;
                 ypos[i] = ground[i] - 20;
                 if (streak[i] >= 3 && streak[i] < 6 && fuel[i] < 20 && fuelCount[i] >= 2) {
