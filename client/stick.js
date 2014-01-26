@@ -1962,7 +1962,7 @@ function update(modifier) {
                         if (dogxpos[i] >= dogtargetx[i] - 20 && dogxpos[i] <= dogtargetx[i] + 20 && dogupPath[i] == false) {
                             dogleft[i] = false;
                             dogright[i] = false;
-                            dogxdi[i] = 0;
+                            dogxdir[i] = 0;
 
                         }
                     }
