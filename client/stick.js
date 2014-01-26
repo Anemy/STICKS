@@ -1505,7 +1505,7 @@ function render() {//ctx
         }
 
         //falling guns
-        ctx.drawImage(am, gunx[0] * scale, guny[0 * scale], 20 * scale, 20 * scale);
+        ctx.drawImage(am, gunx[0] * scale, guny[0] * scale, 20 * scale, 20 * scale);
         ctx.drawImage(gunRight[1], gunx[1] * scale, guny[1] * scale, 17 * scale, 3 * scale);
         ctx.drawImage(gunRight[2], gunx[2] * scale, guny[2] * scale, 11 * scale, 5 * scale);
         ctx.drawImage(gunRight[3], gunx[3] * scale, guny[3] * scale, 28 * scale, 7 * scale);
@@ -3235,10 +3235,12 @@ function update(modifier) {
             }
         }
         //movement
-        for (i = 0; i < players; i++) {
+        for (i = 0; i < players; i++) { 
+            //set ydir
+	    ydir[i] = ydir[i] + playerFallSpeed * modifier;// used to be 1
             //global collision
             for (k = 0; k <= 14; k++) {
-                if (block[k] == true && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 <= blocky[k] + (ydir[i] * modifier) && ypos[i] + 20 >= blocky[k]) {// + (ydir[i]) 5
+                if (block[k] == true && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 + (ydir[i] * modifier) <= blocky[k] + (ydir[i] * modifier) && ypos[i] + 20 + (ydir[i] * modifier) >= blocky[k]) {// + (ydir[i]) 5
                     ground[i] = blocky[k];
                     k = 15;
                 } else if (k == 14) {
@@ -3257,8 +3259,7 @@ function update(modifier) {
             fuelCount[i] = fuelCount[i] + fps * modifier;
 
             //y movement
-            ydir[i] = ydir[i] + playerFallSpeed * modifier;// used to be 1
-            if (ypos[i] + 20 >= ground[i] && ydir[i] > 0) {
+            if (ypos[i] + 20 + (ydir[i] * modifier) >= ground[i] && ydir[i] > 0) {
                 ydir[i] = 0;
                 ypos[i] = ground[i] - 20;
                 if (streak[i] >= 3 && streak[i] < 6 && fuel[i] < 20 && fuelCount[i] >= 2) {
