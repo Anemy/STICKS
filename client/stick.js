@@ -233,6 +233,14 @@ var upPath = [];
 var zombieAlive = 1;
 
 //Images
+
+//backgrounds
+var background = []; // 1 for now
+//images
+var platformMid = [];   // 1 for now 
+var platformLeft = [];  //
+var platformRight = []; // 
+
 var gunRight = []; //gun right 10
 var gunLeft = []; //gun left
 var gunUp = []; //gun up 10 2
@@ -323,6 +331,58 @@ function init() {
         healthpacky[i] = -20;
     }
     //Images
+    
+    //backgrounds
+    background[0] = new Image ();
+    background[0].src = (("images/background0.png"));
+    
+    background[1] = new Image ();
+    background[1].src = (("images/background1.png"));
+
+    background[2] = new Image ();
+    background[2].src = (("images/background2.png"));
+
+    background[3] = new Image ();
+    background[3].src = (("images/background3.png"));
+
+    background[4] = new Image ();
+    background[4].src = (("images/background4.png"));
+    //platforms	
+    platformMid[0] = new Image();
+    platformMid[0].src = (("images/platformMid0.png"));
+    platformRight[0] = new Image();
+    platformRight[0].src = (("images/platformRight0.png"));
+    platformLeft[0] = new Image();
+    platformLeft[0].src = (("images/platformLeft0.png"));
+
+    platformMid[1] = new Image();
+    platformMid[1].src = (("images/platformMid1.png"));
+    platformRight[1] = new Image();
+    platformRight[1].src = (("images/platformRight1.png"));
+    platformLeft[1] = new Image();
+    platformLeft[1].src = (("images/platformLeft1.png"));
+
+    platformMid[2] = new Image();
+    platformMid[2].src = (("images/platformMid2.png"));
+    platformRight[2] = new Image();
+    platformRight[2].src = (("images/platformRight2.png"));
+    platformLeft[2] = new Image();
+    platformLeft[2].src = (("images/platformLeft2.png"));
+
+    platformMid[3] = new Image();
+    platformMid[3].src = (("images/platformMid3.png"));
+    platformRight[3] = new Image();
+    platformRight[3].src = (("images/platformRight3.png"));
+    platformLeft[3] = new Image();
+    platformLeft[3].src = (("images/platformLeft3.png"));
+
+    platformMid[4] = new Image();
+    platformMid[4].src = (("images/platformMid4.png"));
+    platformRight[4] = new Image();
+    platformRight[4].src = (("images/platformRight4.png"));
+    platformLeft[4] = new Image();
+    platformLeft[4].src = (("images/platformLeft4.png"));
+
     //gun equipped
     gunRight[0] = new Image();
     gunRight[0].src = (("images/PistolRight.png"));
@@ -1086,8 +1146,27 @@ function render() {//ctx
 
     //ORIGINAL paint
     if ((menu == 3 || play == true || menu == 5)) {
-        if (level == 1) ctx.drawImage(map[0], 0, 0, gameWidth, gameHeight);
-        if (level == 4) ctx.drawImage(map[1], 0, 0, gameWidth, gameHeight);
+        //if (level == 1) ctx.drawImage(map[0], 0, 0, gameWidth, gameHeight);
+        //if (level == 4) ctx.drawImage(map[1], 0, 0, gameWidth, gameHeight);
+	ctx.drawImage(background[level-1], 0, 0, gameWidth, gameHeight);
+	
+
+	 //blocks
+        for (i = 0; i <= 14; i++) {
+            if (block[i] == true) {
+                ctx.fillStyle = "rgba(0, 0, 0 , 1)";
+                //if (level == 4) ctx.drawImage(blockImage[3], blockx[i] * scale, blocky[i] * scale, blockw[i] * scale, blockh[i] * scale);
+                //else ctx.fillRect(blockx[i] * scale, blocky[i] * scale, blockw[i] * scale, blockh[i] * scale);
+		ctx.drawImage(platformLeft[level-1], blockx[i] * scale, (blocky[i]) * scale, 20 * scale, blockh[i] * scale);	
+		ctx.drawImage(platformRight[level-1], (blockx[i] + (blockw[i]/20 - 1) * 20) * scale, (blocky[i]) * scale, 20 * scale, blockh[i] * scale);		
+		for(k = 1; k < blockw[i]/20 - 1; k++){		
+			if(blockw[i]%20 != 0 && k == blockw[i]/20 - 2)
+				ctx.drawImage(platformMid[level-1], (blockx[i] + (k * 20)) * scale, (blocky[i]) * scale, blockw[i]%20 * scale, blockh[i] * scale);			
+			else			
+				ctx.drawImage(platformMid[level-1], (blockx[i] + (k * 20)) * scale, (blocky[i]) * scale, 20 * scale, blockh[i] * scale);
+		}
+            }
+        }
 
         for (i = 0; i < players; i++) {
             for (k = 0; k <= 99; k++) {
@@ -1104,9 +1183,10 @@ function render() {//ctx
                 }
             }
         }
+
         //players
 
-        for (i = 0; i < players; i++) {
+     for (i = 0; i < players; i++) {
             if (dog[i] == true) {
                 if (dogleft[i] == true && dogydir[i] == 0) {
                     if (runCount[i] <= 10) {
@@ -1434,20 +1514,7 @@ function render() {//ctx
         ctx.drawImage(gunRight[6], gunx[6] * scale, guny[6] * scale, 20 * scale, 20 * scale);
         ctx.drawImage(redSwordStill[1], gunx[7] * scale, guny[7] * scale, 20 * scale, 20 * scale);
 
-
-
-        //ground  (don't need once maps are drawn)
-        ctx.fillStyle = "rgba(0, 250, 0 , 1)";
-        if (level != 1 && level != 4) ctx.fillRect(0, 430 * scale, 1400 * scale, 20 * scale);
-
-        //blocks
-        for (i = 0; i <= 14; i++) {
-            if (block[i] == true && level != 1) {
-                ctx.fillStyle = "rgba(0, 0, 0 , 1)";
-                if (level == 4) ctx.drawImage(blockImage[3], blockx[i] * scale, blocky[i] * scale, blockw[i] * scale, blockh[i] * scale);
-                else ctx.fillRect(blockx[i] * scale, blocky[i] * scale, blockw[i] * scale, blockh[i] * scale);
-            }
-        }
+       
         //health packs
         for (i = 0; i < players; i++) {
             ctx.drawImage(hp, healthpackx[i] * scale, healthpacky[i] * scale, 20 * scale, 20 * scale);
@@ -1508,6 +1575,7 @@ function render() {//ctx
 
     }
         //END ORIGINAL paint
+	
 
         //menus
         //main menu
@@ -1555,6 +1623,7 @@ function render() {//ctx
     }
         //select game mode  zombie or custom
     else if (menu == 6) {
+
         ctx.drawImage(menuImage[6], 0, 0, gameWidth, gameHeight);
 
         if (boxx == 368 && boxy == 400 && checked[0] == true) {
@@ -3068,6 +3137,7 @@ function update(modifier) {
                         else if (gun[k][0] == 0) {
                             gun[k][0] = i + 1;
                             clips[k][0] = 3;
+
                             equip[k] = 0;
                             ammo[k][0] = maxAmmo[i];
                         }
