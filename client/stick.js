@@ -3238,6 +3238,8 @@ function update(modifier) {
         for (i = 0; i < players; i++) { 
             //set ydir
 	    ydir[i] = ydir[i] + playerFallSpeed * modifier;// used to be 1
+	    //set dogydir
+	    if (dog[i]) dogydir[i] = dogydir[i] + playerFallSpeed * modifier;
             //global collision
             for (k = 0; k <= 14; k++) {
                 if (block[k] == true && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 + (ydir[i] * modifier) <= blocky[k] + (ydir[i] * modifier) && ypos[i] + 20 + (ydir[i] * modifier) >= blocky[k]) {// + (ydir[i]) 5
@@ -3248,7 +3250,7 @@ function update(modifier) {
                 }
             }
             for (k = 0; k <= 14; k++) {
-                if (dog[i] == true && block[k] == true && dogxpos[i] + 10 >= blockx[k] && dogxpos[i] <= blockx[k] + blockw[k] && dogypos[i] + 20 <= blocky[k] + (dogydir[i] * modifier) && dogypos[i] + 20 >= blocky[k]) {
+                if (dog[i] == true && block[k] == true && dogxpos[i] + 10 >= blockx[k] && dogxpos[i] <= blockx[k] + blockw[k] && dogypos[i] + 20 + (dogydir[i] * modifier) <= blocky[k] + (dogydir[i] * modifier) && dogypos[i] + 20 + (dogydir[i] * modifier) >= blocky[k]) {
                     dogground[i] = blocky[k];
                     k = 15;
                 } else if (k == 14 && dog[i] == true) {
@@ -3294,8 +3296,7 @@ function update(modifier) {
 
             if (dog[i] == true) {
                 //y movement
-                dogydir[i] = dogydir[i] + playerFallSpeed;
-                if (dogypos[i] + 20 >= dogground[i] && dogydir[i] > 0) {
+                if (dogypos[i] + 20 + (dogydir[i] * modifier)>= dogground[i] && dogydir[i] > 0) {
                     dogydir[i] = 0;
                     dogypos[i] = dogground[i] - 20;
                 }
