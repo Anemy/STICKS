@@ -3235,10 +3235,12 @@ function update(modifier) {
             }
         }
         //movement
-        for (i = 0; i < players; i++) {
+        for (i = 0; i < players; i++) { 
+            //set ydir
+	    ydir[i] = ydir[i] + playerFallSpeed * modifier;// used to be 1
             //global collision
             for (k = 0; k <= 14; k++) {
-                if (block[k] == true && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 <= blocky[k] + (ydir[i] * modifier) && ypos[i] + 20 >= blocky[k]) {// + (ydir[i]) 5
+                if (block[k] == true && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 + (ydir[i] * modifier) <= blocky[k] + (ydir[i] * modifier) && ypos[i] + 20 + (ydir[i] * modifier) >= blocky[k]) {// + (ydir[i]) 5
                     ground[i] = blocky[k];
                     k = 15;
                 } else if (k == 14) {
@@ -3257,7 +3259,6 @@ function update(modifier) {
             fuelCount[i] = fuelCount[i] + fps * modifier;
 
             //y movement
-            ydir[i] = ydir[i] + playerFallSpeed * modifier;// used to be 1
             if (ypos[i] + 20 + (ydir[i] * modifier) >= ground[i] && ydir[i] > 0) {
                 ydir[i] = 0;
                 ypos[i] = ground[i] - 20;
