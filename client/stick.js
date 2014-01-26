@@ -2319,7 +2319,7 @@ function update(modifier) {
             }
             //health packs
             if (healthpack[i] == true) {
-                if (healthpacky[i] < 410) healthpacky[i] = healthpacky[i] + 2;
+                if (healthpacky[i] < 410) healthpacky[i] = healthpacky[i] + 2 * modifier * fps;
                 if (ypos[i] > 0 && streak[i] >= 2) healthpackx[i] = xpos[i];
             } else {
                 healthpacky[i] = -20;
