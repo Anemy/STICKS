@@ -345,8 +345,8 @@ function init() {
     background[3] = new Image ();
     background[3].src = (("images/background3.png"));
 
-    background[4] = new Image ();
-    background[4].src = (("images/background4.png"));
+    background[5] = new Image ();
+    background[5].src = (("images/background4.png"));
     //platforms	
     platformMid[0] = new Image();
     platformMid[0].src = (("images/platformMid0.png"));
@@ -376,12 +376,12 @@ function init() {
     platformLeft[3] = new Image();
     platformLeft[3].src = (("images/platformLeft3.png"));
 
-    platformMid[4] = new Image();
-    platformMid[4].src = (("images/platformMid4.png"));
-    platformRight[4] = new Image();
-    platformRight[4].src = (("images/platformRight4.png"));
-    platformLeft[4] = new Image();
-    platformLeft[4].src = (("images/platformLeft4.png"));
+    platformMid[5] = new Image();
+    platformMid[5].src = (("images/platformMid4.png"));
+    platformRight[5] = new Image();
+    platformRight[5].src = (("images/platformRight4.png"));
+    platformLeft[5] = new Image();
+    platformLeft[5].src = (("images/platformLeft4.png"));
 
     //gun equipped
     gunRight[0] = new Image();
@@ -1065,7 +1065,7 @@ function loadMap() {
     if (level == 6) {
         block[0] = true;
         block[1] = true;
-        block[2] = true;
+        //block[2] = true;
         block[3] = true;
         block[4] = true;
         block[5] = true;
@@ -1084,10 +1084,10 @@ function loadMap() {
         blockw[1] = 100;
         blockh[1] = 20;
 
-        blockx[2] = 400;
-        blocky[2] = 150;
-        blockw[2] = 100;
-        blockh[2] = 20;
+        //blockx[2] = 400;
+        //blocky[2] = 150;
+        //blockw[2] = 100;
+        //blockh[2] = 20;
 
         blockx[3] = 0;
         blocky[3] = 50;
@@ -1109,9 +1109,9 @@ function loadMap() {
         blockw[6] = 30;
         blockh[6] = 20;
 
-        blockx[7] = 500;
+        blockx[7] = 400;
         blocky[7] = 150;
-        blockw[7] = 150;
+        blockw[7] = 250;
         blockh[7] = 20;
 
         blockx[8] = 0;
