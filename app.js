@@ -9,7 +9,8 @@
 */
 
     var
-        gameport        = process.env.PORT || 4004,
+        gameport = process.env.PORT || 4420,//4
+        //gameport = 'stick-battle.com',
 
         io              = require('socket.io'),
         express         = require('express'),
@@ -17,6 +18,7 @@
 
         verbose         = false,
         http            = require('http'),
+        https           = require('https'),
         app             = express(),
         server          = http.createServer(app);
 
@@ -28,7 +30,7 @@
 //so keep this in mind - this is not a production script but a development teaching tool.
 
         //Tell the server to listen for incoming connections
-    server.listen(gameport)
+    server.listen(gameport);//, 'stick-battle.com');
 
         //Log something so we know that it succeeded.
     console.log('\t :: Express :: Listening on port ' + gameport );
@@ -80,7 +82,7 @@
         //Enter the game server code. The game server handles
         //client connections looking for a game, creating games,
         //leaving games, joining games and ending games when they leave.
-    game_server = require('./game.server.js');
+    game_server = require('./bare-bones-server.js');
 
         //Socket.io will call this function when a client connects,
         //So we can send that client looking for a game to play,

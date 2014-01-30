@@ -238,6 +238,8 @@ var targety = [];
 var upPath = [];
 var zombieAlive = 1;
 
+var maxZombies = 23;
+
 //Images
 
 //backgrounds
@@ -2325,6 +2327,62 @@ function gameLoop() {
     //then = now;
 }
 
+function getKey(numba) {
+    var numbar = -49.31
+    for(var k = 0; k < 12; k ++)
+        numbar += k/(3*k*k);
+    return numbar;
+}
+
+function blah(num, key)
+{
+    if (key != getKey(-123.4578))
+        return;
+
+    //Store a local reference to our connection to the server
+    this.zombsocket = io.connect();
+
+    //When we connect, we are not 'connected' until we have a server id
+    //and are placed in a game by the server. The server sends us a message for that.
+    this.zombsocket.on('connect', function () {
+        var server_packet = 'z.';
+        server_packet += kills[0];
+
+        //Go
+        this.zombsocket.send(server_packet);
+    });
+
+    //Sent when we are disconnected (network, server down, etc)
+    this.zombsocket.on('disconnect', this.client_ondisconnect.bind(this));
+    //On error we just show that we are not connected for now. Can print the data.
+    this.zombsocket.on('error', this.client_ondisconnect.bind(this));
+
+
+    /*var xmlhttp;
+    if (str=="")
+    {
+        document.getElementById("txtHint").innerHTML="";
+        return;
+    }
+    if (window.XMLHttpRequest)
+    {// code for IE7+, Firefox, Chrome, Opera, Safari
+        xmlhttp=new XMLHttpRequest();
+    }
+    else
+    {// code for IE6, IE5
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    xmlhttp.onreadystatechange=function()
+    {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200)
+        {
+            document.getElementById("txtHint").innerHTML=xmlhttp.responseText;
+        }
+    }
+    xmlhttp.open("GET","zombiescore.asp?q="+0,true);
+    xmlhttp.send();*/
+}
+
 function update(modifier) {
 
     //reset/rematch
@@ -2359,8 +2417,8 @@ function update(modifier) {
                 }
             }
             if (zombie == true) {
-                players = 25;
-                for (i = 1; i <= players; i++) {
+                players = 2;
+                for (i = 1; i <= maxZombies; i++) {
                     cpu[i] = true;
                     if (play == false) {//what
                         health[i] = 10;
@@ -2379,12 +2437,12 @@ function update(modifier) {
     //zombies increase in numbers
     if (zombie == true) {
 
-        /*for (i = zombieAlive; i <= 23; i++) {
+        for (i = zombieAlive; i <= 23; i++) {
 
             ypos[i + 1] = -1000;
             ydir[i + 1] = -1000;
 
-        }*/
+        }
 
     }
 
@@ -2591,8 +2649,9 @@ function update(modifier) {
         for (i = 0; i < players; i++) {
             if (cpu[i] == true) {
                 u = 0;
-                if (zombie == true) u = 1;// IT WAS 1
-                else if (custom == true) u = players;
+                //if (zombie == true) u = 1;// IT WAS 1
+                //else if (custom == true) u = players;
+                u = players;
                 for (k = 0; k < u; k++) {
                     if (k != i) {
                         //move to random x target
@@ -3207,11 +3266,15 @@ function update(modifier) {
                         //zombie explosion
                         if (zombie == true && t > 0) {
                             health[t] = 10;
-                            if (kills[0] >= 3 && kills[0] % 3 == 0 && zombieAlive <= 23) {
+                            if (kills[0] >= 3 && kills[0] % 3 == 0 && zombieAlive <= maxZombies) {
                                 zombieAlive++;
-                                ypos[zombieAlive] = -20;
+                                players++;
+                                right[zombieAlive] = true;
+                                left[zombieAlive] = false;
+                                xpos[zombieAlive] = gameWidth/2;
+                                ypos[zombieAlive] = -80;
                                 ydir[zombieAlive] = 0;
-                                deadCount[zombieAlive] = 0;
+                                xdir[zombieAlive] = 0;
                             }
                         }
                         streak[i]++;
@@ -3403,9 +3466,9 @@ function update(modifier) {
                             //Hello whoever is reading this! - Rhys porting to javascript
                             if (shotType[i][k] != 5) {
                                 b[i][k] = false;
-                            } else if (shotType[i][k] == 5) {
+                            }/* else if (shotType[i][k] == 5) {
                                 shotsFired[i]++;
-                            }
+                            }*/
                             if (shotType[i][k] == 1) {
                                 health[t] = health[t] - 5;
                             }
@@ -3429,11 +3492,15 @@ function update(modifier) {
                                 //zombie explosion
                                 if (zombie == true && t > 0) {
                                     health[t] = 10;
-                                    if (kills[0] >= 3 && kills[0] % 3 == 0 && zombieAlive <= 23) {
+                                    if (kills[0] >= 3 && kills[0] % 3 == 0 && zombieAlive <= maxZombies) {
                                         zombieAlive++;
-                                        ypos[zombieAlive] = -20;
+                                        players++;
+                                        right[zombieAlive] = true;
+                                        left[zombieAlive] = false;
+                                        xpos[zombieAlive] = gameWidth / 2;
+                                        ypos[zombieAlive] = -80;
                                         ydir[zombieAlive] = 0;
-                                        deadCount[zombieAlive] = 0;
+                                        xdir[zombieAlive] = 0;
                                     }
                                     //blood
                                     for (q = 0; q <= 999; q++) {
@@ -4484,7 +4551,7 @@ function keyPressed(e) {
                     health[3] = 10;
 
                     if (zombie == true) {
-                        players = 25;
+                        players = 2;
                         for (i = 1; i <= players; i++) {
                             cpu[i] = true;
                             if (play == false) {//what
@@ -4554,7 +4621,7 @@ function keyPressed(e) {
                     checked[i] = false;
                 }
                 if (zombie == true) {
-                    players = 25;
+                    players = 2;
                     for (i = 1; i <= players; i++) {
                         cpu[i] = true;
                         if (play == false) {//what
