@@ -10,6 +10,9 @@ var xdir = [];
 //6=mode select
 var ydir = [];
 var ground = [];
+var right = [];
+var left = [];
+var directionFacing = [];
 
 var fps = 40;
 
@@ -136,6 +139,8 @@ messages = [];
 
 //var players;
 
+var then;
+
 var server_instance = function () {
     console.log('in constructor');
 
@@ -182,7 +187,14 @@ var game_player = function (game_instance, player_instance) {
     this.game = game_instance;
 };
 
-server_instance.prototype.initGame = function() {
+server_instance.prototype.initGame = function () {
+    then = Date.now();
+
+    //set sides
+    right[0] = false;
+    right[1] = false;
+    left[0] = false;
+    left[1] = false;
 
     //set dirs
     ydir[0] = 0;
@@ -241,54 +253,76 @@ server_instance.prototype.process_input = function (player) {
             //if (player.inputs[j].seq <= player.last_input_seq) continue;
 
     var input = player.lastInput;
-    var sender = player.playerSent;
+    var sender = input.playerSent;
     var key = input.itype;
+
+    //console.log("Input recieved, type: " + input.time + " key: " + key + " and sender: " + sender);
 
     if (input.time == 'd') {
         //player 0-Red
         if (key == 39) {
-            if (sender == 'host')
-                xpos[0] = xpos[0] + 15;
-            else
-                xpos[1] = xpos[1] + 15;
+            if (sender == 'host') {
+                right[0] = true;
+                left[0] = false;
+            }
+            else if (sender == 'client') {
+                right[1] = true;
+                left[1] = false;
+            }
         }
         if (key == 37) {
-            if (sender == 'host')
-                xpos[0] = xpos[0] - 15;
-            else
-                xpos[1] = xpos[1] + 15;
+            if (sender == 'host') {
+                left[0] = true;
+                right[0] = false;
+            }
+            else if (sender == 'client') {
+                left[1] = true;
+                right[1] = false;
+            }
         }
-        if (key == 39) {
-            if (sender == 'host')
-                xpos[0] = xpos[0] - 15;
-            else
-                xpos[1] = xpos[1] - 15;
+        if (key == 38) {
+            if (sender == 'host') {
+                if (ydir[0] == 0 && ypos[0] == ground[0] - 20) {
+                    ydir[0] = -jumpSpeed;
+                } else {
+                    //if (fuel[1] > 0 && streak[1] >= 3) jetpack[1] = true;
+                }
+            }
+            else if (sender == 'client') {
+                if (ydir[1] == 0 && ypos[1] == ground[1] - 20) {
+                    ydir[1] = -jumpSpeed;
+                } else {
+                    //if (fuel[1] > 0 && streak[1] >= 3) jetpack[1] = true;
+                }
+            }
         }
-        if (key == 40) {
+        /*if (key == 40) {
             //swap
-        }
+            if (sender == 'host')
+                ypos[0] = ypos[0] + 15;
+            else if (sender == 'client')
+                ypos[1] = ypos[1] + 15;
+        }*/
         if (key == 222) {
             //shoot
         }
     }
     if (input.time == 'u') {
         if (key == 39) {
-            if (sender == 'host')
-                xpos[0] = xpos[0] + 15;
-            else
-                xpos[1] = xpos[1] + 15;
+            if (sender == 'host') {
+                right[0] = false;
+            }
+            else if (sender == 'client') {
+                right[1] = false;
+            }
         }
         if (key == 37) {
-            if (sender == 'host')
-                xpos[0] = xpos[0] - 15;
-            else
-                xpos[1] = xpos[1] + 15;
-        }
-        if (key == 39) {
-            if (sender == 'host')
-                xpos[0] = xpos[0] - 15;
-            else
-                xpos[1] = xpos[1] - 15;
+            if (sender == 'host') {
+                left[0] = false;
+            }
+            else if (sender == 'client') {
+                left[1] = false;
+            }
         }
         if (key == 40) {
             //swap
@@ -299,59 +333,6 @@ server_instance.prototype.process_input = function (player) {
     }
 
     player.lastInput = null;
-            /*for (var i = 0; i < c; i++) {
-                var key = input[i];
-                if (key == 'l') {
-                    x_dir -= 1;
-                }*/
-                
-                /*if(input.itype == 'd')
-                //player 1-other
-                //right
-                if (onlineState == 'Offline') {
-                    if (key == 68) {
-                        if (play == true && cpu[1] == false) {
-                            right[1] = true;
-                            left[1] = false;
-                        }
-                    }
-                    //left
-                    if (key == 65) {
-                        if (play == true && cpu[1] == false) {
-                            left[1] = true;
-                            right[1] = false;
-                        }
-                    }
-                    //up
-                    if (key == 87) {
-                        if (play == true && cpu[1] == false) {
-                            if (ydir[1] == 0 && ypos[1] == ground[1] - 20) {
-                                ydir[1] = -jumpSpeed;
-                            } else {
-                                if (fuel[1] > 0 && streak[1] >= 3) jetpack[1] = true;
-                            }
-                        }
-                    }
-                    //down
-                    if (key == 83) {
-                        if (play == true && cpu[1] == false) {
-                            down[1] = true;
-                            //if(reload[1] == false)
-                            //{
-                            swap[1] = true;
-                            //}
-                        }
-                    }
-                    //shoot
-                    if (key == 70) {
-                        if (play == true && cpu[1] == false) {
-                            if (shooting[1] == false && reload[1] == false && stun[1] == false) {
-                                shooting[1] = true;
-                            }
-                        }
-                    }*/
-                //}
-            //} //for all input values
 }; //process_input
 
 //(client, input_commands, input_time, input_type, input_seq);
@@ -364,18 +345,79 @@ server_instance.prototype.handle_server_input = function (client, input, input_t
 
     //Store the input on the player instance for processing in the physics loop
     if (client.userid != players.self.instance.userid)
-        player_client.lastInput = { inputs: input, time: input_time, itype: input_type, seq: input_seq , playerSent:'host' };
+        player_client.lastInput = { inputs: input, time: input_time, itype: input_type, seq: input_seq , playerSent:'client' };
     else
-        player_client.lastInput = { inputs: input, time: input_time, itype: input_type, seq: input_seq, playerSent: 'client' };
+        player_client.lastInput = { inputs: input, time: input_time, itype: input_type, seq: input_seq, playerSent: 'host' };
     //this.process_input(player_client);
     server_instance.prototype.process_input(player_client);
 
 }; //handle_server_input
 
 server_instance.prototype.update = function () {
+
+    var now = Date.now();
+    var delta = now - then;
+
+    var modifier = delta / 1000;
+
     if (play) {
         //Update the state of our local clock to match the timer
         this.server_time = this.local_time;
+
+        //updating 2 players
+        for (i = 0; i < 2; i++) {
+            //set ydir
+            //ydir[i] = ydir[i] + playerFallSpeed * modifier;// used to be 1
+
+            //y movement
+            /*if (ypos[i] + 20 + (ydir[i] * modifier) >= ground[i] && ydir[i] > 0) {
+                ydir[i] = 0;
+                ypos[i] = ground[i] - 20;
+            }*/
+
+            //x movement
+            if (right[i] == true) {
+                xdir[i] = playerSpeed;
+            } else if (left[i] == true) {
+                xdir[i] = -playerSpeed;
+            } else if (left[i] == false && right[i] == false) {
+                xdir[i] = 0;
+            }
+        }
+
+        for (i = 0; i < 2; i++) {
+            //do movement
+
+            if (jump[i] == true) {
+                jumpCount[i] = jumpCount[i] + fps * modifier;
+                xdir[i] = 0;
+                ydir[i] = 0;
+
+                if (jumpCount[i] == 2) {
+                    if (right[i] == true) xpos[i] = xpos[i] + 20 * fps;
+                    if (left[i] == true) xpos[i] = xpos[i] - 20;
+
+                }
+                if (jumpCount[i] == 6) {
+
+                    if (right[i] == true) xpos[i] = xpos[i] - 40;
+                    if (left[i] == true) xpos[i] = xpos[i] + 40;
+
+
+                }
+                if (jumpCount[i] == 10) {
+
+                    jump[i] = false;
+                    jumpCount[i] = 0;
+                    if (right[i] == true) xpos[i] = xpos[i] + 40;// || directionFacing[i] == 1 //ON ALL
+                    if (left[i] == true) xpos[i] = xpos[i] - 40;
+
+                }
+            }
+            console.log("updating x pos: " + xpos[i] + " by " + (xdir[i] * modifier));
+            xpos[i] = xpos[i] + (xdir[i] * modifier);
+            //ypos[i] = ypos[i] + (ydir[i] * modifier);
+        }
 
         //process_Input();
 
@@ -414,6 +456,8 @@ server_instance.prototype.update = function () {
         if (players.other.instance) {
             players.other.instance.emit('onserverupdate', this.laststate);
         }
+
+        then = now;
 
         //client.send('s.p.' + message_parts[1]);
     }

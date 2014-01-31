@@ -303,6 +303,8 @@ var numbers = [];
 var endgame;
 var endgameZombie;
 
+var controls = [];
+
 //dogs
 var dogRm = [];
 var dogLm = [];
@@ -1152,6 +1154,9 @@ function loadImages() {
     platformRight[5].src = (("images/platformRight4.png"));
     platformLeft[5] = new Image();
     platformLeft[5].src = (("images/platformLeft4.png"));
+
+    controls[0] = new Image();
+    controls[0].src = (("images/p1controls.png"));
 
     //gun equipped
     gunRight[0] = new Image();
@@ -2144,7 +2149,6 @@ function render() {//ctx
         //main menu
     else if (menu == 0) {
         ctx.drawImage(menuImage[0], 0, 0, gameWidth, gameHeight);
-        //ctx.drawImage(check[1], 0, 0, 30, 30);
     }
         //player select for custom game
     else if (menu == 1) {
@@ -2198,6 +2202,8 @@ function render() {//ctx
         if (checked[0] == true) {
             ctx.drawImage(check[1], checkedx[0] * scale, checkedy[0] * scale, 30, 30);//30 * scale, 30 * scale);
         }
+
+        ctx.drawImage(controls[0], gameWidth - 256 * scale, gameHeight - 256 * scale, 256 * scale, 256 * scale);
     }
         //choose map
     else if (menu == 2) {
@@ -2279,17 +2285,17 @@ function render() {//ctx
     if (menu == 10) { // searching for game
         ctx.font = ("60px Arial");
         ctx.fillStyle = "rgb(0, 0, 0)"; 
-        ctx.fillText("Searching for match...", 140 * scale, 260 * scale);
+        ctx.fillText("Searching for match...", 100 * scale, 260 * scale);
     }//end if menu 10
     else if (menu == 11) { // searching for game
         ctx.font = ("60px Arial");
         ctx.fillStyle = "rgb(0, 0, 0)"; 
-        ctx.fillText("Found game, connecting...", 200 * scale, 260 * scale);
+        ctx.fillText("Found game, connecting...", 100 * scale, 260 * scale);
     }//end if menu 11
     else if (menu == 12) { // searching for game
         ctx.font = ("60px Arial");
         ctx.fillStyle = "rgb(0, 0, 0)"; 
-        ctx.fillText("No matches found, hosting game please wait...", 100 * scale, 260 * scale);
+        ctx.fillText("No matches found, hosting game...", 0, 260 * scale);
     }//end if menu 12
 }
 
@@ -4255,7 +4261,7 @@ function keyPressed(e) {
             }
         }
         //shoot
-        if (key == 70) {
+        if (key == 70 || key == 49) {
             if (play == true && cpu[1] == false) {
                 if (shooting[1] == false && reload[1] == false && stun[1] == false) {
                     shooting[1] = true;
@@ -4353,6 +4359,11 @@ function keyPressed(e) {
 
     //menu/space bar
     if (key == 32) {
+        if (play == true && cpu[0] == false) {
+            if (shooting[0] == false && reload[0] == false && stun[0] == false) {
+                shooting[0] = true;
+            }
+        }
         if (menu == 0) //opening screen
         {
             menu = 6;
@@ -4809,7 +4820,7 @@ function keyReleased(e) {
             swapCount[0] = 0;
         }
     }
-    if (upKey == 222) {
+    if (upKey == 222 || upKey == 32) {
         if (cpu[0] == false) {
             shooting[0] = false;
         }
@@ -4854,7 +4865,7 @@ function keyReleased(e) {
         }
     }
     //shoot
-    if (upKey == 70) {
+    if (upKey == 70 || upKey == 49) {
         if (cpu[1] == false) {
             shooting[1] = false;
         }
