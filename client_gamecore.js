@@ -812,7 +812,7 @@ client_onnetmessage = function (data) {
 }; //client_onnetmessage
 
 client_ondisconnect = function (data) {
-    //socket.disconnect();
+    socket.disconnect();
     reset = true;
 
     /*//When we disconnect, we don't know if the other player is
@@ -4032,7 +4032,7 @@ function keyPressed(e) {
     //reset esc
     if (key == 27) {
         if (onlineState != 'Offline')
-            socket.disconnect();
+            client_ondisconnect();
         reset = true;
     }
 
@@ -4218,7 +4218,7 @@ function keyPressed(e) {
     }
     if (key == 222 || key == 96) {
         if (play == true && cpu[0] == false) {
-            if (shooting[0] == false && reload[0] == false && stun[0] == false) {
+            if (onlineState == 'Offline' && shooting[0] == false && reload[0] == false && stun[0] == false) {
                 shooting[0] = true;
             }
         }
@@ -4263,7 +4263,7 @@ function keyPressed(e) {
         //shoot
         if (key == 70 || key == 49) {
             if (play == true && cpu[1] == false) {
-                if (shooting[1] == false && reload[1] == false && stun[1] == false) {
+                if (onlineState == 'Offline' && shooting[1] == false && reload[1] == false && stun[1] == false) {
                     shooting[1] = true;
                 }
             }
@@ -4360,7 +4360,7 @@ function keyPressed(e) {
     //menu/space bar
     if (key == 32) {
         if (play == true && cpu[0] == false) {
-            if (shooting[0] == false && reload[0] == false && stun[0] == false) {
+            if (onlineState == 'Offline' && shooting[0] == false && reload[0] == false && stun[0] == false) {
                 shooting[0] = true;
             }
         }

@@ -141,6 +141,8 @@ messages = [];
 
 var then;
 
+var playerCount = 2;
+
 var server_instance = function () {
     console.log('in constructor');
 
@@ -190,46 +192,348 @@ var game_player = function (game_instance, player_instance) {
 server_instance.prototype.initGame = function () {
     then = Date.now();
 
-    //set sides
-    right[0] = false;
-    right[1] = false;
-    left[0] = false;
-    left[1] = false;
+    level = 1;
+    loadMap();
 
-    //set dirs
-    ydir[0] = 0;
-    xdir[0] = 0;
-    ydir[1] = 0;
-    xdir[1] = 0;
+    for(var i = 0; i < playerCount; i++) {
+        //set sides
+        right[i] = false;
+        left[i] = false;
 
-    //set positions
-    ypos[0] = 410;
-    ypos[1] = 410;
+        //set dirs
+        ydir[i] = 0;
+        ydir[i] = 0;
+
+        //set positions
+        ypos[i] = 410;
+
+
+
+        //set guns
+        equip[i] = 0;
+        gun[i][0] = 1;
+        ammo[i][0] = 10;
+        clips[i][0] = 3;
+        gun[i][1] = 0;
+        clips[i][1] = 0;
+        ammo[i][1] = 0;
+
+        ydir[i] = 0;
+        swapCount[i] = 0;
+        runCount[i] = 0;
+        directionFacing[i] = 1;
+        ground[i] = 430;
+        streak[i] = 0;
+        reload[i] = false;
+        jetpack[i] = false;
+        killcount[i] = 0;
+        shooting[i] = false;
+        shootCount[i] = 0;
+        stun[i] = false;
+        healthpack[i] = false;
+        healthpacky[i] = -20;
+        kills[i] = 0;
+        deaths[i] = 0;
+        deadCount[i] = 100;
+        shotsFired[i] = 0;
+        shotsHit[i] = 0;
+        left[i] = false;
+        right[i] = false;
+        fuelCount[i] = 0;
+        fuel[i] = 0;
+    }
 
     xpos[0] = 670;
     xpos[1] = 10;
 
-    //set guns
-    equip[0] = 0;
-    gun[0][0] = 1;
-    ammo[0][0] = 10;
-    clips[0][0] = 3;
-    gun[0][1] = 0;
-    clips[0][1] = 0;
-    ammo[0][1] = 0;
 
-    equip[1] = 0;
-    gun[1][0] = 1;
-    ammo[1][0] = 10;
-    clips[1][0] = 3;
-    gun[1][1] = 0;
-    clips[1][1] = 0;
-    ammo[1][1] = 0;
 
     play = true;
 
 }; //intigame
 
+
+function loadMap() {
+
+    if (level == 1) {
+        block[0] = true;
+        block[1] = true;
+        block[2] = true;
+        block[3] = true;
+
+        blockx[0] = 0;
+        blocky[0] = 350;
+        blockw[0] = 60;
+        blockh[0] = 20;
+
+        blockx[1] = 60;
+        blocky[1] = 300;//300
+        blockw[1] = 120;
+        blockh[1] = 20;
+
+        blockx[2] = 250;
+        blocky[2] = 200;
+        blockw[2] = 90;
+        blockh[2] = 20;
+
+        blockx[3] = 600;
+        blocky[3] = 360;
+        blockw[3] = 100;
+        blockh[3] = 20;
+    }
+    if (level == 2) {
+        block[0] = true;
+        block[1] = true;
+        block[2] = true;
+        block[3] = true;
+        block[4] = true;
+        block[5] = true;
+        block[6] = true;
+
+        blockx[0] = 0;
+        blocky[0] = 350;
+        blockw[0] = 60;
+        blockh[0] = 20;
+
+        blockx[1] = 60;
+        blocky[1] = 250;
+        blockw[1] = 120;
+        blockh[1] = 20;
+
+        blockx[2] = 0;
+        blocky[2] = 150;
+        blockw[2] = 100;
+        blockh[2] = 20;
+
+        blockx[3] = 500;
+        blocky[3] = 150;
+        blockw[3] = 200;
+        blockh[3] = 20;
+
+        blockx[4] = 600;
+        blocky[4] = 340;
+        blockw[4] = 100;
+        blockh[4] = 20;
+
+        blockx[5] = 270;
+        blocky[5] = 340;
+        blockw[5] = 150;
+        blockh[5] = 20;
+
+        blockx[6] = 600;
+        blocky[6] = 250;
+        blockw[6] = 100;
+        blockh[6] = 20;
+    }
+    if (level == 3) {
+        block[0] = true;
+        block[1] = true;
+        block[2] = true;
+        block[3] = true;
+        block[4] = true;
+        block[5] = true;
+
+        blockx[0] = 0;
+        blocky[0] = 350;
+        blockw[0] = 60;
+        blockh[0] = 20;
+
+        blockx[1] = 0;
+        blocky[1] = 250;
+        blockw[1] = 250;
+        blockh[1] = 20;
+
+        blockx[2] = 100;
+        blocky[2] = 350;
+        blockw[2] = 60;
+        blockh[2] = 20;
+
+        blockx[4] = 450;
+        blocky[4] = 100;
+        blockw[4] = 250;
+        blockh[4] = 20;
+
+        blockx[5] = 300;
+        blocky[5] = 180;
+        blockw[5] = 100;
+        blockh[5] = 20;
+
+        blockx[3] = 525;
+        blocky[3] = 350;
+        blockw[3] = 150;
+        blockh[3] = 20;
+
+    }
+    if (level == 5) {
+        block[0] = true;
+        block[1] = true;
+        block[2] = true;
+        block[3] = true;
+        block[4] = true;
+        block[5] = true;
+
+        block[6] = true;
+        block[7] = true;
+        block[8] = true;
+        block[9] = true;
+        block[10] = true;
+        block[11] = true;
+
+        blockx[0] = 0;
+        blocky[0] = 350;
+        blockw[0] = 60;
+        blockh[0] = 20;
+
+        blockx[1] = 0;
+        blocky[1] = 250;
+        blockw[1] = 250;
+        blockh[1] = 20;
+
+        blockx[2] = 100;
+        blocky[2] = 350;
+        blockw[2] = 60;
+        blockh[2] = 20;
+
+        blockx[4] = 450;
+        blocky[4] = 100;
+        blockw[4] = 250;
+        blockh[4] = 20;
+
+        blockx[5] = 300;
+        blocky[5] = 180;
+        blockw[5] = 100;
+        blockh[5] = 20;
+
+        blockx[3] = 525;
+        blocky[3] = 350;
+        blockw[3] = 150;
+        blockh[3] = 20;
+
+
+
+        blockx[6] = 1400 - 60 - 0;
+        blocky[6] = 350;
+        blockw[6] = 60;
+        blockh[6] = 20;
+
+        blockx[7] = 1400 - 250 - 0;
+        blocky[7] = 250;
+        blockw[7] = 250;
+        blockh[7] = 20;
+
+        blockx[8] = 1400 - 60 - 100;
+        blocky[8] = 350;
+        blockw[8] = 60;
+        blockh[8] = 20;
+
+        blockx[9] = 1400 - 250 - 450;
+        blocky[9] = 100;
+        blockw[9] = 250;
+        blockh[9] = 20;
+
+        blockx[10] = 1400 - 100 - 300;
+        blocky[10] = 180;
+        blockw[10] = 100;
+        blockh[10] = 20;
+
+        blockx[11] = 1400 - 525 - 150;
+        blocky[11] = 350;
+        blockw[11] = 150;
+        blockh[11] = 20;
+
+    }
+    if (level == 4 && play == false) {
+        block[0] = true;
+        block[1] = true;
+        block[2] = true;
+
+        blockx[0] = 130;
+        blocky[0] = 350;
+        blockw[0] = 120;
+        blockh[0] = 20;
+
+        blockx[1] = 290;
+        blocky[1] = 280;
+        blockw[1] = 120;
+        blockh[1] = 20;
+
+        blockx[2] = 450;
+        blocky[2] = 350;
+        blockw[2] = 120;
+        blockh[2] = 20;
+
+    }
+    if (level == 6) {
+        block[0] = true;
+        block[1] = true;
+        //block[2] = true;
+        block[3] = true;
+        block[4] = true;
+        block[5] = true;
+        block[6] = true;
+        block[7] = true;
+        block[8] = true;
+        block[9] = true;
+
+        blockx[0] = 100;
+        blocky[0] = 350;
+        blockw[0] = 300;
+        blockh[0] = 20; //bottom
+
+        blockx[1] = 300;
+        blocky[1] = 250;
+        blockw[1] = 100;
+        blockh[1] = 20;
+
+        //blockx[2] = 400;
+        //blocky[2] = 150;
+        //blockw[2] = 100;
+        //blockh[2] = 20;
+
+        blockx[3] = 0;
+        blocky[3] = 50;
+        blockw[3] = 30;
+        blockh[3] = 20;
+
+        blockx[4] = 500;
+        blocky[4] = 350;
+        blockw[4] = 100;
+        blockh[4] = 20;
+
+        blockx[5] = 300;
+        blocky[5] = 50;
+        blockw[5] = 100;
+        blockh[5] = 20;
+
+        blockx[6] = 0;
+        blocky[6] = 150;
+        blockw[6] = 30;
+        blockh[6] = 20;
+
+        blockx[7] = 400;
+        blocky[7] = 150;
+        blockw[7] = 250;
+        blockh[7] = 20;
+
+        blockx[8] = 0;
+        blocky[8] = 250;
+        blockw[8] = 30;
+        blockh[8] = 20;
+
+        blockx[9] = 650;
+        blocky[9] = 250;
+        blockw[9] = 50;
+        blockh[9] = 20;
+
+
+    }
+    if (level == 7) {
+        block[0] = true;
+        block[1] = true;
+        block[2] = true;
+
+    }
+}
 
 
 server_instance.prototype.process_input = function (player) {
@@ -256,76 +560,51 @@ server_instance.prototype.process_input = function (player) {
     var sender = input.playerSent;
     var key = input.itype;
 
+    var senderID = 0;
+    if(sender == 'client')
+        senderID = 1;
+
     //console.log("Input recieved, type: " + input.time + " key: " + key + " and sender: " + sender);
 
     if (input.time == 'd') {
         //player 0-Red
         if (key == 39) {
-            if (sender == 'host') {
-                right[0] = true;
-                left[0] = false;
-            }
-            else if (sender == 'client') {
-                right[1] = true;
-                left[1] = false;
-            }
+            right[senderID] = true;
+            left[senderID] = false;
         }
         if (key == 37) {
-            if (sender == 'host') {
-                left[0] = true;
-                right[0] = false;
-            }
-            else if (sender == 'client') {
-                left[1] = true;
-                right[1] = false;
+            left[senderID] = true;
+            right[senderID] = false;
+        }
+        if (key == 222 || key == 96 || key == 32) {
+            if (shooting[senderID] == false && reload[senderID] == false && stun[senderID] == false) {
+                shooting[senderID] = true;
             }
         }
+       
         if (key == 38) {
-            if (sender == 'host') {
-                if (ydir[0] == 0 && ypos[0] == ground[0] - 20) {
-                    ydir[0] = -jumpSpeed;
-                } else {
-                    //if (fuel[1] > 0 && streak[1] >= 3) jetpack[1] = true;
-                }
-            }
-            else if (sender == 'client') {
-                if (ydir[1] == 0 && ypos[1] == ground[1] - 20) {
-                    ydir[1] = -jumpSpeed;
-                } else {
-                    //if (fuel[1] > 0 && streak[1] >= 3) jetpack[1] = true;
-                }
+            if (ydir[senderID] == 0 && ypos[senderID] == ground[senderID] - 20) {
+                ydir[senderID] = -jumpSpeed;
+            } else {
+                //if (fuel[senderID] > 0 && streak[senderID] >= 3) jetpack[senderID] = true;
             }
         }
-        /*if (key == 40) {
-            //swap
-            if (sender == 'host')
-                ypos[0] = ypos[0] + 15;
-            else if (sender == 'client')
-                ypos[1] = ypos[1] + 15;
-        }*/
+        if (key == 40) {
+            down[senderID] = true;
+        }
         if (key == 222) {
             //shoot
         }
     }
     if (input.time == 'u') {
         if (key == 39) {
-            if (sender == 'host') {
-                right[0] = false;
-            }
-            else if (sender == 'client') {
-                right[1] = false;
-            }
+            right[senderID] = false;
         }
         if (key == 37) {
-            if (sender == 'host') {
-                left[0] = false;
-            }
-            else if (sender == 'client') {
-                left[1] = false;
-            }
+            left[senderID] = false;
         }
         if (key == 40) {
-            //swap
+            down[senderID] = false;
         }
         if (key == 222) {
             //shoot
@@ -364,16 +643,54 @@ server_instance.prototype.update = function () {
         //Update the state of our local clock to match the timer
         this.server_time = this.local_time;
 
+        //jetpack
+        for (i = 0; i < players; i++) {
+            if (streak[i] >= 3 && ydir[i] != 0 && jetpack[i] == true) {
+                if (fuel[i] > 0) {
+                    fuel[i] = fuel[i] - fps * modifier;
+                    if (ydir[i] >= -7 * fps) {//was -7
+                        ydir[i] = ydir[i] - (3 * fps);//was - 3
+                    }
+                }
+                else
+                    jetpack[i] = false;
+            }
+        }
+
+        //collisions
+        for(i = 0; i < 2; i++) {
+            if (xpos[i] >= 680) {
+                xpos[i] = 679;
+            }
+            if (xpos[i] <= 0) {
+                xpos[i] = 1;
+            }
+        }
+
         //updating 2 players
         for (i = 0; i < 2; i++) {
+            //holding down
+            if (down[i] == true) {
+                downCount[i] = downCount[i] + fps * modifier;
+            }
+
             //set ydir
-            //ydir[i] = ydir[i] + playerFallSpeed * modifier;// used to be 1
+            ydir[i] = ydir[i] + playerFallSpeed * modifier;// used to be 1
+            //global collision y platforms
+            for (k = 0; k <= 14; k++) {
+                if (block[k] == true && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 + (ydir[i] * modifier) <= blocky[k] + (ydir[i] * modifier) && ypos[i] + 20 + (ydir[i] * modifier) >= blocky[k]) {// + (ydir[i]) 5
+                    ground[i] = blocky[k];
+                    k = 15;
+                } else if (k == 14) {
+                    ground[i] = 430;
+                }
+            }
 
             //y movement
-            /*if (ypos[i] + 20 + (ydir[i] * modifier) >= ground[i] && ydir[i] > 0) {
+            if (ypos[i] + 20 + (ydir[i] * modifier) >= ground[i] && ydir[i] > 0) {
                 ydir[i] = 0;
                 ypos[i] = ground[i] - 20;
-            }*/
+            }
 
             //x movement
             if (right[i] == true) {
@@ -414,9 +731,9 @@ server_instance.prototype.update = function () {
 
                 }
             }
-            console.log("updating x pos: " + xpos[i] + " by " + (xdir[i] * modifier));
+            //console.log("updating x pos: " + xpos[i] + " by " + (xdir[i] * modifier));
             xpos[i] = xpos[i] + (xdir[i] * modifier);
-            //ypos[i] = ypos[i] + (ydir[i] * modifier);
+            ypos[i] = ypos[i] + (ydir[i] * modifier);
         }
 
         //process_Input();
