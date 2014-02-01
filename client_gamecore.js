@@ -656,7 +656,7 @@ client_onserverupdate_recieved = function (data) {
             ypos[0] = data.cpy;*/
     }
 
-    var newBulletsAdded = [];
+    
 
     /*    var newBulletType = type;
     var newBulletX = x;
@@ -664,13 +664,38 @@ client_onserverupdate_recieved = function (data) {
     var newBulletDir = dir;  //true = right // false = left
     var newBulletSender = send;*/
 
+    var newGunsAdded = [];
+
+    //create new guns
+    for (m = 0; m < data.newGunNum; m++) {
+        if(m == 0)
+            newGunsAdded = JSON.parse(data.newGun);
+
+        console.log("Hit up another gun type: " + newGunsAdded[m].newGunType + " homies at this x POS: " + newGunsAdded[m].newGunX);
+
+        gunx[newGunsAdded[m].newGunType] = newGunsAdded[m].newGunX;
+        guny[newGunsAdded[m].newGunType] = newGunsAdded[m].newGunY;
+    }
+    
+    /*
+        var newBullet = {
+        newBulletType: gun[i][equip[i]],
+            newBulletX: xpos[i],
+            newBulletY: ypos[i] + 4,
+            newBulletDir: directionFacing[i],  //true = right // false = left
+            newBulletSender: i
+    };
+    */
+    var newBulletsAdded = [];
+    //console.log("WE GOT NEW BULLETS?! SIZE: " + data.newBulletNum);
     //create new bullets
     for (m = 0; m < data.newBulletNum; m++) {
+        //console.log("We got a new bullet yo");
 
         //first time set the array
         if (m == 0) {
             //newBullets.push(xpos[i], ypos[i] + 4, directionFacing[i], i, gun[i][equip[i]]);
-            newBulletsAdded = JSON.stringify(newBullets);
+            newBulletsAdded = JSON.parse(data.newBulleters);
 
             //setting the new ammo counts
             newAmmoCountH = data.newHAmmoAmount;
@@ -700,115 +725,115 @@ client_onserverupdate_recieved = function (data) {
         //ammo[i][equip[i]]
 
         //pistol
-        if (newBulletsAdded[i].newBulletType == 1) {
+        if (newBulletsAdded[m].newBulletType == 1) {
             //console.log("Shoot the pistol!");
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
                     b[i][k] = true;
-                    if (newBulletsAdded[i].newBulletDir == 1) {
+                    if (newBulletsAdded[m].newBulletDir == 1) {
                         bxdir[i][k] = 10 * fps;
-                    } else if (newBulletsAdded[i].newBulletDir == 0) {
+                    } else if (newBulletsAdded[m].newBulletDir == 0) {
                         bxdir[i][k] = -10 * fps;
                     }
                     bydir[i][k] = 0;
-                    bx[i][k] = newBulletsAdded[i].newBulletX;
-                    by[i][k] = newBulletsAdded[i].newBulletY;
+                    bx[i][k] = newBulletsAdded[m].newBulletX;
+                    by[i][k] = newBulletsAdded[m].newBulletY;
                     shotType[i][k] = 1;
                     k = 100;
                 }
             }
         }
         //assault
-        if (newBulletsAdded[i].newBulletType == 2) {
+        if (newBulletsAdded[m].newBulletType == 2) {
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
                     b[i][k] = true;
-                    if (newBulletsAdded[i].newBulletDir == 1) {
+                    if (newBulletsAdded[m].newBulletDir == 1) {
                         bxdir[i][k] = 14 * fps;//was 14
-                    } else if (newBulletsAdded[i].newBulletDir == 0) {
+                    } else if (newBulletsAdded[m].newBulletDir == 0) {
                         bxdir[i][k] = -14 * fps;//-14
                     }
                     bydir[i][k] = 0;
-                    bx[i][k] = newBulletsAdded[i].newBulletX;
-                    by[i][k] = newBulletsAdded[i].newBulletY;
+                    bx[i][k] = newBulletsAdded[m].newBulletX;
+                    by[i][k] = newBulletsAdded[m].newBulletY;
                     shotType[i][k] = 2;
                     k = 100;
                 }
             }
         }
         //uzi
-        if (newBulletsAdded[i].newBulletType == 3) {
+        if (newBulletsAdded[m].newBulletType == 3) {
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
                     b[i][k] = true;
-                    if (newBulletsAdded[i].newBulletDir == 1) {
+                    if (newBulletsAdded[m].newBulletDir == 1) {
                         bxdir[i][k] = 14 * fps; // was 14
-                    } else if (newBulletsAdded[i].newBulletDir == 0) {
+                    } else if (newBulletsAdded[m].newBulletDir == 0) {
                         bxdir[i][k] = -14 * fps;//was -14
                     }
                     bydir[i][k] = 0;
-                    bx[i][k] = newBulletsAdded[i].newBulletX;
-                    by[i][k] = newBulletsAdded[i].newBulletY;
+                    bx[i][k] = newBulletsAdded[m].newBulletX;
+                    by[i][k] = newBulletsAdded[m].newBulletY;
                     shotType[i][k] = 3;
                     k = 100;
                 }
             }
         }
         //sniper
-        if (newBulletsAdded[i].newBulletType == 4) {
+        if (newBulletsAdded[m].newBulletType == 4) {
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
                     b[i][k] = true;
-                    if (newBulletsAdded[i].newBulletDir == 1) {
+                    if (newBulletsAdded[m].newBulletDir == 1) {
                         bxdir[i][k] = 20 * fps;//was 20
 
-                    } else if (newBulletsAdded[i].newBulletDir == 0) {
+                    } else if (newBulletsAdded[m].newBulletDir == 0) {
                         bxdir[i][k] = -20 * fps;//was -20
                     }
                     bydir[i][k] = 0;
-                    bx[i][k] = newBulletsAdded[i].newBulletX;
-                    by[i][k] = newBulletsAdded[i].newBulletY;
+                    bx[i][k] = newBulletsAdded[m].newBulletX;
+                    by[i][k] = newBulletsAdded[m].newBulletY;
                     shotType[i][k] = 4;
                     k = 100;
                 }
             }
         }
         //flamethrower
-        if (newBulletsAdded[i].newBulletType == 5) {
+        if (newBulletsAdded[m].newBulletType == 5) {
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
                     b[i][k] = true;
-                    if (newBulletsAdded[i].newBulletDir == 1) {
-                        flameDis[i][k] = newBulletsAdded[i].newBulletX + 200;
+                    if (newBulletsAdded[m].newBulletDir == 1) {
+                        flameDis[i][k] = newBulletsAdded[m].newBulletX + 200;
                         bxdir[i][k] = 11 * fps; // was 11
-                    } else if (newBulletsAdded[i].newBulletDir == 0) {
-                        flameDis[i][k] = newBulletsAdded[i].newBulletX - 180;
+                    } else if (newBulletsAdded[m].newBulletDir == 0) {
+                        flameDis[i][k] = newBulletsAdded[m].newBulletX - 180;
                         bxdir[i][k] = -11 * fps;// was -11
                     }
                     bydir[i][k] = 0;
-                    bx[i][k] = newBulletsAdded[i].newBulletX;
-                    by[i][k] = newBulletsAdded[i].newBulletY;
+                    bx[i][k] = newBulletsAdded[m].newBulletX;
+                    by[i][k] = newBulletsAdded[m].newBulletY;
                     shotType[i][k] = 5;
                     k = 100;
                 }
             }
         }
         //shotgun
-        if (newBulletsAdded[i].newBulletType == 6) {
+        if (newBulletsAdded[m].newBulletType == 6) {
             for (k = 0; k <= 95; k++) {
                 if (b[i][k] == false) {
                     for (r = 0; r <= 4; r++) {
                         b[i][k + r] = true;
-                        if (newBulletsAdded[i].newBulletDir == 1) {
-                            shotgunDis[i][k + r] = newBulletsAdded[i].newBulletX + 160;
+                        if (newBulletsAdded[im].newBulletDir == 1) {
+                            shotgunDis[i][k + r] = newBulletsAdded[m].newBulletX + 160;
                             bxdir[i][k + r] = 15 * fps;//was 15
-                        } else if (newBulletsAdded[i].newBulletDir == 0) {
-                            shotgunDis[i][k + r] = newBulletsAdded[i].newBulletX - 140;
+                        } else if (newBulletsAdded[m].newBulletDir == 0) {
+                            shotgunDis[i][k + r] = newBulletsAdded[m].newBulletX - 140;
                             bxdir[i][k + r] = -15 * fps;//was 15
                         }
                         bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
-                        bx[i][k + r] = newBulletsAdded[i].newBulletX;
-                        by[i][k + r] = newBulletsAdded[i].newBulletY;
+                        bx[i][k + r] = newBulletsAdded[m].newBulletX;
+                        by[i][k + r] = newBulletsAdded[m].newBulletY;
                         shotType[i][k + r] = 6;
                     }
                 }

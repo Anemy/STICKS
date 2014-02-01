@@ -135,23 +135,27 @@ var then;
 
 var playerCount = 2;
 
+//should update or not?!
+var serverHasUpdate = 0;
+
+
 //ONLINE BULLET VARS
 var newBullets = [];
-var newBullet = function (x, y, dir, send, type) {
+/*var newBullet = function (x, y, dir, send, type) {
     var newBulletType = type;
     var newBulletX = x;
     var newBulletY = y;
     var newBulletDir = dir;  //true = right // false = left
     var newBulletSender = send;
-}
+};*/
 
 //ONLINE NEW GUN VARS
 var newGuns = [];
-var newGun = function (x, y, gunType) {
+/*var newGun = function (x, y, gunType) {
     var newGunX = x;
     var newGunY = y;
     var newGunType = gunType;  //true = right // false = left
-}
+};*/
 
 var server_instance = function () {
     console.log('in constructor');
@@ -205,9 +209,6 @@ server_instance.prototype.initGame = function () {
 
     level = 1;
     loadMap();
-
-    newBulletCount = 0;
-
 
     for(var i = 0; i < playerCount; i++) {
         //set sides
@@ -283,7 +284,13 @@ server_instance.prototype.initGame = function () {
     for (k = 0; k <= 9; k++) {
         gunx[k] = (Math.random() * 1380) + 2;
         guny[k] = -20 - ((Math.random() * 1500));
-        newGuns.push(gunx[k],guny[k],k);
+        var newGun = {//function (x, y, gunType) 
+            newGunX: gunx[k],
+            newGunY: guny[k],
+            newGunType: k
+        };
+        newGuns.push(newGun);
+        //newGuns.push(newGun(gunx[k],guny[k],k));
     }
 
     xpos[0] = 670;
@@ -608,6 +615,7 @@ server_instance.prototype.process_input = function (player) {
         senderID = 1;
 
     //console.log("Input recieved, type: " + input.time + " key: " + key + " and sender: " + sender);
+    serverHasUpdate = true;
 
     if (input.time == 'd') {
         //player 0-Red
@@ -680,7 +688,7 @@ server_instance.prototype.handle_server_input = function (client, input, input_t
 
 //try to create a new bullet
 // return true if bullet created
-function newBullet(i) {
+function createNewBullet(i) {
     //pistol
     if (gun[i][equip[i]] == 1) {
         if (shootCount[i] >= 12 && ammo[i][equip[i]] > 0) {
@@ -897,8 +905,10 @@ server_instance.prototype.update = function () {
                         ydir[i] = ydir[i] - (3 * fps);//was - 3
                     }
                 }
-                else
+                else {
                     jetpack[i] = false;
+                    serverHasUpdate = true;
+                }
             }
         }
 
@@ -941,14 +951,23 @@ server_instance.prototype.update = function () {
 
 
         //updating 2 players
-        for (i = 0; i < playerCount; i++) {
+        for (i = 0; i < playerCount; i++) {//
             //console.log("in here lol!");
             shootCount[i] = shootCount[i] + fps * modifier;
             if (shooting[i] == true) {
                 //console.log("try to create new bullet!");
-                if (newBullet(i)) { //(x, y, dir, send, type) {
-                    newBullets.push(xpos[i], ypos[i] + 4, directionFacing[i], i, gun[i][equip[i]]);
-                    //console.log("Created!");
+                if (createNewBullet(i)) { //(x, y, dir, send, type) {
+                    var newBullet = {
+                        newBulletType: gun[i][equip[i]],
+                        newBulletX: xpos[i],
+                        newBulletY: ypos[i] + 4,
+                        newBulletDir: directionFacing[i],  //true = right // false = left
+                        newBulletSender: i
+                    };
+                    newBullets.push(newBullet);//newBullet(xpos[i], ypos[i] + 4, directionFacing[i], i, gun[i][equip[i]]));
+                    //console.log("About to print");
+                    //console.log("The size of bullets: " + (newBullets[0]).newBulletX);
+                    console.log("Created a new bullet with gun type: " + newBullets[newBullets.length-1].newBulletType);
                 }
             }
 
@@ -1036,8 +1055,10 @@ server_instance.prototype.update = function () {
         }
 
         //update the clients on new stuff I supose
-        sendUserUpdates();
+        //if (serverHasUpdate)
+            sendUserUpdates();
 
+        serverHasUpdate = false;
         then = now;
     }
 }
@@ -1070,7 +1091,7 @@ function sendUserUpdates() {
     this.laststate.newBulletNum = newBullets.length; //amount of new bullets
     if (newBullets.length > 0) {//create the bullets!!!
         //newBullets.push(xpos[i], ypos[i] + 4, directionFacing[i], i, gun[i][equip[i]]);
-        this.laststate.newBullet = JSON.stringify(newBullets);
+        this.laststate.newBulleters = JSON.stringify(newBullets);
 
         //new ammos
         this.laststate.newHAmmoAmount = ammo[0][equip[0]];//add ammo
@@ -1130,7 +1151,12 @@ function updateGuns(i , modifier) {
                     if (gun[k][1] > 0) clips[k][1] = clips[k][1] + 4;
                     gunx[i] = (Math.random() * 680) + 2;
                     guny[i] = -500 - ((Math.random() * 1500));
-                    newGuns.push(gunx[i], guny[i], i);
+                    var newGun = {//function (x, y, gunType) 
+                        newGunX: gunx[i],
+                        newGunY: guny[i],
+                        newGunType: i
+                    };
+                    newGuns.push(newGun);
                     if (gun[k][0] > 0) {
                         ammo[k][0] = maxAmmo[gun[k][0] - 1];
                     }
