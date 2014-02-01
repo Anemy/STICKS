@@ -653,14 +653,9 @@ client_onserverupdate_recieved = function (data) {
 
     //create new bullets
     for (m = 0; m < data.newBullets; m++) {
-        //TODO REMOVE!!! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
+        //first time set the arrays
         if (m == 0) {
-            //            this.laststate.newBulletsType = newBulletType;
-            
-            //for (var lol in data.newBulletXs)
-            //    console.log("Xpos: " + data.newBulletXs[lol]);
-            //    newBulletSender.push([i, json_data[i]]);
             newBulletX = JSON.parse(data.newBulletXs);
             newBulletY = JSON.parse(data.newBulletYs);
             newBulletSenderID = JSON.parse(data.newBulletSend);
@@ -3810,7 +3805,7 @@ function update(modifier) {
         }
         //falling weapons
         for (i = 0; i <= 9; i++) {
-            //guns falling
+            //guns falling + collide
             for (q = 0; q <= 14; q++) {
                 if ((block[q] == true && gunx[i] + 10 >= blockx[q] && gunx[i] <= blockx[q] + blockw[q] && guny[i] + 20 <= blocky[q] + blockh[q] && guny[i] + 20 >= blocky[q]) || guny[i] >= 410) {
                     q = 15;

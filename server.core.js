@@ -883,6 +883,12 @@ server_instance.prototype.update = function () {
             }
         }
 
+        //update guns!
+        for (i = 0; i < players; i++) {
+            updateGuns(i, modifier);
+        }
+
+
         //updating 2 players
         for (i = 0; i < playerCount; i++) {
             //console.log("in here lol!");
@@ -983,75 +989,109 @@ server_instance.prototype.update = function () {
             ypos[i] = ypos[i] + (ydir[i] * modifier);
         }
 
-        //process_Input();
-
-        //temporary variables because cannot use array vars?!
-        var hostX = xpos[0];
-        var hostY = ypos[0];
-        var otherX = xpos[1];
-        var otherY = ypos[1];
-
-        var hostxdir = xdir[0];
-        var hostydir = ydir[0];
-        var otherxdir = xdir[1];
-        var otherydir = ydir[1];
-
-
-
-        //Make a snapshot of the current state, for updating the clients
-        this.laststate = {};
-        this.laststate.hpx = hostX;//this.xpos[0];              //'host position', the game creators position
-        this.laststate.hpy = hostY;                //'host position', the game creators position
-        this.laststate.hpxdir = hostxdir;             //'host direction'
-        this.laststate.hpydir = hostydir;             //'host direction'
-        this.laststate.cpx = otherX;               //'client position', the person that joined, their position
-        this.laststate.cpy = otherY;               //'client position', the person that joined, their position
-        this.laststate.cpxdir = otherxdir;             //'client direction'
-        this.laststate.cpydir = otherydir;             //'client direction'
-        this.laststate.newBullets = newBulletCount; //amount of new bullets
-        if (newBulletCount > 0) {//create the bullets!!!
-            //console.log(" about to print! ");
-            console.log("Bullet sender: " + newBulletSender[0]);
-            this.laststate.newBulletsType = JSON.stringify(newBulletType);
-            this.laststate.newBulletXs = JSON.stringify(newBulletX);//newBulletXs
-            this.laststate.newBulletYs = JSON.stringify(newBulletY);
-            this.laststate.newBulletSend = JSON.stringify(newBulletSender);
-            this.laststate.newBulletDirs = JSON.stringify(newBulletDir);
-
-            //new ammos
-            this.laststate.newHAmmoAmount = ammo[0][equip[0]];//add ammo
-            this.laststate.newCAmmoAmount = ammo[1][equip[1]];//add ammo
-        }
-        this.laststate.t = this.server_time;                      // our current local time on the server
-
-        //console.log("LOL");
-
-        //his: this.players.self.last_input_seq,     //'host input sequence', the last input we processed for the host
-        //cis: this.players.other.last_input_seq,    //'client input sequence', the last input we processed for the client
-
-        //Send the snapshot to the 'host' player
-        if (players.self.instance) {
-            players.self.instance.emit('onserverupdate', this.laststate);
-        }
-
-        //Send the snapshot to the 'client' player aaASASDFSGSRFGHS
-        if (players.other.instance) {
-            players.other.instance.emit('onserverupdate', this.laststate);
-        }
-
-        //console.log("DATA HAS BEEN RELEASED! Bullet count: " + newBulletCount);
-
-        //reseting the bullets
-        newBulletCount = 0;
-        newBulletDir = [];
-        newBulletType = [];
-        newBulletX = [];
-        newBulletY = [];
-        newBulletSender = [];
+        //update the clients on new stuff I supose
+        sendUserUpdates();
 
         then = now;
+    }
+}
 
-        //client.send('s.p.' + message_parts[1]);
+function sendUserUpdates() {
+    //temporary variables because cannot use array vars?!
+    var hostX = xpos[0];
+    var hostY = ypos[0];
+    var otherX = xpos[1];
+    var otherY = ypos[1];
+
+    var hostxdir = xdir[0];
+    var hostydir = ydir[0];
+    var otherxdir = xdir[1];
+    var otherydir = ydir[1];
+
+
+
+    //Make a snapshot of the current state, for updating the clients
+    this.laststate = {};
+    this.laststate.hpx = hostX;//this.xpos[0];              //'host position', the game creators position
+    this.laststate.hpy = hostY;                //'host position', the game creators position
+    this.laststate.hpxdir = hostxdir;             //'host direction'
+    this.laststate.hpydir = hostydir;             //'host direction'
+    this.laststate.cpx = otherX;               //'client position', the person that joined, their position
+    this.laststate.cpy = otherY;               //'client position', the person that joined, their position
+    this.laststate.cpxdir = otherxdir;             //'client direction'
+    this.laststate.cpydir = otherydir;             //'client direction'
+    this.laststate.newBullets = newBulletCount; //amount of new bullets
+    if (newBulletCount > 0) {//create the bullets!!!
+        //console.log(" about to print! ");
+        //console.log("Bullet sender: " + newBulletSender[0]);
+        this.laststate.newBulletsType = JSON.stringify(newBulletType);
+        this.laststate.newBulletXs = JSON.stringify(newBulletX);//newBulletXs
+        this.laststate.newBulletYs = JSON.stringify(newBulletY);
+        this.laststate.newBulletSend = JSON.stringify(newBulletSender);
+        this.laststate.newBulletDirs = JSON.stringify(newBulletDir);
+
+        //new ammos
+        this.laststate.newHAmmoAmount = ammo[0][equip[0]];//add ammo
+        this.laststate.newCAmmoAmount = ammo[1][equip[1]];//add ammo
+    }
+    this.laststate.t = this.server_time;                      // our current local time on the server
+
+    //his: this.players.self.last_input_seq,     //'host input sequence', the last input we processed for the host
+    //cis: this.players.other.last_input_seq,    //'client input sequence', the last input we processed for the client
+
+    //Send the snapshot to the 'host' player
+    if (players.self.instance) {
+        players.self.instance.emit('onserverupdate', this.laststate);
+    }
+
+    //Send the snapshot to the 'client' player aaASASDFSGSRFGHS
+    if (players.other.instance) {
+        players.other.instance.emit('onserverupdate', this.laststate);
+    }
+
+    //reseting the bullets
+    newBulletCount = 0;
+    newBulletDir = [];
+    newBulletType = [];
+    newBulletX = [];
+    newBulletY = [];
+    newBulletSender = [];
+}
+
+function updateGuns(i, modifier) {
+    //auto reload------keep or remove?
+    if (ammo[i][equip[i]] == 0 && clips[i][equip[i]] > 0 && reload[i] == false) {
+        reload[i] = true;
+        reloadCount[i] = 0;
+        clips[i][equip[i]]--;
+    }
+    //end autoreload
+
+    //reload
+    if (reload[i] == true) {
+        reloadCount[i] = reloadCount[i] + fps * modifier;
+        var timeReload = 80;
+        if (gun[i][equip[i]] == 1) timeReload = 20;
+        if (gun[i][equip[i]] == 2 || gun[i][equip[i]] == 3) timeReload = 40;
+        if (gun[i][equip[i]] == 4) timeReload = 80;
+        if (gun[i][equip[i]] == 5) timeReload = 80;
+        if (gun[i][equip[i]] == 6) timeReload = 40;
+        if (gun[i][equip[i]] == 7) timeReload = 20;
+        if (gun[i][equip[i]] == 8) timeReload = 20;
+
+        if (reloadCount[i] >= timeReload) {
+            if (gun[i][equip[i]] == 1) ammo[i][equip[i]] = 10;
+            if (gun[i][equip[i]] == 2) ammo[i][equip[i]] = 12;
+            if (gun[i][equip[i]] == 3) ammo[i][equip[i]] = 20;
+            if (gun[i][equip[i]] == 4) ammo[i][equip[i]] = 4;
+            if (gun[i][equip[i]] == 5) ammo[i][equip[i]] = 60;
+            if (gun[i][equip[i]] == 6) ammo[i][equip[i]] = 5;
+            if (gun[i][equip[i]] == 7) ammo[i][equip[i]] = 4;
+            if (gun[i][equip[i]] == 8) ammo[i][equip[i]] = 6;
+
+            reloadCount[i] = 0;
+            reload[i] = false;
+        }
     }
 }
 
