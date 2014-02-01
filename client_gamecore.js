@@ -637,21 +637,32 @@ client_onserverupdate_recieved = function (data) {
         ydir[1] = data.hpydir;
     }
 
+    var newBulletSender = [];
+    var newBulletX = [];
+    var newBulletY = [];
+    var newBulletDir = [];
+
     //create new bullets
     for (m = 0; m < data.newBullets; m++) {
         //TODO REMOVE!!! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        /*this.laststate.newBulletsType = newBulletType;
-        this.laststate.newBulletsSender = newBulletSender;
-        this.laststate.newBulletXs = newBulletX;
-        this.laststate.newBulletYs = newBulletY;
-        this.laststate.newBulletDirs = newBulletDir;*/
 
-        console.log("new bullet from " + sender + " at x pos: " + data.newBulletXs[i])
+        if (m == 0) {
+            newBulletSender = JSON.parse(data.newBulletSend);
+            //for (var lol in data.newBulletXs)
+            //    console.log("Xpos: "+)
+            //    newBulletSender.push([i, json_data[i]]);
+            newBulletX = JSON.parse(data.newBulletXs);
+            newBulletY = JSON.parse(data.newBulletYs);
+            newBulletDir = JSON.parse(data.newBulletDirs);
+        }
+
+        console.log("new bullet from " + newBulletSender[i] + " at x pos: " + data.newBulletXs[i]);
 
         i = data.newBulletSender;
 
         //pistol
         if (data.newBulletType == 1) {
+            console.log("Shoot the pistol!");
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
                     b[i][k] = true;
@@ -3071,17 +3082,19 @@ function update(modifier) {
             }
         }
 
-        //jetpack
-        for (i = 0; i < players; i++) {
-            if (streak[i] >= 3 && ydir[i] != 0 && jetpack[i] == true) {
-                if (fuel[i] > 0) {
-                    fuel[i] = fuel[i] - fps * modifier;
-                    if (ydir[i] >= -7 * fps) {//was -7
-                        ydir[i] = ydir[i] - (3 * fps);//was - 3
+        if (onlineState == 'Offline') {
+            //jetpack
+            for (i = 0; i < players; i++) {
+                if (streak[i] >= 3 && ydir[i] != 0 && jetpack[i] == true) {
+                    if (fuel[i] > 0) {
+                        fuel[i] = fuel[i] - fps * modifier;
+                        if (ydir[i] >= -7 * fps) {//was -7
+                            ydir[i] = ydir[i] - (3 * fps);//was - 3
+                        }
                     }
+                    else
+                        jetpack[i] = false;
                 }
-                else
-                    jetpack[i] = false;
             }
         }
 
@@ -3099,9 +3112,6 @@ function update(modifier) {
                         }
                         on[i][k] = true;
                     } else on[i][k] = false;
-
-
-
                 }
 
                 for (i = 0; i < players; i++) {
@@ -3584,11 +3594,13 @@ function update(modifier) {
 
         }
         //dead counter
-        for (i = 0; i < players; i++) {
-            deadCount[i] = deadCount[i] + fps * modifier;
-            if (ypos[i] <= 0 && deadCount[i] < 100) {
-                ypos[i] = -30;
-                ydir[i] = 0;
+        if (onlineState == 'Offline') {
+            for (i = 0; i < players; i++) {
+                deadCount[i] = deadCount[i] + fps * modifier;
+                if (ypos[i] <= 0 && deadCount[i] < 100) {
+                    ypos[i] = -30;
+                    ydir[i] = 0;
+                }
             }
         }
         //bullet movement
@@ -3606,63 +3618,65 @@ function update(modifier) {
                 }
             }
         }
-        //reload
-        pleaseReload++;
-        if (pleaseReload >= 50) {
-            pleaseReload = 0;
-        }
-        for (i = 0; i < players; i++) {
-
-            //auto reload------keep or remove?
-            if (ammo[i][equip[i]] == 0 && clips[i][equip[i]] > 0 && reload[i] == false) {
-                reload[i] = true;
-                reloadCount[i] = 0;
-                clips[i][equip[i]]--;
-            }
-            //end autoreload
-
+        if (onlineState == 'Offline') {
             //reload
-            if (reload[i] == true) {
-                reloadCount[i] = reloadCount[i] + fps * modifier;
-                var timeReload = 80;
-                if (gun[i][equip[i]] == 1) timeReload = 20;
-                if (gun[i][equip[i]] == 2 || gun[i][equip[i]] == 3) timeReload = 40;
-                if (gun[i][equip[i]] == 4) timeReload = 80;
-                if (gun[i][equip[i]] == 5) timeReload = 80;
-                if (gun[i][equip[i]] == 6) timeReload = 40;
-                if (gun[i][equip[i]] == 7) timeReload = 20;
-                if (gun[i][equip[i]] == 8) timeReload = 20;
+            pleaseReload++;
+            if (pleaseReload >= 50) {
+                pleaseReload = 0;
+            }
+            for (i = 0; i < players; i++) {
 
-                if (reloadCount[i] >= timeReload) {
-                    if (gun[i][equip[i]] == 1) ammo[i][equip[i]] = 10;
-                    if (gun[i][equip[i]] == 2) ammo[i][equip[i]] = 12;
-                    if (gun[i][equip[i]] == 3) ammo[i][equip[i]] = 20;
-                    if (gun[i][equip[i]] == 4) ammo[i][equip[i]] = 4;
-                    if (gun[i][equip[i]] == 5) ammo[i][equip[i]] = 60;
-                    if (gun[i][equip[i]] == 6) ammo[i][equip[i]] = 5;
-                    if (gun[i][equip[i]] == 7) ammo[i][equip[i]] = 4;
-                    if (gun[i][equip[i]] == 8) ammo[i][equip[i]] = 6;
-
+                //auto reload------keep or remove?
+                if (ammo[i][equip[i]] == 0 && clips[i][equip[i]] > 0 && reload[i] == false) {
+                    reload[i] = true;
                     reloadCount[i] = 0;
-                    reload[i] = false;
+                    clips[i][equip[i]]--;
+                }
+                //end autoreload
+
+                //reload
+                if (reload[i] == true) {
+                    reloadCount[i] = reloadCount[i] + fps * modifier;
+                    var timeReload = 80;
+                    if (gun[i][equip[i]] == 1) timeReload = 20;
+                    if (gun[i][equip[i]] == 2 || gun[i][equip[i]] == 3) timeReload = 40;
+                    if (gun[i][equip[i]] == 4) timeReload = 80;
+                    if (gun[i][equip[i]] == 5) timeReload = 80;
+                    if (gun[i][equip[i]] == 6) timeReload = 40;
+                    if (gun[i][equip[i]] == 7) timeReload = 20;
+                    if (gun[i][equip[i]] == 8) timeReload = 20;
+
+                    if (reloadCount[i] >= timeReload) {
+                        if (gun[i][equip[i]] == 1) ammo[i][equip[i]] = 10;
+                        if (gun[i][equip[i]] == 2) ammo[i][equip[i]] = 12;
+                        if (gun[i][equip[i]] == 3) ammo[i][equip[i]] = 20;
+                        if (gun[i][equip[i]] == 4) ammo[i][equip[i]] = 4;
+                        if (gun[i][equip[i]] == 5) ammo[i][equip[i]] = 60;
+                        if (gun[i][equip[i]] == 6) ammo[i][equip[i]] = 5;
+                        if (gun[i][equip[i]] == 7) ammo[i][equip[i]] = 4;
+                        if (gun[i][equip[i]] == 8) ammo[i][equip[i]] = 6;
+
+                        reloadCount[i] = 0;
+                        reload[i] = false;
+                    }
                 }
             }
-        }
-        //holding down
-        for (i = 0; i < players; i++) {
-            if (down[i] == true) {
-                downCount[i] = downCount[i] + fps * modifier;
+            //holding down
+            for (i = 0; i < players; i++) {
+                if (down[i] == true) {
+                    downCount[i] = downCount[i] + fps * modifier;
+                }
             }
-        }
-        //survival mode
-        var livesCount = 0;
-        for (i = 0; i < players; i++) {
-            if (survival == true && lives[i] <= 0) {
-                lives[i] = 0;
-                xpos[i] = 1000;
-                ypos[i] = -5000;
-                ydir[i] = 0;
-                livesCount++;
+            //survival mode
+            var livesCount = 0;
+            for (i = 0; i < players; i++) {
+                if (survival == true && lives[i] <= 0) {
+                    lives[i] = 0;
+                    xpos[i] = 1000;
+                    ypos[i] = -5000;
+                    ydir[i] = 0;
+                    livesCount++;
+                }
             }
         }
         for (i = 0; i < players; i++) {
@@ -3701,93 +3715,95 @@ function update(modifier) {
                 }
             }
         }
-        //falling weapons
-        for (k = 0; k < players; k++) {
-            if (dog[k] == true && dogxpos[k] + 20 >= gunx[0] && dogxpos[k] <= gunx[0] + 20 && dogypos[k] + 30 >= guny[0] && dogypos[k] - 30 <= guny[0] && dogypos[k] > 0) {
-                if (gun[k][0] > 0) clips[k][0] = clips[k][0] + 4;
-                if (gun[k][1] > 0) clips[k][1] = clips[k][1] + 4;
-                if (level != 5) gunx[0] = (Math.random() * 680) + 2;
-                if (level == 5) gunx[0] = (Math.random() * 1380) + 2;
-                guny[0] = -500 - ((Math.random() * 1500));
-                if (gun[k][0] > 0) {
-                    ammo[k][0] = maxAmmo[gun[k][0] - 1];
-                }
-                if (gun[k][1] > 0) {
-                    ammo[k][1] = maxAmmo[gun[k][1] - 1];
-                }
-            }
-            for (i = 0; i <= 9; i++) {
-                //hit falling gun
-                if (((down[k] == false && downCount[k] > 0 && downCount[k] <= 15) || (i == 0) || (cpu[k] == true) || (gun[k][0] - 1 == i) || (gun[k][1] - 1 == i)) && xpos[k] + 20 >= gunx[i] && xpos[k] <= gunx[i] + 20 && ypos[k] + 30 >= guny[i] && ypos[k] - 30 <= guny[i] && ypos[k] > 0 && i <= 7 && (custom == true || (zombie == true && k == 0))) {
-                    down[k] = false;
-                    downCount[k] = 0;
-                    if (reload[k] == true) {
-                        reload[k] = false;
-                        clips[k][equip[k]]++;
+        if (onlineState == 'Offline') {
+            //falling weapons yah
+            for (k = 0; k < players; k++) {
+                if (dog[k] == true && dogxpos[k] + 20 >= gunx[0] && dogxpos[k] <= gunx[0] + 20 && dogypos[k] + 30 >= guny[0] && dogypos[k] - 30 <= guny[0] && dogypos[k] > 0) {
+                    if (gun[k][0] > 0) clips[k][0] = clips[k][0] + 4;
+                    if (gun[k][1] > 0) clips[k][1] = clips[k][1] + 4;
+                    if (level != 5) gunx[0] = (Math.random() * 680) + 2;
+                    if (level == 5) gunx[0] = (Math.random() * 1380) + 2;
+                    guny[0] = -500 - ((Math.random() * 1500));
+                    if (gun[k][0] > 0) {
+                        ammo[k][0] = maxAmmo[gun[k][0] - 1];
                     }
-                    if (i == 0) {
-                        if (gun[k][0] > 0) clips[k][0] = clips[k][0] + 4;
-                        if (gun[k][1] > 0) clips[k][1] = clips[k][1] + 4;
-                        if (level != 5) gunx[i] = (Math.random() * 680) + 2;
-                        if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
-                        guny[i] = -500 - ((Math.random() * 1500));
-                        if (gun[k][0] > 0) {
-                            ammo[k][0] = maxAmmo[gun[k][0] - 1];
+                    if (gun[k][1] > 0) {
+                        ammo[k][1] = maxAmmo[gun[k][1] - 1];
+                    }
+                }
+                for (i = 0; i <= 9; i++) {
+                    //hit falling gun
+                    if (((down[k] == false && downCount[k] > 0 && downCount[k] <= 15) || (i == 0) || (cpu[k] == true) || (gun[k][0] - 1 == i) || (gun[k][1] - 1 == i)) && xpos[k] + 20 >= gunx[i] && xpos[k] <= gunx[i] + 20 && ypos[k] + 30 >= guny[i] && ypos[k] - 30 <= guny[i] && ypos[k] > 0 && i <= 7 && (custom == true || (zombie == true && k == 0))) {
+                        down[k] = false;
+                        downCount[k] = 0;
+                        if (reload[k] == true) {
+                            reload[k] = false;
+                            clips[k][equip[k]]++;
                         }
-                        if (gun[k][1] > 0) {
-                            ammo[k][1] = maxAmmo[gun[k][1] - 1];
-                        }
-                    } else {
-                        //add ammo if have gun
-                        if (gun[k][0] - 1 == i) {
-                            clips[k][0] = clips[k][0] + 4;
-                            ammo[k][0] = maxAmmo[i];
-                        }
+                        if (i == 0) {
+                            if (gun[k][0] > 0) clips[k][0] = clips[k][0] + 4;
+                            if (gun[k][1] > 0) clips[k][1] = clips[k][1] + 4;
+                            if (level != 5) gunx[i] = (Math.random() * 680) + 2;
+                            if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
+                            guny[i] = -500 - ((Math.random() * 1500));
+                            if (gun[k][0] > 0) {
+                                ammo[k][0] = maxAmmo[gun[k][0] - 1];
+                            }
+                            if (gun[k][1] > 0) {
+                                ammo[k][1] = maxAmmo[gun[k][1] - 1];
+                            }
+                        } else {
                             //add ammo if have gun
-                        else if (gun[k][1] - 1 == i) {
-                            clips[k][1] = clips[k][1] + 4;
-                            ammo[k][1] = maxAmmo[i];
-                        }
-                            //add gun if open spot
-                        else if (gun[k][0] == 0) {
-                            gun[k][0] = i + 1;
-                            clips[k][0] = 3;
-
-                            equip[k] = 0;
-                            ammo[k][0] = maxAmmo[i];
-                        }
-                            //add gun if open spot
-                        else if (gun[k][1] == 0) {
-                            gun[k][1] = i + 1;
-                            clips[k][1] = 3;
-                            equip[k] = 1;
-                            ammo[k][1] = maxAmmo[i];
-                        }
-                            //remove gun and add new gun if spots are full
-                        else if (gun[k][0] > 0 && gun[k][1] > 0) {
-                            if (equip[k] == 1) {
-                                gun[k][1] = i + 1;
-                                equip[k] = 1;
-                                clips[k][1] = 3;
-                                ammo[k][1] = maxAmmo[i];
-                            } else if (equip[k] == 0) {
-                                gun[k][0] = i + 1;
-                                equip[k] = 0;
-                                clips[k][0] = 3;
+                            if (gun[k][0] - 1 == i) {
+                                clips[k][0] = clips[k][0] + 4;
                                 ammo[k][0] = maxAmmo[i];
                             }
+                                //add ammo if have gun
+                            else if (gun[k][1] - 1 == i) {
+                                clips[k][1] = clips[k][1] + 4;
+                                ammo[k][1] = maxAmmo[i];
+                            }
+                                //add gun if open spot
+                            else if (gun[k][0] == 0) {
+                                gun[k][0] = i + 1;
+                                clips[k][0] = 3;
+
+                                equip[k] = 0;
+                                ammo[k][0] = maxAmmo[i];
+                            }
+                                //add gun if open spot
+                            else if (gun[k][1] == 0) {
+                                gun[k][1] = i + 1;
+                                clips[k][1] = 3;
+                                equip[k] = 1;
+                                ammo[k][1] = maxAmmo[i];
+                            }
+                                //remove gun and add new gun if spots are full
+                            else if (gun[k][0] > 0 && gun[k][1] > 0) {
+                                if (equip[k] == 1) {
+                                    gun[k][1] = i + 1;
+                                    equip[k] = 1;
+                                    clips[k][1] = 3;
+                                    ammo[k][1] = maxAmmo[i];
+                                } else if (equip[k] == 0) {
+                                    gun[k][0] = i + 1;
+                                    equip[k] = 0;
+                                    clips[k][0] = 3;
+                                    ammo[k][0] = maxAmmo[i];
+                                }
+                            }
+                            if (level != 5) gunx[i] = (Math.random() * 680) + 2;
+                            if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
+                            guny[i] = -500 - ((Math.random() * 1500));
                         }
-                        if (level != 5) gunx[i] = (Math.random() * 680) + 2;
-                        if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
-                        guny[i] = -500 - ((Math.random() * 1500));
                     }
                 }
             }
-        }
-        //end down
-        for (k = 0; k < players; k++) {
-            if (down[k] == false) {
-                downCount[k] = 0;
+            //end down
+            for (k = 0; k < players; k++) {
+                if (down[k] == false) {
+                    downCount[k] = 0;
+                }
             }
         }
         //falling weapons
@@ -3969,18 +3985,18 @@ function update(modifier) {
 
             //update direction facing based online movement to avoid sending extra data
             if (onlineState != 'Offline') {
-                if (xdir[i] > 0)
-                    directionFacing[i] = 1;
-                if (xdir[i] < 0)
-                    directionFacing[i] = 0;
+                if (xdir[1] > 0.001)
+                    directionFacing[1] = 1;
+                else if (xdir[1] < 0.001)
+                    directionFacing[1] = 0;
             }
+
+            //console.log("Update the positions!!!");
 
             xpos[i] = xpos[i] + (xdir[i] * modifier);
             ypos[i] = ypos[i] + (ydir[i] * modifier);
             dogxpos[i] = dogxpos[i] + (dogxdir[i] * modifier);
             dogypos[i] = dogypos[i] + (dogydir[i] * modifier);
-
-
         }
     }
 }
@@ -5152,3 +5168,149 @@ function keyReleased(e) {
     }
 }
 //end key released
+
+//MOUSE YO
+window.addEventListener('mouseup', this.mouseUp, false);
+
+function mouseUp(event) {
+    var mouseX = event.x;
+    var mouseY = event.y;
+
+
+
+    if(false) {
+        if (menu == 1) {
+            if (boxx == 255) boxx = 414;
+            else if (boxx == 414 && boxy > 165) boxx = 579;
+        }
+        if (menu == 2) {
+            if (boxx == 42) boxx = 259;
+            else if (boxx == 259) boxx = 470;
+        }
+        if (menu == 5) {
+            boxx = 508;
+        }
+        if (menu == 7) {
+            if (boxy == 85 && boxx == 374) {
+                boxx = 638;
+            }
+            if (boxy == 173 && boxx < 190 + (113 * 4)) {
+                boxx = boxx + 113;
+            }
+            if (boxy == 315 && boxx < 190 + (113 * 3)) {
+                boxx = boxx + 113;
+            }
+        }
+
+        if (menu == 1) {
+            if (boxx == 579) boxx = 414;
+            else if (boxx == 414) boxx = 255;
+        }
+        if (menu == 2) {
+            if (boxx == 470) boxx = 259;
+            else if (boxx == 259) boxx = 42;
+        }
+        if (menu == 5) {
+            boxx = 275;
+        }
+        if (menu == 7) {
+            if (boxy == 85 && boxx == 638) {
+                boxx = 374;
+            }
+            if (boxy == 173 && boxx > 190) {
+                boxx = boxx - 113;
+            }
+            if (boxy == 315 && boxx > 190) {
+                boxx = boxx - 113;
+            }
+        }
+        //menu
+        if (menu == 1) {
+            if (boxy == 332) boxy = 245;
+            else if (boxy == 245 && boxx < 579) boxy = 157;
+            else if (boxy == 157) boxy = 70;
+            else if (boxx == 368 && boxy == 400) {
+                boxx = 255;
+                boxy = 332;
+            }
+        } else if (menu == 2) {
+            if (boxy == 313) boxy = 195;
+            else if (boxy == 195) boxy = 78;
+
+
+
+        } else if (menu == 6) {
+            if (boxy == 400) {
+                boxx = 458;
+                boxy = 228;
+            } else if (boxy == 228) {
+                boxx = 420;
+                boxy = 140;
+            }
+        } else if (menu == 7) {
+            if (boxy == 173) {
+                boxx = 374;
+                boxy = 85;
+            } else if (boxy == 315) {
+                boxy = 173;
+                boxx = 190;
+            } else if (boxy == 400) {
+                boxx = 190;
+                boxy = 315;
+            }
+        } else if (menu == 8) {
+            if (boxy == 204) {
+                boxx = 424;
+                boxy = 120;
+            } else if (boxy == 283) {
+                boxy = 204;
+                boxx = 466;
+            } else if (boxy == 400) {
+                boxy = 283;
+                boxx = 449;
+            }
+        }
+        if (menu == 1) {
+            if (boxy == 70) boxy = 157;
+            else if (boxy == 157) boxy = 245;
+            else if (boxy == 245) boxy = 332;
+            else if (boxy == 332) {
+                boxx = 368;
+                boxy = 400;
+            }
+        } else if (menu == 2) {
+            if (boxy == 78) boxy = 195;
+            else if (boxy == 195) boxy = 313;
+        } else if (menu == 6) {
+            if (boxy == 140) {
+                boxx = 458;
+                boxy = 228;
+            } else if (boxy == 228) {
+                boxx = 368;
+                boxy = 400;
+            }
+        } else if (menu == 7) {
+            if (boxy == 85) {
+                boxy = 173;
+                boxx = 190;
+            } else if (boxy == 173) {
+                boxx = 190;
+                boxy = 315;
+            } else if (boxy == 315) {
+                boxx = 368;
+                boxy = 400;
+            }
+        } else if (menu == 8) {
+            if (boxy == 120) {
+                boxx = 466;// stun
+                boxy = 204;
+            } else if (boxy == 204) {
+                boxy = 283;
+                boxx = 449;
+            } else if (boxy == 283) {
+                boxy = 400;
+                boxx = 368;
+            }
+        }
+    }
+}

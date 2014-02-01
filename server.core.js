@@ -18,7 +18,6 @@ var fps = 40;
 
 var jumpSpeed = 15 * fps;//was then 25
 var playerSpeed = 8 * fps; //it was 8 at fps = 25(40)
-var zombieSpeed = 6 * fps; //it was 6 at fps = 25(40)
 var playerFallSpeed = 40 * fps; // was 1
 var playerLungeSpeed = 15 * fps; // was 15
 
@@ -197,13 +196,18 @@ server_instance.prototype.initGame = function () {
     level = 1;
     loadMap();
 
+    newBulletCount = 0;
+
+
     for(var i = 0; i < playerCount; i++) {
         //set sides
         right[i] = false;
         left[i] = false;
 
-        for (k = 0; k <= 99; k++)
+        for (k = 0; k <= 99; k++) {
+            shotType[i][k] = 0;
             b[i][k] = false;
+        }
 
         //set dirs
         ydir[i] = 0;
@@ -221,6 +225,9 @@ server_instance.prototype.initGame = function () {
         gun[i][1] = 0;
         clips[i][1] = 0;
         ammo[i][1] = 0;
+
+        down[i] = false;
+        downCount[i] = 0;
 
         ydir[i] = 0;
         swapCount[i] = 0;
@@ -245,6 +252,9 @@ server_instance.prototype.initGame = function () {
         right[i] = false;
         fuelCount[i] = 0;
         fuel[i] = 0;
+
+        jump[i] = false;
+        jumpCount[i] = 0;
     }
 
     xpos[0] = 670;
@@ -597,9 +607,6 @@ server_instance.prototype.process_input = function (player) {
         if (key == 40) {
             down[senderID] = true;
         }
-        if (key == 222) {
-            //shoot
-        }
     }
     if (input.time == 'u') {
         if (key == 39) {
@@ -610,8 +617,10 @@ server_instance.prototype.process_input = function (player) {
         }
         if (key == 40) {
             down[senderID] = false;
+
+            //REMEMBER TO STOP JETPACKS
         }
-        if (key == 222) {
+        if (key == 222 || key == 96 || key == 32) {
             if (shooting[senderID] == true && reload[senderID] == false && stun[senderID] == false) {
                 console.log("No more shooting!!");
                 shooting[senderID] = false;
@@ -776,7 +785,7 @@ function newBullet(i) {
                         bydir[i][k] = 0;
                         bx[i][k] = xpos[i];
                         by[i][k] = ypos[i] + 4;
-                        if ((streak[i] < 10 || zombie == true) && k % 2 == 0)
+                        if ((streak[i] < 10) && k % 2 == 0)
                             ammo[i][equip[i]]--;
                         shotType[i][k] = 5;
                         shootCount[i] = 0;
@@ -787,7 +796,7 @@ function newBullet(i) {
                         bydir[i][k] = 0;
                         bx[i][k] = xpos[i];
                         by[i][k] = ypos[i] + 4;
-                        if ((streak[i] < 10 || zombie == true) && k % 2 == 0)
+                        if ((streak[i] < 10) && k % 2 == 0)
                             ammo[i][equip[i]]--;
                         shotType[i][k] = 5;
                         shootCount[i] = 0;
@@ -825,7 +834,7 @@ function newBullet(i) {
                             shootCount[i] = 0;
                         }
                     }
-                    if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                    if (streak[i] < 10) ammo[i][equip[i]]--;
                 }
                 return true;
             }
@@ -844,12 +853,14 @@ server_instance.prototype.update = function () {
 
     var modifier = delta / 1000;
 
+    
+
     if (play) {
         //Update the state of our local clock to match the timer
         this.server_time = this.local_time;
 
         //jetpack
-        for (i = 0; i < playerCount; i++) {
+        /*for (i = 0; i < playerCount; i++) {
             if (streak[i] >= 3 && ydir[i] != 0 && jetpack[i] == true) {
                 if (fuel[i] > 0) {
                     fuel[i] = fuel[i] - fps * modifier;
@@ -860,10 +871,10 @@ server_instance.prototype.update = function () {
                 else
                     jetpack[i] = false;
             }
-        }
+        }*/
 
         //collisions
-        for(i = 0; i < 2; i++) {
+        for(i = 0; i < playerCount; i++) {
             if (xpos[i] >= 680) {
                 xpos[i] = 679;
             }
@@ -874,6 +885,7 @@ server_instance.prototype.update = function () {
 
         //updating 2 players
         for (i = 0; i < playerCount; i++) {
+            //console.log("in here lol!");
             shootCount[i] = shootCount[i] + fps * modifier;
             if (shooting[i] == true) {
                 console.log("try to create new bullet!");
@@ -885,20 +897,6 @@ server_instance.prototype.update = function () {
                     newBulletSender[newBulletCount] = i;
                     newBulletCount++;
                     console.log("Created!");
-                }
-            }
-
-            //flamethrower fire and shotgun
-            for (i = 0; i < playerCount; i++) {
-                for (k = 0; k <= 99; k++) {
-                    if (b[i][k] == true && shotType[i][k] == 5) {
-                        if (bxdir[i][k] > 0 && bx[i][k] >= flameDis[i][k]) b[i][k] = false;
-                        if (bxdir[i][k] < 0 && bx[i][k] <= flameDis[i][k]) b[i][k] = false;
-                    }
-                    if (b[i][k] == true && shotType[i][k] == 6) {
-                        if (bxdir[i][k] > 0 && bx[i][k] >= shotgunDis[i][k]) b[i][k] = false;
-                        if (bxdir[i][k] < 0 && bx[i][k] <= shotgunDis[i][k]) b[i][k] = false;
-                    }
                 }
             }
 
@@ -934,6 +932,20 @@ server_instance.prototype.update = function () {
                 xdir[i] = -playerSpeed;
             } else if (left[i] == false && right[i] == false) {
                 xdir[i] = 0;
+            }
+        }
+
+        //flamethrower fire and shotgun UPDATE
+        for (i = 0; i < playerCount; i++) {
+            for (k = 0; k <= 99; k++) {
+                if (b[i][k] == true && shotType[i][k] == 5) {
+                    if (bxdir[i][k] > 0 && bx[i][k] >= flameDis[i][k]) b[i][k] = false;
+                    if (bxdir[i][k] < 0 && bx[i][k] <= flameDis[i][k]) b[i][k] = false;
+                }
+                if (b[i][k] == true && shotType[i][k] == 6) {
+                    if (bxdir[i][k] > 0 && bx[i][k] >= shotgunDis[i][k]) b[i][k] = false;
+                    if (bxdir[i][k] < 0 && bx[i][k] <= shotgunDis[i][k]) b[i][k] = false;
+                }
             }
         }
 
@@ -996,15 +1008,19 @@ server_instance.prototype.update = function () {
         this.laststate.cpy = otherY;               //'client position', the person that joined, their position
         this.laststate.cpxdir = otherxdir;             //'client direction'
         this.laststate.cpydir = otherydir;             //'client direction'
-        if (newBulletCount) {//create the bullets!!!
-            this.laststate.newBullets = newBulletCount;
+        this.laststate.newBullets = newBulletCount; //amount of new bullets
+        if (newBulletCount > 0) {//create the bullets!!!
+            console.log(" about to print! ");
+            console.log("Bullet x: " + newBulletX[0]);
             this.laststate.newBulletsType = newBulletType;
-            this.laststate.newBulletXs = newBulletX;
-            this.laststate.newBulletYs = newBulletY;
-            this.laststate.newBulletsSender = newBulletSender;
-            this.laststate.newBulletDirs = newBulletDir;
+            this.laststate.newBulletXs = JSON.stringify(newBulletX);//newBulletXs
+            this.laststate.newBulletYs = JSON.stringify(newBulletY);
+            this.laststate.newBulletsSend = JSON.stringify(newBulletSender);
+            this.laststate.newBulletDirs = JSON.stringify(newBulletDir);
         }
         this.laststate.t = this.server_time;                      // our current local time on the server
+
+        //console.log("LOL");
 
         //his: this.players.self.last_input_seq,     //'host input sequence', the last input we processed for the host
         //cis: this.players.other.last_input_seq,    //'client input sequence', the last input we processed for the client
@@ -1019,6 +1035,8 @@ server_instance.prototype.update = function () {
             players.other.instance.emit('onserverupdate', this.laststate);
         }
 
+        //console.log("DATA HAS BEEN RELEASED! Bullet count: " + newBulletCount);
+
         //reseting the bullets
         newBulletCount = 0;
         newBulletDir = [];
@@ -1031,4 +1049,8 @@ server_instance.prototype.update = function () {
 
         //client.send('s.p.' + message_parts[1]);
     }
+}
+
+function createJSONPairs(newJSON) {
+
 }
