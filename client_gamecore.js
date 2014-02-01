@@ -2971,401 +2971,403 @@ function update(modifier) {
                 healthpacky[i] = -20;
             }
         }
-        //shooting
-        for (i = 0; i < players; i++) {
-            shootCount[i] = shootCount[i] + fps * modifier;
-            if (shooting[i] == true) {
+        if (onlineState == 'Offline') {
+            //shooting
+            for (i = 0; i < players; i++) {
+                shootCount[i] = shootCount[i] + fps * modifier;
+                if (shooting[i] == true) {
 
-                //pistol
-                if (gun[i][equip[i]] == 1) {
-                    if (shootCount[i] >= 12 && ammo[i][equip[i]] > 0) {
-                        for (k = 0; k <= 99; k++) {
-                            if (b[i][k] == false) {
-                                shotsFired[i]++;
-                                b[i][k] = true;
-                                if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 10 * fps;//was 10
-                                    bydir[i][k] = 0;
-                                    bx[i][k] = xpos[i];
-                                    by[i][k] = ypos[i] + 4;
-                                    if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
-                                    shootCount[i] = 0;
-                                    shotType[i][k] = 1;
-                                    k = 100;
-                                } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -10 * fps;//-10
-                                    bydir[i][k] = 0;
-                                    bx[i][k] = xpos[i];
-                                    by[i][k] = ypos[i] + 4;
-                                    if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
-                                    shotType[i][k] = 1;
-                                    shootCount[i] = 0;
-                                    k = 100;
-                                }
-                            }
-                        }
-                    }
-                }
-                //assault
-                if (gun[i][equip[i]] == 2) {
-                    if (shootCount[i] >= 3 && ammo[i][equip[i]] > 0) {
-                        for (k = 0; k <= 99; k++) {
-                            if (b[i][k] == false) {
-                                shotsFired[i]++;
-                                b[i][k] = true;
-                                if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 14 * fps;//was 14
-                                    bydir[i][k] = 0;
-                                    bx[i][k] = xpos[i];
-                                    by[i][k] = ypos[i] + 4;
-                                    if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
-                                    shootCount[i] = 0;
-                                    shotType[i][k] = 2;
-                                    k = 100;
-                                } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -14 * fps;//-14
-                                    bydir[i][k] = 0;
-                                    bx[i][k] = xpos[i];
-                                    by[i][k] = ypos[i] + 4;
-                                    if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
-                                    shootCount[i] = 0;
-                                    shotType[i][k] = 2;
-                                    k = 100;
-                                }
-                            }
-                        }
-                    }
-                }
-                //uzi
-                if (gun[i][equip[i]] == 3) {
-                    if (shootCount[i] >= 3 && ammo[i][equip[i]] > 0) {
-                        for (k = 0; k <= 99; k++) {
-                            if (b[i][k] == false) {
-                                shotsFired[i]++;
-                                b[i][k] = true;
-                                if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 14 * fps; // was 14
-                                    bydir[i][k] = 0;
-                                    bx[i][k] = xpos[i];
-                                    by[i][k] = ypos[i] + 4;
-                                    if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
-                                    shootCount[i] = 0;
-                                    shotType[i][k] = 3;
-                                    k = 100;
-                                } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -14 * fps;//was -14
-                                    bydir[i][k] = 0;
-                                    bx[i][k] = xpos[i];
-                                    by[i][k] = ypos[i] + 4;
-                                    if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
-                                    shotType[i][k] = 3;
-                                    shootCount[i] = 0;
-                                    k = 100;
-                                }
-                            }
-                        }
-                    }
-                }
-                //sniper
-                if (gun[i][equip[i]] == 4) {
-                    if (shootCount[i] >= 30 && ammo[i][equip[i]] > 0) {
-                        for (k = 0; k <= 99; k++) {
-                            if (b[i][k] == false) {
-                                shotsFired[i]++;
-                                b[i][k] = true;
-                                if (directionFacing[i] == 1) {
-                                    bxdir[i][k] = 20 * fps;//was 20
-                                    bydir[i][k] = 0;
-                                    bx[i][k] = xpos[i];
-                                    by[i][k] = ypos[i] + 4;
-                                    if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
-                                    shotType[i][k] = 4;
-                                    shootCount[i] = 0;
-                                    k = 100;
-                                } else if (directionFacing[i] == 0) {
-                                    bxdir[i][k] = -20 * fps;//was -20
-                                    bydir[i][k] = 0;
-                                    bx[i][k] = xpos[i];
-                                    by[i][k] = ypos[i] + 4;
-                                    if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
-                                    shotType[i][k] = 4;
-                                    shootCount[i] = 0;
-                                    k = 100;
-                                }
-                            }
-                        }
-                    }
-                }
-                //flamethrower
-                if (gun[i][equip[i]] == 5) {
-                    if (shootCount[i] >= 1 && ammo[i][equip[i]] > 0) {
-                        for (k = 0; k <= 99; k++) {
-                            if (b[i][k] == false) {
-                                shotsFired[i]++;
-                                b[i][k] = true;
-                                if (directionFacing[i] == 1) {
-                                    flameDis[i][k] = xpos[i] + 200;
-                                    bxdir[i][k] = 11 * fps; // was 11
-                                    bydir[i][k] = 0;
-                                    bx[i][k] = xpos[i];
-                                    by[i][k] = ypos[i] + 4;
-                                    if ((streak[i] < 10 || zombie == true) && k % 2 == 0)
-                                        ammo[i][equip[i]]--;
-                                    shotType[i][k] = 5;
-                                    shootCount[i] = 0;
-                                    k = 100;
-                                } else if (directionFacing[i] == 0) {
-                                    flameDis[i][k] = xpos[i] - 180;
-                                    bxdir[i][k] = -11 * fps;// was -11
-                                    bydir[i][k] = 0;
-                                    bx[i][k] = xpos[i];
-                                    by[i][k] = ypos[i] + 4;
-                                    if ((streak[i] < 10 || zombie == true) && k % 2 == 0)
-                                        ammo[i][equip[i]]--;
-                                    shotType[i][k] = 5;
-                                    shootCount[i] = 0;
-                                    k = 100;
-                                }
-                            }
-                        }
-                    }
-                }
-                //shotgun
-                if (gun[i][equip[i]] == 6) {
-                    if (shootCount[i] >= 25 && ammo[i][equip[i]] > 0) {
-                        for (k = 0; k <= 95; k++) {
-                            if (b[i][k] == false) {
-                                for (r = 0; r <= 4; r++) {
+                    //pistol
+                    if (gun[i][equip[i]] == 1) {
+                        if (shootCount[i] >= 12 && ammo[i][equip[i]] > 0) {
+                            for (k = 0; k <= 99; k++) {
+                                if (b[i][k] == false) {
                                     shotsFired[i]++;
-                                    b[i][k + r] = true;
+                                    b[i][k] = true;
                                     if (directionFacing[i] == 1) {
-                                        //shotgunDis[i][k+r] =xpos[i]+220;
-                                        shotgunDis[i][k + r] = xpos[i] + 160;
-                                        bxdir[i][k + r] = 15 * fps;//was 15
-                                        bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
-                                        bx[i][k + r] = xpos[i];
-                                        by[i][k + r] = ypos[i] + 4;
-                                        shotType[i][k + r] = 6;
+                                        bxdir[i][k] = 10 * fps;//was 10
+                                        bydir[i][k] = 0;
+                                        bx[i][k] = xpos[i];
+                                        by[i][k] = ypos[i] + 4;
+                                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
                                         shootCount[i] = 0;
+                                        shotType[i][k] = 1;
+                                        k = 100;
                                     } else if (directionFacing[i] == 0) {
-                                        //shotgunDis[i][k+r] =xpos[i]-200;
-                                        shotgunDis[i][k + r] = xpos[i] - 140;
-                                        bxdir[i][k + r] = -15 * fps;//was 15
-                                        bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
-                                        bx[i][k + r] = xpos[i];
-                                        by[i][k + r] = ypos[i] + 4;
-                                        shotType[i][k + r] = 6;
+                                        bxdir[i][k] = -10 * fps;//-10
+                                        bydir[i][k] = 0;
+                                        bx[i][k] = xpos[i];
+                                        by[i][k] = ypos[i] + 4;
+                                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                                        shotType[i][k] = 1;
                                         shootCount[i] = 0;
+                                        k = 100;
                                     }
                                 }
-                                if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
                             }
-                            k = 100;
+                        }
+                    }
+                    //assault
+                    if (gun[i][equip[i]] == 2) {
+                        if (shootCount[i] >= 3 && ammo[i][equip[i]] > 0) {
+                            for (k = 0; k <= 99; k++) {
+                                if (b[i][k] == false) {
+                                    shotsFired[i]++;
+                                    b[i][k] = true;
+                                    if (directionFacing[i] == 1) {
+                                        bxdir[i][k] = 14 * fps;//was 14
+                                        bydir[i][k] = 0;
+                                        bx[i][k] = xpos[i];
+                                        by[i][k] = ypos[i] + 4;
+                                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                                        shootCount[i] = 0;
+                                        shotType[i][k] = 2;
+                                        k = 100;
+                                    } else if (directionFacing[i] == 0) {
+                                        bxdir[i][k] = -14 * fps;//-14
+                                        bydir[i][k] = 0;
+                                        bx[i][k] = xpos[i];
+                                        by[i][k] = ypos[i] + 4;
+                                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                                        shootCount[i] = 0;
+                                        shotType[i][k] = 2;
+                                        k = 100;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //uzi
+                    if (gun[i][equip[i]] == 3) {
+                        if (shootCount[i] >= 3 && ammo[i][equip[i]] > 0) {
+                            for (k = 0; k <= 99; k++) {
+                                if (b[i][k] == false) {
+                                    shotsFired[i]++;
+                                    b[i][k] = true;
+                                    if (directionFacing[i] == 1) {
+                                        bxdir[i][k] = 14 * fps; // was 14
+                                        bydir[i][k] = 0;
+                                        bx[i][k] = xpos[i];
+                                        by[i][k] = ypos[i] + 4;
+                                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                                        shootCount[i] = 0;
+                                        shotType[i][k] = 3;
+                                        k = 100;
+                                    } else if (directionFacing[i] == 0) {
+                                        bxdir[i][k] = -14 * fps;//was -14
+                                        bydir[i][k] = 0;
+                                        bx[i][k] = xpos[i];
+                                        by[i][k] = ypos[i] + 4;
+                                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                                        shotType[i][k] = 3;
+                                        shootCount[i] = 0;
+                                        k = 100;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //sniper
+                    if (gun[i][equip[i]] == 4) {
+                        if (shootCount[i] >= 30 && ammo[i][equip[i]] > 0) {
+                            for (k = 0; k <= 99; k++) {
+                                if (b[i][k] == false) {
+                                    shotsFired[i]++;
+                                    b[i][k] = true;
+                                    if (directionFacing[i] == 1) {
+                                        bxdir[i][k] = 20 * fps;//was 20
+                                        bydir[i][k] = 0;
+                                        bx[i][k] = xpos[i];
+                                        by[i][k] = ypos[i] + 4;
+                                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                                        shotType[i][k] = 4;
+                                        shootCount[i] = 0;
+                                        k = 100;
+                                    } else if (directionFacing[i] == 0) {
+                                        bxdir[i][k] = -20 * fps;//was -20
+                                        bydir[i][k] = 0;
+                                        bx[i][k] = xpos[i];
+                                        by[i][k] = ypos[i] + 4;
+                                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                                        shotType[i][k] = 4;
+                                        shootCount[i] = 0;
+                                        k = 100;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //flamethrower
+                    if (gun[i][equip[i]] == 5) {
+                        if (shootCount[i] >= 1 && ammo[i][equip[i]] > 0) {
+                            for (k = 0; k <= 99; k++) {
+                                if (b[i][k] == false) {
+                                    shotsFired[i]++;
+                                    b[i][k] = true;
+                                    if (directionFacing[i] == 1) {
+                                        flameDis[i][k] = xpos[i] + 200;
+                                        bxdir[i][k] = 11 * fps; // was 11
+                                        bydir[i][k] = 0;
+                                        bx[i][k] = xpos[i];
+                                        by[i][k] = ypos[i] + 4;
+                                        if ((streak[i] < 10 || zombie == true) && k % 2 == 0)
+                                            ammo[i][equip[i]]--;
+                                        shotType[i][k] = 5;
+                                        shootCount[i] = 0;
+                                        k = 100;
+                                    } else if (directionFacing[i] == 0) {
+                                        flameDis[i][k] = xpos[i] - 180;
+                                        bxdir[i][k] = -11 * fps;// was -11
+                                        bydir[i][k] = 0;
+                                        bx[i][k] = xpos[i];
+                                        by[i][k] = ypos[i] + 4;
+                                        if ((streak[i] < 10 || zombie == true) && k % 2 == 0)
+                                            ammo[i][equip[i]]--;
+                                        shotType[i][k] = 5;
+                                        shootCount[i] = 0;
+                                        k = 100;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //shotgun
+                    if (gun[i][equip[i]] == 6) {
+                        if (shootCount[i] >= 25 && ammo[i][equip[i]] > 0) {
+                            for (k = 0; k <= 95; k++) {
+                                if (b[i][k] == false) {
+                                    for (r = 0; r <= 4; r++) {
+                                        shotsFired[i]++;
+                                        b[i][k + r] = true;
+                                        if (directionFacing[i] == 1) {
+                                            //shotgunDis[i][k+r] =xpos[i]+220;
+                                            shotgunDis[i][k + r] = xpos[i] + 160;
+                                            bxdir[i][k + r] = 15 * fps;//was 15
+                                            bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
+                                            bx[i][k + r] = xpos[i];
+                                            by[i][k + r] = ypos[i] + 4;
+                                            shotType[i][k + r] = 6;
+                                            shootCount[i] = 0;
+                                        } else if (directionFacing[i] == 0) {
+                                            //shotgunDis[i][k+r] =xpos[i]-200;
+                                            shotgunDis[i][k + r] = xpos[i] - 140;
+                                            bxdir[i][k + r] = -15 * fps;//was 15
+                                            bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
+                                            bx[i][k + r] = xpos[i];
+                                            by[i][k + r] = ypos[i] + 4;
+                                            shotType[i][k + r] = 6;
+                                            shootCount[i] = 0;
+                                        }
+                                    }
+                                    if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                                }
+                                k = 100;
+                            }
+                        }
+                    }
+                    //sword
+                    if (gun[i][equip[i]] == 7) {
+                        if (shootCount[i] >= 20 && ammo[i][equip[i]] > 0 && lunge[i] == false) {
+                            shotsFired[i]++;
+                            lunge[i] = true;
+                            shootCount[i] = 0;
+                            if (streak[i] < 10 || zombie == true)
+                                ammo[i][equip[i]]--;
+                        }
+                    }
+                    //daggers
+                    if (gun[i][equip[i]] == 8) {
+                        if (shootCount[i] >= 20 && ammo[i][equip[i]] > 0 && lunge[i] == false) {
+                            shotsFired[i]++;
+                            lunge[i] = true;
+                            shootCount[i] = 0;
+                            if (streak[i] < 10 || zombie == true)
+                                ammo[i][equip[i]]--;
                         }
                     }
                 }
-                //sword
-                if (gun[i][equip[i]] == 7) {
-                    if (shootCount[i] >= 20 && ammo[i][equip[i]] > 0 && lunge[i] == false) {
-                        shotsFired[i]++;
-                        lunge[i] = true;
-                        shootCount[i] = 0;
-                        if (streak[i] < 10 || zombie == true)
-                            ammo[i][equip[i]]--;
-                    }
-                }
-                //daggers
-                if (gun[i][equip[i]] == 8) {
-                    if (shootCount[i] >= 20 && ammo[i][equip[i]] > 0 && lunge[i] == false) {
-                        shotsFired[i]++;
-                        lunge[i] = true;
-                        shootCount[i] = 0;
-                        if (streak[i] < 10 || zombie == true)
-                            ammo[i][equip[i]]--;
-                    }
-                }
             }
-        }
-        //sword lunge
-        for (i = 0; i < players; i++) {
-            if ((gun[i][equip[i]] != 7 && gun[i][equip[i]] != 8) && ((i <= 3 && custom == true) || (i == 0 && zombie == true))) {
-                lunge[i] = false;
-                lungeCount[i] = 0;
-            }
-            if (lunge[i] == true && (gun[i][equip[i]] == 7 || gun[i][equip[i]] == 8) && ((i <= 3 && custom == true) || (i == 0 && zombie == true))) {
-                lungeCount[i] = lungeCount[i] + fps * modifier;
-                if (lungeCount[i] >= 10) {
-                    lungeCount[i] = 0;
+            //sword lunge
+            for (i = 0; i < players; i++) {
+                if ((gun[i][equip[i]] != 7 && gun[i][equip[i]] != 8) && ((i <= 3 && custom == true) || (i == 0 && zombie == true))) {
                     lunge[i] = false;
+                    lungeCount[i] = 0;
                 }
-            }
-            if (lunge[i] == true && gun[i][equip[i]] == 8) {
-                if (directionFacing[i] == 1 && lungeCount[i] == 1) {
-                    xpos[i] = xpos[i] + 50;
-                } else if (directionFacing[i] == 0 && lungeCount[i] == 1) {
-                    xpos[i] = xpos[i] - 50;
+                if (lunge[i] == true && (gun[i][equip[i]] == 7 || gun[i][equip[i]] == 8) && ((i <= 3 && custom == true) || (i == 0 && zombie == true))) {
+                    lungeCount[i] = lungeCount[i] + fps * modifier;
+                    if (lungeCount[i] >= 10) {
+                        lungeCount[i] = 0;
+                        lunge[i] = false;
+                    }
                 }
+                if (lunge[i] == true && gun[i][equip[i]] == 8) {
+                    if (directionFacing[i] == 1 && lungeCount[i] == 1) {
+                        xpos[i] = xpos[i] + 50;
+                    } else if (directionFacing[i] == 0 && lungeCount[i] == 1) {
+                        xpos[i] = xpos[i] - 50;
+                    }
 
-            }
-            for (t = 0; t < players; t++) {
-                if (lunge[i] == true && t != i && xpos[i] + 20 >= xpos[t] && xpos[i] <= xpos[t] + 20 && ypos[i] + 20 >= ypos[t] && ypos[i] <= ypos[t] + 20 && ypos[i] > 0 && ypos[t] > 0 && ((team[i] != team[t]) || teams == false)) {
-                    shotsHit[i]++;
-                    for (q = 0; q <= 999; q++) {
-                        if (lunge[t] == false && blood[t][q] == false) {
-                            num = (Math.random() * 15 + 5);
-                            if ((q + num) <= 999) {
-                                for (r = q; r <= q + num; r++) {
-                                    blood[t][r] = true;
-                                    bloodx[t][r] = xpos[t] + (Math.random() * 20);
-                                    bloody[t][r] = ypos[t] + (Math.random() * 10);
-                                    if (xdir[t] > 0)
-                                        bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
-                                    else
-                                        bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
-                                    bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
-                                    bloodCount[t][r] = 0;
+                }
+                for (t = 0; t < players; t++) {
+                    if (lunge[i] == true && t != i && xpos[i] + 20 >= xpos[t] && xpos[i] <= xpos[t] + 20 && ypos[i] + 20 >= ypos[t] && ypos[i] <= ypos[t] + 20 && ypos[i] > 0 && ypos[t] > 0 && ((team[i] != team[t]) || teams == false)) {
+                        shotsHit[i]++;
+                        for (q = 0; q <= 999; q++) {
+                            if (lunge[t] == false && blood[t][q] == false) {
+                                num = (Math.random() * 15 + 5);
+                                if ((q + num) <= 999) {
+                                    for (r = q; r <= q + num; r++) {
+                                        blood[t][r] = true;
+                                        bloodx[t][r] = xpos[t] + (Math.random() * 20);
+                                        bloody[t][r] = ypos[t] + (Math.random() * 10);
+                                        if (xdir[t] > 0)
+                                            bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
+                                        else
+                                            bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
+                                        bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
+                                        bloodCount[t][r] = 0;
+                                    }
+                                } else if ((q + num) > 999) {
+                                    for (r = q; r <= 999; r++) {
+                                        blood[t][r] = true;
+                                        bloodx[t][r] = xpos[t] + (Math.random() * 20);
+                                        bloody[t][r] = ypos[t] + (Math.random() * 10);
+                                        if (xdir[t] > 0)
+                                            bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
+                                        else
+                                            bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
+                                        bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
+                                        bloodCount[t][r] = 0;
+                                    }
                                 }
-                            } else if ((q + num) > 999) {
-                                for (r = q; r <= 999; r++) {
-                                    blood[t][r] = true;
-                                    bloodx[t][r] = xpos[t] + (Math.random() * 20);
-                                    bloody[t][r] = ypos[t] + (Math.random() * 10);
-                                    if (xdir[t] > 0)
-                                        bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
-                                    else
-                                        bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
-                                    bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
-                                    bloodCount[t][r] = 0;
-                                }
+                                q = 1000;
                             }
-                            q = 1000;
                         }
-                    }
-                    if (lunge[t] == false) {
-                        if ((directionFacing[i] == 1 && directionFacing[t] == 1) || (directionFacing[i] == 0 && directionFacing[t] == 0)) {
-                            if (gun[i][equip[i]] == 7)
-                                health[t] = health[t] - 10;
-                            else if (gun[i][equip[i]] == 8 && jump[i] == false && stun[t] == false)
-                                health[t] = health[t] - 10;
+                        if (lunge[t] == false) {
+                            if ((directionFacing[i] == 1 && directionFacing[t] == 1) || (directionFacing[i] == 0 && directionFacing[t] == 0)) {
+                                if (gun[i][equip[i]] == 7)
+                                    health[t] = health[t] - 10;
+                                else if (gun[i][equip[i]] == 8 && jump[i] == false && stun[t] == false)
+                                    health[t] = health[t] - 10;
+                            } else {
+                                if (gun[i][equip[i]] == 7)
+                                    health[t] = health[t] - 7;
+                                else if (gun[i][equip[i]] == 8 && jump[i] == false && stun[t] == false)
+                                    health[t] = health[t] - 7;
+                            }
+                            if (gun[i][equip[i]] == 8 && jump[i] == false && stun[t] == false) {
+                                //jump[i] = true;
+                                stun[t] = true;
+                                xpos[i] = xpos[t];
+                            }
                         } else {
-                            if (gun[i][equip[i]] == 7)
-                                health[t] = health[t] - 7;
-                            else if (gun[i][equip[i]] == 8 && jump[i] == false && stun[t] == false)
-                                health[t] = health[t] - 7;
+                            lunge[t] = false;
+                            lungeCount[t] = 0;
                         }
-                        if (gun[i][equip[i]] == 8 && jump[i] == false && stun[t] == false) {
-                            //jump[i] = true;
-                            stun[t] = true;
-                            xpos[i] = xpos[t];
-                        }
-                    } else {
-                        lunge[t] = false;
-                        lungeCount[t] = 0;
-                    }
-                    lunge[i] = false;
-                    lungeCount[i] = 0;
-                    //die to sword
-                    if (health[t] <= 0) {
-                        if (survival == true) {
-                            lives[t]--;
-                        }
-                        //zombie explosion
-                        if (zombie == true && t > 0) {
-                            health[t] = 10;
-                            if (kills[0] >= 3 && kills[0] % 3 == 0 && zombieAlive <= maxZombies) {
-                                zombieAlive++;
-                                players++;
-                                right[zombieAlive] = true;
-                                left[zombieAlive] = false;
-                                xpos[zombieAlive] = gameWidth/2;
-                                ypos[zombieAlive] = -80;
-                                ydir[zombieAlive] = 0;
-                                xdir[zombieAlive] = 0;
+                        lunge[i] = false;
+                        lungeCount[i] = 0;
+                        //die to sword
+                        if (health[t] <= 0) {
+                            if (survival == true) {
+                                lives[t]--;
                             }
-                        }
-                        streak[i]++;
-                        streak[t] = 0;
-                        if (streak[i] == 2) {
-                            healthpack[i] = true;
-                            healthpacky[i] = -20;
-                        }
-                        if (streak[i] == 3) {
-                            fuel[i] = 20;
-                        }
-                        if (streak[i] == 4) {
-                            healthpack[i] = true;
-                            healthpacky[i] = -20;
-                        }
-                        if (streak[i] == 5) {
-                            dog[i] = true;
-                            dogxpos[i] = xpos[i];
-                            dogypos[i] = ypos[i];
-                            dogydir[i] = 0;
-                            dogxdir[i] = 0;
-                            dogleft[i] = false;
-                            dogright[i] = false;
-                        }
-                        if (streak[i] == 6) {
-                            fuel[i] = 40;
-                        }
-                        if (streak[i] == 7) {
-                            healthpack[i] = true;
-                            healthpacky[i] = -20;
-                        }
-                        if (streak[i] % 20 == 0) {
-                            healthpack[i] = true;
-                            healthpacky[i] = -20;
-                        }
-                        killcount[i] = 0;
-                        kills[i]++;
-                        teamkills[team[i]]++;
-                        hold[t] = false;
-                        holding[team[t]] = false;
-                        deaths[t]++;
-                        if (custom == true || i == 0) health[t] = 20;
-                        deadCount[t] = 0;
-                        ypos[t] = -30;
-                        if (level != 5) xpos[t] = (Math.random() * 680);
-                        else if (team[t] == 1) {
-                            xpos[t] = 1360;
-                        } else if (team[t] == 0) {
-                            xpos[t] = 20;
-                        }
-                        gun[t][0] = 1;
-                        gun[t][1] = 0;
-                        equip[t] = 0;
-                        ammo[t][0] = 10;
-                        clips[t][0] = 3;
-                        ammo[t][1] = 0;
-                        clips[t][1] = 0;
-                        dog[t] = false;
-                        if (swords == true) {
-                            ammo[t][0] = 4;
-                            ammo[t][1] = 6;
-                        }
-                        if (zombie == true && t == 0) {
-                            play = false;
-                            menu = 5;
-                            boxx = 275;
-                            boxy = 345;
-                        }
-                        if (zombie == true && t > 0) {
-                            health[t] = 10;
+                            //zombie explosion
+                            if (zombie == true && t > 0) {
+                                health[t] = 10;
+                                if (kills[0] >= 3 && kills[0] % 3 == 0 && zombieAlive <= maxZombies) {
+                                    zombieAlive++;
+                                    players++;
+                                    right[zombieAlive] = true;
+                                    left[zombieAlive] = false;
+                                    xpos[zombieAlive] = gameWidth / 2;
+                                    ypos[zombieAlive] = -80;
+                                    ydir[zombieAlive] = 0;
+                                    xdir[zombieAlive] = 0;
+                                }
+                            }
+                            streak[i]++;
+                            streak[t] = 0;
+                            if (streak[i] == 2) {
+                                healthpack[i] = true;
+                                healthpacky[i] = -20;
+                            }
+                            if (streak[i] == 3) {
+                                fuel[i] = 20;
+                            }
+                            if (streak[i] == 4) {
+                                healthpack[i] = true;
+                                healthpacky[i] = -20;
+                            }
+                            if (streak[i] == 5) {
+                                dog[i] = true;
+                                dogxpos[i] = xpos[i];
+                                dogypos[i] = ypos[i];
+                                dogydir[i] = 0;
+                                dogxdir[i] = 0;
+                                dogleft[i] = false;
+                                dogright[i] = false;
+                            }
+                            if (streak[i] == 6) {
+                                fuel[i] = 40;
+                            }
+                            if (streak[i] == 7) {
+                                healthpack[i] = true;
+                                healthpacky[i] = -20;
+                            }
+                            if (streak[i] % 20 == 0) {
+                                healthpack[i] = true;
+                                healthpacky[i] = -20;
+                            }
+                            killcount[i] = 0;
+                            kills[i]++;
+                            teamkills[team[i]]++;
+                            hold[t] = false;
+                            holding[team[t]] = false;
+                            deaths[t]++;
+                            if (custom == true || i == 0) health[t] = 20;
+                            deadCount[t] = 0;
+                            ypos[t] = -30;
+                            if (level != 5) xpos[t] = (Math.random() * 680);
+                            else if (team[t] == 1) {
+                                xpos[t] = 1360;
+                            } else if (team[t] == 0) {
+                                xpos[t] = 20;
+                            }
+                            gun[t][0] = 1;
+                            gun[t][1] = 0;
+                            equip[t] = 0;
+                            ammo[t][0] = 10;
+                            clips[t][0] = 3;
+                            ammo[t][1] = 0;
+                            clips[t][1] = 0;
+                            dog[t] = false;
+                            if (swords == true) {
+                                ammo[t][0] = 4;
+                                ammo[t][1] = 6;
+                            }
+                            if (zombie == true && t == 0) {
+                                play = false;
+                                menu = 5;
+                                boxx = 275;
+                                boxy = 345;
+                            }
+                            if (zombie == true && t > 0) {
+                                health[t] = 10;
+                            }
                         }
                     }
                 }
             }
-        }
-        //flamethrower fire and shotgun
-        for (i = 0; i < players; i++) {
-            for (k = 0; k <= 99; k++) {
-                if (b[i][k] == true && shotType[i][k] == 5) {
-                    if (bxdir[i][k] > 0 && bx[i][k] >= flameDis[i][k]) b[i][k] = false;
-                    if (bxdir[i][k] < 0 && bx[i][k] <= flameDis[i][k]) b[i][k] = false;
-                }
-                if (b[i][k] == true && shotType[i][k] == 6) {
-                    if (bxdir[i][k] > 0 && bx[i][k] >= shotgunDis[i][k]) b[i][k] = false;
-                    if (bxdir[i][k] < 0 && bx[i][k] <= shotgunDis[i][k]) b[i][k] = false;
+            //flamethrower fire and shotgun
+            for (i = 0; i < players; i++) {
+                for (k = 0; k <= 99; k++) {
+                    if (b[i][k] == true && shotType[i][k] == 5) {
+                        if (bxdir[i][k] > 0 && bx[i][k] >= flameDis[i][k]) b[i][k] = false;
+                        if (bxdir[i][k] < 0 && bx[i][k] <= flameDis[i][k]) b[i][k] = false;
+                    }
+                    if (b[i][k] == true && shotType[i][k] == 6) {
+                        if (bxdir[i][k] > 0 && bx[i][k] >= shotgunDis[i][k]) b[i][k] = false;
+                        if (bxdir[i][k] < 0 && bx[i][k] <= shotgunDis[i][k]) b[i][k] = false;
+                    }
                 }
             }
         }
@@ -3430,182 +3432,184 @@ function update(modifier) {
                 }
             }
         }
-        //hits player bullets
-        for (i = 0; i < players; i++) {
+        if(onlineState == 'Offline') {
+            //hits player bullets
+            for (i = 0; i < players; i++) {
 
-            killcount[i] = killcount[i] + fps * modifier;
+                killcount[i] = killcount[i] + fps * modifier;
 
-            for (t = 0; t < players; t++) {
-                for (k = 0; k <= 99; k++) {
-                    if (b[i][k] == true && bx[i][k] >= xpos[t] - 5 && bx[i][k] <= xpos[t] + 25 && by[i][k] >= ypos[t] && by[i][k] <= ypos[t] + 20 && i != t && ypos[t] > 0 && ((team[i] != team[t]) || teams == false)) {
-                        //((team[i] != team[t]) || teams == false)
-                        if ((zombie == true && ((i == 0 && t > 0) || (t == 0 && i > 0))) || custom == true) {
-                            shotsHit[i]++;
-                            //blood
-                            for (q = 0; q <= 999; q++) {
-                                if (blood[t][q] == false) {
-                                    num = (Math.random() * 15 + 5);
-                                    if ((q + num) <= 999) {
-                                        for (r = q; r <= q + num; r++) {
-                                            blood[t][r] = true;
-                                            bloodx[t][r] = xpos[t] + (Math.random() * 20);
-                                            bloody[t][r] = ypos[t] + (Math.random() * 10);
-                                            if (bxdir[i][k] > 0) bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
-                                            else bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
-                                            bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
-                                            bloodCount[t][r] = 0;
-                                        }
-                                    } else if ((q + num) > 999) {
-                                        for (r = q; r <= 999; r++) {
-                                            blood[t][r] = true;
-                                            bloodx[t][r] = xpos[t] + (Math.random() * 20);
-                                            bloody[t][r] = ypos[t] + (Math.random() * 10);
-                                            if (bxdir[i][k] > 0) bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
-                                            else bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
-                                            bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
-                                            bloodCount[t][r] = 0;
-                                        }
-                                    }
-                                    q = 1000;
-                                }
-                            }
-                            //Hello whoever is reading this! - Rhys porting to javascript
-                            if (shotType[i][k] != 5) {
-                                b[i][k] = false;
-                            }/* else if (shotType[i][k] == 5) {
-                                shotsFired[i]++;
-                            }*/
-                            if (shotType[i][k] == 1) {
-                                health[t] = health[t] - 5;
-                            }
-                            if (shotType[i][k] == 2) {
-                                health[t] = health[t] - 4;
-                            }
-                            if (shotType[i][k] == 3) {
-                                health[t] = health[t] - 3;
-                            }
-                            if (shotType[i][k] == 4) {
-                                health[t] = health[t] - 12;
-                            }
-                            if (shotType[i][k] == 5) {
-                                if (k % 2 == 0) health[t] = health[t] - 1;
-                            }
-                            if (shotType[i][k] == 6) {
-                                health[t] = health[t] - 4;
-                            }
-                            //die
-                            if (health[t] <= 0) {
-                                //zombie explosion
-                                if (zombie == true && t > 0) {
-                                    health[t] = 10;
-                                    if (kills[0] >= 3 && kills[0] % 3 == 0 && zombieAlive <= maxZombies) {
-                                        zombieAlive++;
-                                        players++;
-                                        right[zombieAlive] = true;
-                                        left[zombieAlive] = false;
-                                        xpos[zombieAlive] = gameWidth / 2;
-                                        ypos[zombieAlive] = -80;
-                                        ydir[zombieAlive] = 0;
-                                        xdir[zombieAlive] = 0;
-                                    }
-                                    //blood
-                                    for (q = 0; q <= 999; q++) {
-                                        if (blood[t][q] == false) {
-                                            num = (Math.random() * 45 + 25);
-                                            if ((q + num) <= 999) {
-                                                for (r = q; r <= q + num; r++) {
-                                                    blood[t][r] = true;
-                                                    bloodx[t][r] = xpos[t] - 20 + (Math.random() * 60);
-                                                    bloody[t][r] = ypos[t] + (Math.random() * 20);
-                                                    if (bxdir[i][k] > 0) bloodxdir[t][r] = (-5 + (Math.random() * 10)) * fps;
-                                                    else bloodxdir[t][r] = (-5 + (Math.random() * 10)) * fps;
-                                                    bloodydir[t][r] = (5 - (Math.random() * 20)) * fps;
-                                                    bloodCount[t][r] = 0;
-                                                }
-                                            } else if ((q + num) > 999) {
-                                                for (r = q; r <= 999; r++) {
-                                                    blood[t][r] = true;
-                                                    bloodx[t][r] = xpos[t] - 20 + (Math.random() * 60);
-                                                    bloody[t][r] = ypos[t] + (Math.random() * 20);
-                                                    if (bxdir[i][k] > 0) bloodxdir[t][r] = (-5 + (Math.random() * 10)) * fps;
-                                                    else bloodxdir[t][r] = (-5 + (Math.random() * 10)) * fps;
-                                                    bloodydir[t][r] = (5 - (Math.random() * 20)) * fps;
-                                                    bloodCount[t][r] = 0;
-                                                }
+                for (t = 0; t < players; t++) {
+                    for (k = 0; k <= 99; k++) {
+                        if (b[i][k] == true && bx[i][k] >= xpos[t] - 5 && bx[i][k] <= xpos[t] + 25 && by[i][k] >= ypos[t] && by[i][k] <= ypos[t] + 20 && i != t && ypos[t] > 0 && ((team[i] != team[t]) || teams == false)) {
+                            //((team[i] != team[t]) || teams == false)
+                            if ((zombie == true && ((i == 0 && t > 0) || (t == 0 && i > 0))) || custom == true) {
+                                shotsHit[i]++;
+                                //blood
+                                for (q = 0; q <= 999; q++) {
+                                    if (blood[t][q] == false) {
+                                        num = (Math.random() * 15 + 5);
+                                        if ((q + num) <= 999) {
+                                            for (r = q; r <= q + num; r++) {
+                                                blood[t][r] = true;
+                                                bloodx[t][r] = xpos[t] + (Math.random() * 20);
+                                                bloody[t][r] = ypos[t] + (Math.random() * 10);
+                                                if (bxdir[i][k] > 0) bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
+                                                else bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
+                                                bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
+                                                bloodCount[t][r] = 0;
                                             }
-                                            q = 1000;
+                                        } else if ((q + num) > 999) {
+                                            for (r = q; r <= 999; r++) {
+                                                blood[t][r] = true;
+                                                bloodx[t][r] = xpos[t] + (Math.random() * 20);
+                                                bloody[t][r] = ypos[t] + (Math.random() * 10);
+                                                if (bxdir[i][k] > 0) bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
+                                                else bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
+                                                bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
+                                                bloodCount[t][r] = 0;
+                                            }
                                         }
+                                        q = 1000;
                                     }
                                 }
-                                if (survival == true) {
-                                    lives[t]--;
+                                //Hello whoever is reading this! - Rhys porting to javascript
+                                if (shotType[i][k] != 5) {
+                                    b[i][k] = false;
+                                }/* else if (shotType[i][k] == 5) {
+                                        shotsFired[i]++;
+                                    }*/
+                                if (shotType[i][k] == 1) {
+                                    health[t] = health[t] - 5;
                                 }
-                                streak[i]++;
-                                streak[t] = 0;
-                                if (streak[i] == 2) {
-                                    healthpack[i] = true;
-                                    healthpacky[i] = -20;
+                                if (shotType[i][k] == 2) {
+                                    health[t] = health[t] - 4;
                                 }
-                                if (streak[i] == 3) {
-                                    fuel[i] = 20;
+                                if (shotType[i][k] == 3) {
+                                    health[t] = health[t] - 3;
                                 }
-                                if (streak[i] == 4) {
-                                    healthpack[i] = true;
-                                    healthpacky[i] = -20;
+                                if (shotType[i][k] == 4) {
+                                    health[t] = health[t] - 12;
                                 }
-                                if (streak[i] == 5) {
-                                    dog[i] = true;
-                                    dogxpos[i] = xpos[i];
-                                    dogypos[i] = ypos[i];
-                                    dogydir[i] = 0;
-                                    dogxdir[i] = 0;
-                                    dogleft[i] = false;
-                                    dogright[i] = false;
+                                if (shotType[i][k] == 5) {
+                                    if (k % 2 == 0) health[t] = health[t] - 0.5;
                                 }
-                                if (streak[i] == 6) {
-                                    fuel[i] = 40;
+                                if (shotType[i][k] == 6) {
+                                    health[t] = health[t] - 4;
                                 }
-                                if (streak[i] == 7) {
-                                    healthpack[i] = true;
-                                    healthpacky[i] = -20;
-                                }
-                                if (streak[i] % 20 == 0) {
-                                    healthpack[i] = true;
-                                    healthpacky[i] = -20;
-                                }
-                                killcount[i] = 0;
-                                kills[i]++;
-                                teamkills[team[i]]++;
-                                hold[t] = false;
-                                holding[team[t]] = false;
-                                deaths[t]++;
-                                if (custom == true || i == 0)
-                                    health[t] = 20;
-                                deadCount[t] = 0;
-                                ypos[t] = -30;
-                                if (level != 5)
-                                    xpos[t] = (Math.random() * 680);
-                                else if (team[t] == 1) {
-                                    xpos[t] = 1360;
-                                } else if (team[t] == 0) {
-                                    xpos[t] = 20;
-                                }
-                                gun[t][0] = 1;
-                                gun[t][1] = 0;
-                                equip[t] = 0;
-                                ammo[t][0] = 10;
-                                clips[t][0] = 3;
-                                ammo[t][1] = 0;
-                                clips[t][1] = 0;
-                                dog[t] = false;
-                                if (zombie == true && t == 0) {
-                                    play = false;
-                                    menu = 5;
-                                    boxx = 275;
-                                    boxy = 345;
-                                }
-                                if (zombie == true && t > 0) {
-                                    health[t] = 10;
+                                //die
+                                if (health[t] <= 0) {
+                                    //zombie explosion
+                                    if (zombie == true && t > 0) {
+                                        health[t] = 10;
+                                        if (kills[0] >= 3 && kills[0] % 3 == 0 && zombieAlive <= maxZombies) {
+                                            zombieAlive++;
+                                            players++;
+                                            right[zombieAlive] = true;
+                                            left[zombieAlive] = false;
+                                            xpos[zombieAlive] = gameWidth / 2;
+                                            ypos[zombieAlive] = -80;
+                                            ydir[zombieAlive] = 0;
+                                            xdir[zombieAlive] = 0;
+                                        }
+                                        //blood
+                                        for (q = 0; q <= 999; q++) {
+                                            if (blood[t][q] == false) {
+                                                num = (Math.random() * 45 + 25);
+                                                if ((q + num) <= 999) {
+                                                    for (r = q; r <= q + num; r++) {
+                                                        blood[t][r] = true;
+                                                        bloodx[t][r] = xpos[t] - 20 + (Math.random() * 60);
+                                                        bloody[t][r] = ypos[t] + (Math.random() * 20);
+                                                        if (bxdir[i][k] > 0) bloodxdir[t][r] = (-5 + (Math.random() * 10)) * fps;
+                                                        else bloodxdir[t][r] = (-5 + (Math.random() * 10)) * fps;
+                                                        bloodydir[t][r] = (5 - (Math.random() * 20)) * fps;
+                                                        bloodCount[t][r] = 0;
+                                                    }
+                                                } else if ((q + num) > 999) {
+                                                    for (r = q; r <= 999; r++) {
+                                                        blood[t][r] = true;
+                                                        bloodx[t][r] = xpos[t] - 20 + (Math.random() * 60);
+                                                        bloody[t][r] = ypos[t] + (Math.random() * 20);
+                                                        if (bxdir[i][k] > 0) bloodxdir[t][r] = (-5 + (Math.random() * 10)) * fps;
+                                                        else bloodxdir[t][r] = (-5 + (Math.random() * 10)) * fps;
+                                                        bloodydir[t][r] = (5 - (Math.random() * 20)) * fps;
+                                                        bloodCount[t][r] = 0;
+                                                    }
+                                                }
+                                                q = 1000;
+                                            }
+                                        }
+                                    }
+                                    if (survival == true) {
+                                        lives[t]--;
+                                    }
+                                    streak[i]++;
+                                    streak[t] = 0;
+                                    if (streak[i] == 2) {
+                                        healthpack[i] = true;
+                                        healthpacky[i] = -20;
+                                    }
+                                    if (streak[i] == 3) {
+                                        fuel[i] = 20;
+                                    }
+                                    if (streak[i] == 4) {
+                                        healthpack[i] = true;
+                                        healthpacky[i] = -20;
+                                    }
+                                    if (streak[i] == 5) {
+                                        dog[i] = true;
+                                        dogxpos[i] = xpos[i];
+                                        dogypos[i] = ypos[i];
+                                        dogydir[i] = 0;
+                                        dogxdir[i] = 0;
+                                        dogleft[i] = false;
+                                        dogright[i] = false;
+                                    }
+                                    if (streak[i] == 6) {
+                                        fuel[i] = 40;
+                                    }
+                                    if (streak[i] == 7) {
+                                        healthpack[i] = true;
+                                        healthpacky[i] = -20;
+                                    }
+                                    if (streak[i] % 20 == 0) {
+                                        healthpack[i] = true;
+                                        healthpacky[i] = -20;
+                                    }
+                                    killcount[i] = 0;
+                                    kills[i]++;
+                                    teamkills[team[i]]++;
+                                    hold[t] = false;
+                                    holding[team[t]] = false;
+                                    deaths[t]++;
+                                    if (custom == true || i == 0)
+                                        health[t] = 20;
+                                    deadCount[t] = 0;
+                                    ypos[t] = -30;
+                                    if (level != 5)
+                                        xpos[t] = (Math.random() * 680);
+                                    else if (team[t] == 1) {
+                                        xpos[t] = 1360;
+                                    } else if (team[t] == 0) {
+                                        xpos[t] = 20;
+                                    }
+                                    gun[t][0] = 1;
+                                    gun[t][1] = 0;
+                                    equip[t] = 0;
+                                    ammo[t][0] = 10;
+                                    clips[t][0] = 3;
+                                    ammo[t][1] = 0;
+                                    clips[t][1] = 0;
+                                    dog[t] = false;
+                                    if (zombie == true && t == 0) {
+                                        play = false;
+                                        menu = 5;
+                                        boxx = 275;
+                                        boxy = 345;
+                                    }
+                                    if (zombie == true && t > 0) {
+                                        health[t] = 10;
+                                    }
                                 }
                             }
                         }
