@@ -4290,7 +4290,7 @@ function keyPressed(e) {
     }
 
     //send input to server if online
-    if (onlineState == "Connected") {
+    if (onlineState == "Connected" && menu != 3) {
         //Send the packet of information to the server.
         //The input packets are labelled with an 'i' in front.
         var server_packet = 'i.';
@@ -4690,60 +4690,7 @@ function keyPressed(e) {
                     onlineState = "Searching for game";
 
                     client_connect_to_server();
-                    
-
-                    //OLD CODE
-                    /*split = true;
-                    teams = true;
-                    for (i = 0; i <= 24; i++) {
-                        hold[i] = false;
-                    }
-                    score[0] = 0;
-                    score[1] = 0;
-
-                    flagx[0] = 10;
-                    flagy[0] = 330;
-
-                    flagx[1] = 1370;
-                    flagy[1] = 330;
-
-
-                    leader[0] = true;
-                    leader[1] = false;
-                    leader[2] = true;
-                    leader[3] = false;
-
-                    xpos[0] = 1;
-                    ypos[0] = 410;
-                    xpos[1] = 40;
-                    ypos[1] = 410;
-
-                    directionFacing[0] = 1;
-                    directionFacing[1] = 1;
-                    directionFacing[2] = 0;
-                    directionFacing[3] = 0;
-
-
-                    xpos[2] = 1380;
-                    ypos[2] = 410;
-                    xpos[3] = 1340;
-                    ypos[3] = 410;
-
-                    level = 5;
-                    wx[0] = 0;
-                    wy[0] = 0;
-                    wx[1] = -350;
-                    wy[1] = 0;
-
-                    wx[2] = 1050;
-                    wy[2] = 225;
-                    wx[3] = 700;
-                    wy[3] = 225;
-
-                    for (k = 0; k <= 9; k++) {
-                        gunx[k] = (Math.random() * 1380) + 2;
-                        guny[k] = -20 - ((Math.random() * 1500));
-                    }*/
+                  
                 }
                 if (checkedy[0] == 283) {//tdm
                     menu = 1;
@@ -4978,39 +4925,26 @@ function keyPressed(e) {
         } else if (menu == 2) //select map screen
         {
             if (boxx == 42 && boxy == 78) {
-                level = 1;
-                loadMap();
-                menu = 3;
+                startThatMap(1);
             }
             if (boxx == 259 && boxy == 78) {
-                level = 2;
-                loadMap();
-                menu = 3;
+                startThatMap(2);
             }
             if (boxx == 42 && boxy == 195) {
-                level = 3;
-                loadMap();
-                menu = 3;
+                startThatMap(3);
             }
             if (boxx == 259 && boxy == 195) {
-                level = 4;
-                loadMap();
-                menu = 3;
+                startThatMap(4);
             }
             if (boxx == 470 && boxy == 78) {
-                level = 6;
-                loadMap();
-                menu = 3;
+                startThatMap(6);
             }
             if (boxx == 470 && boxy == 195) {
-                level = 7;
-                loadMap();
-                menu = 3;
+                startThatMap(7);
             }
 
-        } else if (menu == 3) {
-
-        } else if (menu == 5) //post game screen
+        }
+        else if (menu == 5) //post game screen
         {
             if (boxx == 275) {
                 reset = true;
@@ -5028,7 +4962,7 @@ function keyReleased(e) {
     var upKey = e.keyCode;
 
     //send input to server if online
-    if (onlineState == "Connected") {
+    if (onlineState == "Connected" && menu != 3) {
         //Send the packet of information to the server.
         //The input packets are labelled with an 'i' in front.
         var server_packet = 'i.';
@@ -5236,140 +5170,581 @@ function mouseUp(event) {
     var mouseX = mousePos.x;
     var mouseY = mousePos.y;
 
+    //var scaledNorm = 1.4;
+
     document.getElementById("p1").innerHTML = "New mouse click! X: "+mouseX + " Y: " + mouseY;
 
-    if(false) {
-        if (menu == 1) {
-            if (boxx == 255) boxx = 414;
-            else if (boxx == 414 && boxy > 165) boxx = 579;
-        }
-        if (menu == 2) {
-            if (boxx == 42) boxx = 259;
-            else if (boxx == 259) boxx = 470;
-        }
-        if (menu == 5) {
-            boxx = 508;
-        }
-        if (menu == 7) {
-            if (boxy == 85 && boxx == 374) {
-                boxx = 638;
+    /*if (false) {
+        if (menu == 1) { //player select
+            if(mouseX > )
+        }//menu = 1 player select
+        if (menu == 2) {//map select 
+
+        }//menu = 2 map select
+
+        //3 is game countdown
+        //4 is empty
+
+        if (menu == 5) {//post game screen
+
+        }//menu = 5 post game screen
+
+        if (menu == 6) {//mode select
+
+        }//menu = 6 mode select
+
+        if (menu == 7) {//multiplayer settings select
+
+        }//menu = 7 multiplayer settings select
+
+        if (menu == 8) {//select multiplayer mode
+
+        }//menu = 7 select multiplayer mode
+
+
+
+        if (key == 39) {//RIGHT KEY
+            if (menu == 1) {
+                if (boxx == 255) boxx = 414;
+                else if (boxx == 414 && boxy > 165) boxx = 579;
             }
-            if (boxy == 173 && boxx < 190 + (113 * 4)) {
-                boxx = boxx + 113;
+            if (menu == 2) {
+                if (boxx == 42) boxx = 259;
+                else if (boxx == 259) boxx = 470;
             }
-            if (boxy == 315 && boxx < 190 + (113 * 3)) {
-                boxx = boxx + 113;
+            if (menu == 5) {
+                boxx = 508;
+            }
+            if (menu == 7) {
+                if (boxy == 85 && boxx == 374) {
+                    boxx = 638;
+                }
+                if (boxy == 173 && boxx < 190 + (113 * 4)) {
+                    boxx = boxx + 113;
+                }
+                if (boxy == 315 && boxx < 190 + (113 * 3)) {
+                    boxx = boxx + 113;
+                }
+            }
+        }
+        if (key == 37) {//LEFT KEY
+            if (menu == 1) {
+                if (boxx == 579) boxx = 414;
+                else if (boxx == 414) boxx = 255;
+            }
+            if (menu == 2) {
+                if (boxx == 470) boxx = 259;
+                else if (boxx == 259) boxx = 42;
+            }
+            if (menu == 5) {
+                boxx = 275;
+            }
+            if (menu == 7) {
+                if (boxy == 85 && boxx == 638) {
+                    boxx = 374;
+                }
+                if (boxy == 173 && boxx > 190) {
+                    boxx = boxx - 113;
+                }
+                if (boxy == 315 && boxx > 190) {
+                    boxx = boxx - 113;
+                }
+            }
+        }
+        if (key == 38) {//UPKEY
+            //menu
+            if (menu == 1) {
+                if (boxy == 332) boxy = 245;
+                else if (boxy == 245 && boxx < 579) boxy = 157;
+                else if (boxy == 157) boxy = 70;
+                else if (boxx == 368 && boxy == 400) {
+                    boxx = 255;
+                    boxy = 332;
+                }
+            } else if (menu == 2) {
+                if (boxy == 313) boxy = 195;
+                else if (boxy == 195) boxy = 78;
+
+
+
+            } else if (menu == 6) {
+                if (boxy == 400) {
+                    boxx = 458;
+                    boxy = 228;
+                } else if (boxy == 228) {
+                    boxx = 420;
+                    boxy = 140;
+                }
+            } else if (menu == 7) {
+                if (boxy == 173) {
+                    boxx = 374;
+                    boxy = 85;
+                } else if (boxy == 315) {
+                    boxy = 173;
+                    boxx = 190;
+                } else if (boxy == 400) {
+                    boxx = 190;
+                    boxy = 315;
+                }
+            } else if (menu == 8) {
+                if (boxy == 204) {
+                    boxx = 424;
+                    boxy = 120;
+                } else if (boxy == 283) {
+                    boxy = 204;
+                    boxx = 466;
+                } else if (boxy == 400) {
+                    boxy = 283;
+                    boxx = 449;
+                }
+            }
+        }
+        if (key == 40) {///DOWN
+            //menu
+            if (menu == 1) {
+                if (boxy == 70) boxy = 157;
+                else if (boxy == 157) boxy = 245;
+                else if (boxy == 245) boxy = 332;
+                else if (boxy == 332) {
+                    boxx = 368;
+                    boxy = 400;
+                }
+            } else if (menu == 2) {
+                if (boxy == 78) boxy = 195;
+                else if (boxy == 195) boxy = 313;
+            } else if (menu == 6) {
+                if (boxy == 140) {
+                    boxx = 458;
+                    boxy = 228;
+                } else if (boxy == 228) {
+                    boxx = 368;
+                    boxy = 400;
+                }
+            } else if (menu == 7) {
+                if (boxy == 85) {
+                    boxy = 173;
+                    boxx = 190;
+                } else if (boxy == 173) {
+                    boxx = 190;
+                    boxy = 315;
+                } else if (boxy == 315) {
+                    boxx = 368;
+                    boxy = 400;
+                }
+            } else if (menu == 8) {
+                if (boxy == 120) {
+                    boxx = 466;// stun
+                    boxy = 204;
+                } else if (boxy == 204) {
+                    boxy = 283;
+                    boxx = 449;
+                } else if (boxy == 283) {
+                    boxy = 400;
+                    boxx = 368;
+                }
             }
         }
 
-        if (menu == 1) {
-            if (boxx == 579) boxx = 414;
-            else if (boxx == 414) boxx = 255;
-        }
-        if (menu == 2) {
-            if (boxx == 470) boxx = 259;
-            else if (boxx == 259) boxx = 42;
-        }
-        if (menu == 5) {
-            boxx = 275;
-        }
-        if (menu == 7) {
-            if (boxy == 85 && boxx == 638) {
-                boxx = 374;
-            }
-            if (boxy == 173 && boxx > 190) {
-                boxx = boxx - 113;
-            }
-            if (boxy == 315 && boxx > 190) {
-                boxx = boxx - 113;
-            }
-        }
-        //menu
-        if (menu == 1) {
-            if (boxy == 332) boxy = 245;
-            else if (boxy == 245 && boxx < 579) boxy = 157;
-            else if (boxy == 157) boxy = 70;
-            else if (boxx == 368 && boxy == 400) {
-                boxx = 255;
-                boxy = 332;
-            }
-        } else if (menu == 2) {
-            if (boxy == 313) boxy = 195;
-            else if (boxy == 195) boxy = 78;
+        //menu/space bar
+        if (key == 32) {
+            if (menu == 8) {
+                if (boxy == 120) {
+                    checked[0] = true;
+                    checkedx[0] = boxx;
+                    checkedy[0] = boxy;
+                    boxx = 368;
+                    boxy = 400;
+                } else if (boxy == 204) {
+                    checked[0] = true;
+                    checkedx[0] = boxx;
+                    checkedy[0] = boxy;
+                    boxx = 368;
+                    boxy = 400;
+                } else if (boxy == 283) {
+                    checked[0] = true;
+                    checkedx[0] = boxx;
+                    checkedy[0] = boxy;
+                    boxx = 368;
+                    boxy = 400;
+                } else if (checked[0] == true && boxx == 368 && boxy == 400) {
+                    if (checkedy[0] == 120) {//dm
+                        menu = 1;
 
-        } else if (menu == 6) {
-            if (boxy == 400) {
-                boxx = 458;
-                boxy = 228;
-            } else if (boxy == 228) {
-                boxx = 420;
-                boxy = 140;
-            }
-        } else if (menu == 7) {
-            if (boxy == 173) {
-                boxx = 374;
-                boxy = 85;
-            } else if (boxy == 315) {
-                boxy = 173;
-                boxx = 190;
-            } else if (boxy == 400) {
-                boxx = 190;
-                boxy = 315;
-            }
-        } else if (menu == 8) {
-            if (boxy == 204) {
-                boxx = 424;
-                boxy = 120;
-            } else if (boxy == 283) {
-                boxy = 204;
-                boxx = 466;
-            } else if (boxy == 400) {
-                boxy = 283;
-                boxx = 449;
-            }
-        }
+                        teams = false;
+                        split = false;
+                        level = 1;
+                        for (k = 0; k <= 9; k++) {
+                            gunx[k] = (Math.random() * 680) + 2;
+                            guny[k] = -20 - ((Math.random() * 1500));
+                        }
+                    }
+                    if (checkedy[0] == 204) { //1v1 mode chosen
+                        players = 2;
+                        level = 1;
 
-        if (menu == 1) {
-            if (boxy == 70) boxy = 157;
-            else if (boxy == 157) boxy = 245;
-            else if (boxy == 245) boxy = 332;
-            else if (boxy == 332) {
-                boxx = 368;
-                boxy = 400;
-            }
-        } else if (menu == 2) {
-            if (boxy == 78) boxy = 195;
-            else if (boxy == 195) boxy = 313;
-        } else if (menu == 6) {
-            if (boxy == 140) {
-                boxx = 458;
-                boxy = 228;
-            } else if (boxy == 228) {
-                boxx = 368;
-                boxy = 400;
-            }
-        } else if (menu == 7) {
-            if (boxy == 85) {
-                boxy = 173;
-                boxx = 190;
-            } else if (boxy == 173) {
-                boxx = 190;
-                boxy = 315;
-            } else if (boxy == 315) {
-                boxx = 368;
-                boxy = 400;
-            }
-        } else if (menu == 8) {
-            if (boxy == 120) {
-                boxx = 466;// stun
-                boxy = 204;
-            } else if (boxy == 204) {
-                boxy = 283;
-                boxx = 449;
-            } else if (boxy == 283) {
-                boxy = 400;
-                boxx = 368;
+                        //set the random guns!
+                        //we get no guns!
+                        for (i = 0; i <= 9; i++) {
+                            gunx[i] = -3000;
+                            guny[i] = 3000;
+                        }
+                        swords = false;
+                        zombie = false;
+                        teams = false;
+                        survival = false;
+                        split = false;
+                        equip[0] = 0;
+                        gun[0][0] = 1;
+                        ammo[0][0] = 10;
+                        clips[0][0] = 3;
+                        gun[0][1] = 0;
+                        clips[0][1] = 0;
+                        ammo[0][1] = 0;
+
+                        equip[1] = 0;
+                        gun[1][0] = 1;
+                        ammo[1][0] = 10;
+                        clips[1][0] = 3;
+                        gun[1][1] = 0;
+                        clips[1][1] = 0;
+                        ammo[1][1] = 0;
+
+                        //maybe false?
+                        custom = true;
+
+                        menu = 10;
+
+                        onlineState = "Searching for game";
+
+                        client_connect_to_server();
+                    }
+                    if (checkedy[0] == 283) {//tdm
+                        menu = 1;
+
+                        teams = true;
+                        split = false;
+                        xpos[0] = 0;
+                        ypos[0] = 410;
+                        xpos[1] = 40;
+                        ypos[1] = 410;
+
+                        directionFacing[0] = 1;
+                        directionFacing[1] = 1;
+                        directionFacing[2] = 0;
+                        directionFacing[3] = 0;
+
+                        xpos[2] = 680;
+                        ypos[2] = 410;
+                        xpos[3] = 640;
+                        ypos[3] = 410;
+
+                        level = 0;
+                        for (k = 0; k <= 9; k++) {
+                            gunx[k] = (Math.random() * 680) + 2;
+                            guny[k] = -20 - ((Math.random() * 1500));
+                        }
+
+
+                    }
+                    checked[0] = false;
+                    //menu = 1;
+                    boxx = 255;
+                    boxy = 70;
+                }
+            } else if (menu == 6) //choose zombie or multiplayer
+            {
+                if (checked[0] == true && boxx == 368 && boxy == 400) {
+                    if (checkedy[0] == 140) {
+                        menu = 8;
+                        boxx = 424;
+                        boxy = 120;
+                        custom = true;
+                        zombie = false;
+                    } else if (checkedy[0] == 228) {
+                        menu = 2;
+                        boxx = 42;
+                        boxy = 78;
+                        level = 0;
+                        for (i = 0; i <= 9; i++) {
+                            if (level != 5) gunx[i] = (Math.random() * 680) + 2;
+                            if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
+                            guny[i] = -20 - ((Math.random() * 1500));
+                        }
+                        swords = false;
+                        zombie = true;
+                        teams = false;
+                        survival = false;
+                        split = false;
+                        equip[0] = 0;
+                        gun[0][0] = 1;
+                        ammo[0][0] = 10;
+                        clips[0][0] = 3;
+                        gun[0][1] = 0;
+                        clips[0][1] = 0;
+                        ammo[0][1] = 0;
+
+                        custom = false;
+                        health[1] = 10;
+                        health[2] = 10;
+                        health[3] = 10;
+
+                        if (zombie == true) {
+                            players = 2;
+                            for (i = 1; i <= players; i++) {
+                                cpu[i] = true;
+                                if (play == false) {//what
+                                    health[i] = 10;
+                                }
+                            }
+                            //cpu[0] = false;
+
+                        }
+                    }
+                    checked[0] = false;
+                    checkedx[0] = -50;
+                }
+                if (boxy == 228) {
+                    checked[0] = true;
+                    checkedx[0] = 458;
+                    checkedy[0] = 228;
+                    boxx = 368;
+                    boxy = 400;
+                }
+                if (boxy == 140) {
+                    checked[0] = true;
+                    checkedx[0] = 420;
+                    checkedy[0] = 140;
+                    boxx = 368;
+                    boxy = 400;
+                }
+            } else if (menu == 1) //player select screen
+            {
+                if (boxy == 70) {
+                    checked[0] = true;
+                    checkedx[0] = boxx;
+                    checkedy[0] = boxy;
+                    boxy = 157;
+                } else if (boxy == 157) {
+                    checked[1] = true;
+                    checkedx[1] = boxx;
+                    checkedy[1] = boxy;
+                    boxy = 245;
+                } else if (boxy == 245) {
+                    checked[2] = true;
+                    checkedx[2] = boxx;
+                    checkedy[2] = boxy;
+                    boxy = 332;
+                } else if (boxy == 332) {
+                    checked[3] = true;
+                    checkedx[3] = boxx;
+                    checkedy[3] = boxy;
+                    boxy = 400;
+                    boxx = 368;
+                } else if (boxx == 368 && boxy == 400 && checked[0] == true && checked[1] == true && checked[2] == true && checked[3] == true && ((checkedx[2] < 579 && checkedx[3] < 579) || (checkedx[2] == 579 && checkedx[3] == 579) || (checkedx[2] < 579 && checkedx[3] == 579))) {
+                    for (i = 0; i <= 3; i++) {
+                        if (checkedx[i] == 255) {
+                            checkCount++;
+                            cpu[i] = false;
+                        }
+                        if (checkedx[i] == 414) {
+                            checkCount++;
+                            cpu[i] = true;
+                        }
+                    }
+                    players = checkCount;
+                    menu = 7;
+                    boxx = 374;
+                    boxy = 85;
+                    for (i = 0; i <= 3; i++) {
+                        checked[i] = false;
+                    }
+                    if (zombie == true) {
+                        players = 2;
+                        for (i = 1; i <= players; i++) {
+                            cpu[i] = true;
+                            if (play == false) {//what
+                                health[i] = 10;
+                            }
+                        }
+                        //cpu[0] = false;
+
+                    }
+                }
+            } else if (menu == 7) //multiplayer settings screen
+            {
+                if (boxy == 85) {
+                    checked[0] = true;
+                    checkedx[0] = boxx;
+                    checkedy[0] = boxy;
+                    boxy = 173;
+                    boxx = 190 + 113 * 2;
+                } else if (boxy == 173 || boxy == 315) {
+                    checked[1] = true;
+                    checkedx[1] = boxx;
+                    checkedy[1] = boxy;
+                    boxy = 400;
+                    boxx = 368;
+                } else if (checked[0] == true && checked[1] == true && boxx == 368 && boxy == 400) {
+                    if (checkedx[0] == 374) {
+                        swords = false;
+                        for (i = 0; i <= 9; i++) {
+                            if (level != 5) gunx[i] = (Math.random() * 680) + 2;
+                            if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
+                            guny[i] = -20 - ((Math.random() * 1500));
+                        }
+                        for (i = 0; i < players; i++) {
+                            gun[i][0] = 1;
+                            ammo[i][0] = 10;
+                            clips[i][0] = 3;
+                            gun[i][1] = 0;
+                            clips[i][1] = 0;
+                            ammo[i][1] = 0;
+                        }
+                    } else {
+                        swords = true;
+                        for (i = 0; i < players; i++) {
+                            gun[i][0] = 7;
+                            gun[i][1] = 8;
+                            clips[i][0] = 2;
+                            clips[i][1] = 2;
+                            ammo[i][0] = 4;
+                            ammo[i][1] = 6;
+                        }
+                    }
+                    if (checkedy[1] == 173) {
+                        survival = false;
+                        if (checkedx[1] == 190) killLimit = 5;
+                        if (checkedx[1] == 190 + 113 * 1) killLimit = 10;
+                        if (checkedx[1] == 190 + 113 * 2) killLimit = 15;
+                        if (checkedx[1] == 190 + 113 * 3) killLimit = 20;
+                        if (checkedx[1] == 190 + 113 * 4) killLimit = 25;
+                    }
+                    if (checkedy[1] == 315) {
+                        survival = true;
+                        for (i = 0; i < players; i++) {
+                            if (checkedx[1] == 190) {
+                                lives[i] = 3;
+                                tempLives = 3;
+                            }
+                            if (checkedx[1] == 190 + 113 * 1) {
+                                lives[i] = 5;
+                                tempLives = 5;
+                            }
+                            if (checkedx[1] == 190 + 113 * 2) {
+                                lives[i] = 10;
+                                tempLives = 10;
+                            }
+                            if (checkedx[1] == 190 + 113 * 3) {
+                                lives[i] = 15;
+                                tempLives = 15;
+                            }
+                        }
+                    }
+                    if (split == false) {
+                        boxx = 42;
+                        boxy = 78;
+                        menu = 2;
+                    } else if (split == true) {
+                        menu = 3;
+                    }
+                }
+            } else if (menu == 2) //select map screen
+            {
+                if (boxx == 42 && boxy == 78) {
+                    startThatMap(1);
+                }
+                if (boxx == 259 && boxy == 78) {
+                    startThatMap(2);
+                }
+                if (boxx == 42 && boxy == 195) {
+                    startThatMap(3);
+                }
+                if (boxx == 259 && boxy == 195) {
+                    startThatMap(4);
+                }
+                if (boxx == 470 && boxy == 78) {
+                    startThatMap(6);
+                }
+                if (boxx == 470 && boxy == 195) {
+                    startThatMap(7);
+                }
+
+            } else if (menu == 5) //post game screen
+            {
+                if (boxx == 275) {
+                    reset = true;
+                } else if (boxx == 508) {
+                    rematch = true;
+                }
             }
         }
-    }
+    }*/
 }
+
+function startThatMap(mapNum) {
+    level = mapNum;
+    loadMap();
+    menu = 3;
+}
+
+
+
+
+
+
+
+
+
+//// OLD SETTING UP THE FLAG MODE
+//OLD CODE
+/*split = true;
+teams = true;
+for (i = 0; i <= 24; i++) {
+    hold[i] = false;
+}
+score[0] = 0;
+score[1] = 0;
+
+flagx[0] = 10;
+flagy[0] = 330;
+
+flagx[1] = 1370;
+flagy[1] = 330;
+
+
+leader[0] = true;
+leader[1] = false;
+leader[2] = true;
+leader[3] = false;
+
+xpos[0] = 1;
+ypos[0] = 410;
+xpos[1] = 40;
+ypos[1] = 410;
+
+directionFacing[0] = 1;
+directionFacing[1] = 1;
+directionFacing[2] = 0;
+directionFacing[3] = 0;
+
+
+xpos[2] = 1380;
+ypos[2] = 410;
+xpos[3] = 1340;
+ypos[3] = 410;
+
+level = 5;
+wx[0] = 0;
+wy[0] = 0;
+wx[1] = -350;
+wy[1] = 0;
+
+wx[2] = 1050;
+wy[2] = 225;
+wx[3] = 700;
+wy[3] = 225;
+
+for (k = 0; k <= 9; k++) {
+    gunx[k] = (Math.random() * 1380) + 2;
+    guny[k] = -20 - ((Math.random() * 1500));
+}*/
