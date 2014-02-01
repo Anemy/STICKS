@@ -621,184 +621,186 @@ client_onserverupdate_recieved = function (data) {
     //this.server_updates.push(data);
     
     //xpos[1] = data.hpx;
-    //if (data.cpx && data.cpy && data.cpxdir && data.cpydir) {
     if (playerHost) {
         xpos[1] = data.cpx;
         ypos[1] = data.cpy;
         xdir[1] = data.cpxdir;
         ydir[1] = data.cpydir;
+
+        /*if (Math.abs(xpos[0] - data.hpx) > 150)
+            xpos[0] = data.hpx;
+        if (Math.abs(ypos[0] - data.hpy) > 150)
+            ypos[0] = data.hpy;*/
     }
-    //}
-    //if (data.hpx && data.hpy && data.hpxdir && data.hpydir) {
     if (!playerHost) {
         xpos[1] = data.hpx;
         ypos[1] = data.hpy;
         xdir[1] = data.hpxdir;
         ydir[1] = data.hpydir;
+
+        /*if (Math.abs(xpos[0] - data.cpx) > 150)
+            xpos[0] = data.cpx;
+        if (Math.abs(ypos[0] - data.cpy) > 150)
+            ypos[0] = data.cpy;*/
     }
 
-    var newBulletSender = [];
+    var newBulletSenderID = [];
     var newBulletX = [];
     var newBulletY = [];
     var newBulletDir = [];
+    var newBulletTypes = [];
+    var newAmmoCount = [];
 
     //create new bullets
     for (m = 0; m < data.newBullets; m++) {
         //TODO REMOVE!!! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         if (m == 0) {
-            newBulletSender = JSON.parse(data.newBulletSend);
+            //            this.laststate.newBulletsType = newBulletType;
+            
             //for (var lol in data.newBulletXs)
-            //    console.log("Xpos: "+)
+            //    console.log("Xpos: " + data.newBulletXs[lol]);
             //    newBulletSender.push([i, json_data[i]]);
             newBulletX = JSON.parse(data.newBulletXs);
             newBulletY = JSON.parse(data.newBulletYs);
+            newBulletSenderID = JSON.parse(data.newBulletSend);
             newBulletDir = JSON.parse(data.newBulletDirs);
+            newBulletTypes = JSON.parse(data.newBulletsType);
+
+            //setting the new ammo counts
+            newAmmoCountH = data.newHAmmoAmount;
+            newAmmoCountC = data.newCAmmoAmount;
+            if (playerHost) {
+                ammo[0][equip[0]] = newAmmoCountH;
+                ammo[1][equip[1]] = newAmmoCountC;
+            }
+            else {
+                ammo[0][equip[0]] = newAmmoCountC;
+                ammo[1][equip[1]] = newAmmoCountH;
+            }
         }
 
-        console.log("new bullet from " + newBulletSender[i] + " at x pos: " + data.newBulletXs[i]);
+        //set the shooter !!1
+        i = newBulletSenderID[m];
+        if (playerHost && newBulletSenderID[m] == 0)
+            i = 0;
+        else if (!playerHost && newBulletSenderID[m] == 1)
+            i = 1;
 
-        i = data.newBulletSender;
+        //ammo[i][equip[i]] = newAmmoCount[i];
+        //ammo[i][equip[i]]
 
         //pistol
-        if (data.newBulletType == 1) {
+        if (newBulletTypes[i] == 1) {
             console.log("Shoot the pistol!");
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
                     b[i][k] = true;
-                    if (data.newBulletDirs[i] == 1) {
+                    if (newBulletDir[i] == 1) {
                         bxdir[i][k] = 10 * fps;
-                        bydir[i][k] = 0;
-                        bx[i][k] = data.newBulletXs[i];
-                        by[i][k] = data.newBulletYs[i];
-                        shotType[i][k] = 1;
-                        k = 100;
-                    } else if (data.newBulletDirs[i] == 0) {
+                    } else if (newBulletDir[i] == 0) {
                         bxdir[i][k] = -10 * fps;
-                        bydir[i][k] = 0;
-                        bx[i][k] = data.newBulletXs[i];
-                        by[i][k] = data.newBulletYs[i];
-                        shotType[i][k] = 1;
-                        k = 100;
                     }
+                    bydir[i][k] = 0;
+                    bx[i][k] = newBulletX[i];
+                    by[i][k] = newBulletY[i];
+                    shotType[i][k] = 1;
+                    k = 100;
                 }
             }
         }
         //assault
-        if (data.newBulletType == 2) {
+        if (newBulletTypes[i] == 2) {
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
                     b[i][k] = true;
-                    if (data.newBulletDirs[i] == 1) {
+                    if (newBulletDir[i] == 1) {
                         bxdir[i][k] = 14 * fps;//was 14
-                        bydir[i][k] = 0;
-                        bx[i][k] = data.newBulletXs[i];
-                        by[i][k] = data.newBulletYs[i];
-                        shotType[i][k] = 2;
-                        k = 100;
-                    } else if (data.newBulletDirs[i] == 0) {
+                    } else if (newBulletDir[i] == 0) {
                         bxdir[i][k] = -14 * fps;//-14
-                        bydir[i][k] = 0;
-                        bx[i][k] = data.newBulletXs[i];
-                        by[i][k] = data.newBulletYs[i];
-                        shotType[i][k] = 2;
-                        k = 100;
                     }
+                    bydir[i][k] = 0;
+                    bx[i][k] = newBulletX[i];
+                    by[i][k] = newBulletY[i];
+                    shotType[i][k] = 2;
+                    k = 100;
                 }
             }
         }
         //uzi
-        if (data.newBulletType == 3) {
+        if (newBulletTypes[i] == 3) {
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
                     b[i][k] = true;
-                    if (data.newBulletDirs[i] == 1) {
+                    if (newBulletDir[i] == 1) {
                         bxdir[i][k] = 14 * fps; // was 14
-                        bydir[i][k] = 0;
-                        bx[i][k] = data.newBulletXs[i];
-                        by[i][k] = data.newBulletYs[i];
-                        shotType[i][k] = 3;
-                        k = 100;
-                    } else if (data.newBulletDirs[i] == 0) {
+                    } else if (newBulletDir[i] == 0) {
                         bxdir[i][k] = -14 * fps;//was -14
-                        bydir[i][k] = 0;
-                        bx[i][k] = data.newBulletXs[i];
-                        by[i][k] = data.newBulletYs[i];
-                        shotType[i][k] = 3;
-                        k = 100;
                     }
+                    bydir[i][k] = 0;
+                    bx[i][k] = newBulletX[i];
+                    by[i][k] = newBulletY[i];
+                    shotType[i][k] = 3;
+                    k = 100;
                 }
             }
         }
         //sniper
-        if (data.newBulletType == 4) {
+        if (newBulletTypes[i] == 4) {
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
                     b[i][k] = true;
-                    if (data.newBulletDirs[i] == 1) {
+                    if (newBulletDir[i] == 1) {
                         bxdir[i][k] = 20 * fps;//was 20
-                        bydir[i][k] = 0;
-                        bx[i][k] = data.newBulletXs[i];
-                        by[i][k] = data.newBulletYs[i];
-                        shotType[i][k] = 4;
-                        k = 100;
-                    } else if (data.newBulletDirs[i] == 0) {
+
+                    } else if (newBulletDir[i] == 0) {
                         bxdir[i][k] = -20 * fps;//was -20
-                        bydir[i][k] = 0;
-                        bx[i][k] = data.newBulletXs[i];
-                        by[i][k] = data.newBulletYs[i];
-                        shotType[i][k] = 4;
-                        k = 100;
                     }
+                    bydir[i][k] = 0;
+                    bx[i][k] = newBulletX[i];
+                    by[i][k] = newBulletY[i];
+                    shotType[i][k] = 4;
+                    k = 100;
                 }
             }
         }
         //flamethrower
-        if (data.newBulletType == 5) {
+        if (newBulletTypes[i] == 5) {
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
                     b[i][k] = true;
-                    if (data.newBulletDirs[i] == 1) {
-                        flameDis[i][k] = data.newBulletXs[i] + 200;
+                    if (newBulletDir[i] == 1) {
+                        flameDis[i][k] = newBulletX[i] + 200;
                         bxdir[i][k] = 11 * fps; // was 11
-                        bydir[i][k] = 0;
-                        bx[i][k] = data.newBulletXs[i];
-                        by[i][k] = data.newBulletYs[i];
-                        shotType[i][k] = 5;
-                        k = 100;
-                    } else if (data.newBulletDirs[i] == 0) {
-                        flameDis[i][k] = data.newBulletXs[i] - 180;
+                    } else if (newBulletDir[i] == 0) {
+                        flameDis[i][k] = newBulletX[i] - 180;
                         bxdir[i][k] = -11 * fps;// was -11
-                        bydir[i][k] = 0;
-                        bx[i][k] = data.newBulletXs[i];
-                        by[i][k] = data.newBulletYs[i];
-                        shotType[i][k] = 5;
-                        k = 100;
                     }
+                    bydir[i][k] = 0;
+                    bx[i][k] = newBulletX[i];
+                    by[i][k] = newBulletY[i];
+                    shotType[i][k] = 5;
+                    k = 100;
                 }
             }
         }
         //shotgun
-        if (data.newBulletType == 6) {
+        if (newBulletTypes[i] == 6) {
             for (k = 0; k <= 95; k++) {
                 if (b[i][k] == false) {
                     for (r = 0; r <= 4; r++) {
                         b[i][k + r] = true;
-                        if (data.newBulletDirs[i] == 1) {
-                            shotgunDis[i][k + r] = data.newBulletXs[i] + 160;
+                        if (newBulletDir[i] == 1) {
+                            shotgunDis[i][k + r] = newBulletX[i] + 160;
                             bxdir[i][k + r] = 15 * fps;//was 15
-                            bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
-                            bx[i][k + r] = data.newBulletXs[i];
-                            by[i][k + r] = data.newBulletYs[i];
-                            shotType[i][k + r] = 6;
-                        } else if (data.newBulletDirs[i] == 0) {
-                            shotgunDis[i][k + r] = data.newBulletXs[i] - 140;
+                        } else if (newBulletDir[i] == 0) {
+                            shotgunDis[i][k + r] = newBulletX[i] - 140;
                             bxdir[i][k + r] = -15 * fps;//was 15
-                            bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
-                            bx[i][k + r] = data.newBulletXs[i];
-                            by[i][k + r] = data.newBulletYs[i];
-                            shotType[i][k + r] = 6;
                         }
+                        bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
+                        bx[i][k + r] = newBulletX[i];
+                        by[i][k + r] = newBulletY[i];
+                        shotType[i][k + r] = 6;
                     }
                 }
                 k = 100;
@@ -2343,7 +2345,7 @@ function render() {//ctx
             }
         }
     }
-        //select multiplayer settings
+    //select multiplayer settings
     else if (menu == 7) {
         ctx.drawImage(menuImage[7], 0, 0, gameWidth, gameHeight);
         if (boxx == 368 && boxy == 400 && checked[0] == true && checked[1] == true) {
@@ -3984,7 +3986,7 @@ function update(modifier) {
             }
 
             //update direction facing based online movement to avoid sending extra data
-            if (onlineState != 'Offline') {
+            if (onlineState == 'Connected') {
                 if (xdir[1] > 0.001)
                     directionFacing[1] = 1;
                 else if (xdir[1] < 0.001)
@@ -5172,11 +5174,21 @@ function keyReleased(e) {
 //MOUSE YO
 window.addEventListener('mouseup', this.mouseUp, false);
 
+//mouse helper method
+function getMousePos(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+    };
+}
+
 function mouseUp(event) {
-    var mouseX = event.x;
-    var mouseY = event.y;
+    var mousePos = getMousePos(canvas, event);
+    var mouseX = mousePos.x;
+    var mouseY = mousePos.y;
 
-
+    document.getElementById("p1").innerHTML = "New mouse click! X: "+mouseX + " Y: " + mouseY;
 
     if(false) {
         if (menu == 1) {
@@ -5237,8 +5249,6 @@ function mouseUp(event) {
             if (boxy == 313) boxy = 195;
             else if (boxy == 195) boxy = 78;
 
-
-
         } else if (menu == 6) {
             if (boxy == 400) {
                 boxx = 458;
@@ -5270,6 +5280,7 @@ function mouseUp(event) {
                 boxx = 449;
             }
         }
+
         if (menu == 1) {
             if (boxy == 70) boxy = 157;
             else if (boxy == 157) boxy = 245;

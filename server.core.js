@@ -592,7 +592,7 @@ server_instance.prototype.process_input = function (player) {
         }
         if (key == 222 || key == 96 || key == 32) {
             if (shooting[senderID] == false && reload[senderID] == false && stun[senderID] == false) {
-                console.log("Shots fired!");
+                //console.log("Shots fired!");
                 shooting[senderID] = true;
             }
         }
@@ -622,7 +622,7 @@ server_instance.prototype.process_input = function (player) {
         }
         if (key == 222 || key == 96 || key == 32) {
             if (shooting[senderID] == true && reload[senderID] == false && stun[senderID] == false) {
-                console.log("No more shooting!!");
+                //console.log("No more shooting!!");
                 shooting[senderID] = false;
             }
         }
@@ -888,15 +888,15 @@ server_instance.prototype.update = function () {
             //console.log("in here lol!");
             shootCount[i] = shootCount[i] + fps * modifier;
             if (shooting[i] == true) {
-                console.log("try to create new bullet!");
+                //console.log("try to create new bullet!");
                 if (newBullet(i)) {
                     newBulletType[newBulletCount] = gun[i][equip[i]];
                     newBulletX[newBulletCount] = xpos[i];
                     newBulletY[newBulletCount] = ypos[i] + 4;
-                    newBulletDir[newBulletCount] = directionFacing[i];
                     newBulletSender[newBulletCount] = i;
+                    newBulletDir[newBulletCount] = directionFacing[i];
                     newBulletCount++;
-                    console.log("Created!");
+                    //console.log("Created!");
                 }
             }
 
@@ -999,7 +999,7 @@ server_instance.prototype.update = function () {
 
 
         //Make a snapshot of the current state, for updating the clients
-        this.laststate = new Object();
+        this.laststate = {};
         this.laststate.hpx = hostX;//this.xpos[0];              //'host position', the game creators position
         this.laststate.hpy = hostY;                //'host position', the game creators position
         this.laststate.hpxdir = hostxdir;             //'host direction'
@@ -1010,13 +1010,17 @@ server_instance.prototype.update = function () {
         this.laststate.cpydir = otherydir;             //'client direction'
         this.laststate.newBullets = newBulletCount; //amount of new bullets
         if (newBulletCount > 0) {//create the bullets!!!
-            console.log(" about to print! ");
-            console.log("Bullet x: " + newBulletX[0]);
-            this.laststate.newBulletsType = newBulletType;
+            //console.log(" about to print! ");
+            console.log("Bullet sender: " + newBulletSender[0]);
+            this.laststate.newBulletsType = JSON.stringify(newBulletType);
             this.laststate.newBulletXs = JSON.stringify(newBulletX);//newBulletXs
             this.laststate.newBulletYs = JSON.stringify(newBulletY);
-            this.laststate.newBulletsSend = JSON.stringify(newBulletSender);
+            this.laststate.newBulletSend = JSON.stringify(newBulletSender);
             this.laststate.newBulletDirs = JSON.stringify(newBulletDir);
+
+            //new ammos
+            this.laststate.newHAmmoAmount = ammo[0][equip[0]];//add ammo
+            this.laststate.newCAmmoAmount = ammo[1][equip[1]];//add ammo
         }
         this.laststate.t = this.server_time;                      // our current local time on the server
 
