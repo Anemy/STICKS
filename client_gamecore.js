@@ -623,7 +623,6 @@ client_onserverupdate_recieved = function (data) {
     //xpos[1] = data.hpx;
     //if (data.cpx && data.cpy && data.cpxdir && data.cpydir) {
     if (playerHost) {
-        console.log('I am host recieving input. client x ' + data.cpx);
         xpos[1] = data.cpx;
         ypos[1] = data.cpy;
         xdir[1] = data.cpxdir;
@@ -632,7 +631,6 @@ client_onserverupdate_recieved = function (data) {
     //}
     //if (data.hpx && data.hpy && data.hpxdir && data.hpydir) {
     if (!playerHost) {
-        console.log('I am host recieving input. client x ' + data.cpx);
         xpos[1] = data.hpx;
         ypos[1] = data.hpy;
         xdir[1] = data.hpxdir;
@@ -642,168 +640,160 @@ client_onserverupdate_recieved = function (data) {
     //create new bullets
     for (m = 0; m < data.newBullets; m++) {
         //TODO REMOVE!!! @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        this.laststate.newBulletsType = newBulletType;
+        /*this.laststate.newBulletsType = newBulletType;
         this.laststate.newBulletsSender = newBulletSender;
         this.laststate.newBulletXs = newBulletX;
         this.laststate.newBulletYs = newBulletY;
-        this.laststate.newBulletDirs = newBulletDir;
+        this.laststate.newBulletDirs = newBulletDir;*/
+
+        console.log("new bullet from " + sender + " at x pos: " + data.newBulletXs[i])
 
         i = data.newBulletSender;
 
         //pistol
         if (data.newBulletType == 1) {
-            if (shootCount[i] >= 12 && ammo[i][equip[i]] > 0) {
-                for (k = 0; k <= 99; k++) {
-                    if (b[i][k] == false) {
-                        b[i][k] = true;
-                        if (data.newBulletDirs == 1) {
-                            bxdir[i][k] = 10 * fps;
-                            bydir[i][k] = 0;
-                            bx[i][k] = xpos[i];
-                            by[i][k] = ypos[i] + 4;
-                            shotType[i][k] = 1;
-                            k = 100;
-                        } else if (data.newBulletDirs == 0) {
-                            bxdir[i][k] = -10 * fps;
-                            bydir[i][k] = 0;
-                            bx[i][k] = xpos[i];
-                            by[i][k] = ypos[i] + 4;
-                            shotType[i][k] = 1;
-                            k = 100;
-                        }
+            for (k = 0; k <= 99; k++) {
+                if (b[i][k] == false) {
+                    b[i][k] = true;
+                    if (data.newBulletDirs[i] == 1) {
+                        bxdir[i][k] = 10 * fps;
+                        bydir[i][k] = 0;
+                        bx[i][k] = data.newBulletXs[i];
+                        by[i][k] = data.newBulletYs[i];
+                        shotType[i][k] = 1;
+                        k = 100;
+                    } else if (data.newBulletDirs[i] == 0) {
+                        bxdir[i][k] = -10 * fps;
+                        bydir[i][k] = 0;
+                        bx[i][k] = data.newBulletXs[i];
+                        by[i][k] = data.newBulletYs[i];
+                        shotType[i][k] = 1;
+                        k = 100;
                     }
                 }
             }
         }
         //assault
         if (data.newBulletType == 2) {
-            if (shootCount[i] >= 3 && ammo[i][equip[i]] > 0) {
-                for (k = 0; k <= 99; k++) {
-                    if (b[i][k] == false) {
-                        b[i][k] = true;
-                        if (data.newBulletDirs == 1) {
-                            bxdir[i][k] = 14 * fps;//was 14
-                            bydir[i][k] = 0;
-                            bx[i][k] = xpos[i];
-                            by[i][k] = ypos[i] + 4;
-                            shotType[i][k] = 2;
-                            k = 100;
-                        } else if (data.newBulletDirs == 0) {
-                            bxdir[i][k] = -14 * fps;//-14
-                            bydir[i][k] = 0;
-                            bx[i][k] = xpos[i];
-                            by[i][k] = ypos[i] + 4;
-                            shotType[i][k] = 2;
-                            k = 100;
-                        }
+            for (k = 0; k <= 99; k++) {
+                if (b[i][k] == false) {
+                    b[i][k] = true;
+                    if (data.newBulletDirs[i] == 1) {
+                        bxdir[i][k] = 14 * fps;//was 14
+                        bydir[i][k] = 0;
+                        bx[i][k] = data.newBulletXs[i];
+                        by[i][k] = data.newBulletYs[i];
+                        shotType[i][k] = 2;
+                        k = 100;
+                    } else if (data.newBulletDirs[i] == 0) {
+                        bxdir[i][k] = -14 * fps;//-14
+                        bydir[i][k] = 0;
+                        bx[i][k] = data.newBulletXs[i];
+                        by[i][k] = data.newBulletYs[i];
+                        shotType[i][k] = 2;
+                        k = 100;
                     }
                 }
             }
         }
         //uzi
         if (data.newBulletType == 3) {
-            if (shootCount[i] >= 3 && ammo[i][equip[i]] > 0) {
-                for (k = 0; k <= 99; k++) {
-                    if (b[i][k] == false) {
-                        b[i][k] = true;
-                        if (data.newBulletDirs == 1) {
-                            bxdir[i][k] = 14 * fps; // was 14
-                            bydir[i][k] = 0;
-                            bx[i][k] = xpos[i];
-                            by[i][k] = ypos[i] + 4;
-                            shotType[i][k] = 3;
-                            k = 100;
-                        } else if (data.newBulletDirs == 0) {
-                            bxdir[i][k] = -14 * fps;//was -14
-                            bydir[i][k] = 0;
-                            bx[i][k] = xpos[i];
-                            by[i][k] = ypos[i] + 4;
-                            shotType[i][k] = 3;
-                            k = 100;
-                        }
+            for (k = 0; k <= 99; k++) {
+                if (b[i][k] == false) {
+                    b[i][k] = true;
+                    if (data.newBulletDirs[i] == 1) {
+                        bxdir[i][k] = 14 * fps; // was 14
+                        bydir[i][k] = 0;
+                        bx[i][k] = data.newBulletXs[i];
+                        by[i][k] = data.newBulletYs[i];
+                        shotType[i][k] = 3;
+                        k = 100;
+                    } else if (data.newBulletDirs[i] == 0) {
+                        bxdir[i][k] = -14 * fps;//was -14
+                        bydir[i][k] = 0;
+                        bx[i][k] = data.newBulletXs[i];
+                        by[i][k] = data.newBulletYs[i];
+                        shotType[i][k] = 3;
+                        k = 100;
                     }
                 }
             }
         }
         //sniper
         if (data.newBulletType == 4) {
-            if (shootCount[i] >= 30 && ammo[i][equip[i]] > 0) {
-                for (k = 0; k <= 99; k++) {
-                    if (b[i][k] == false) {
-                        b[i][k] = true;
-                        if (data.newBulletDirs == 1) {
-                            bxdir[i][k] = 20 * fps;//was 20
-                            bydir[i][k] = 0;
-                            bx[i][k] = xpos[i];
-                            by[i][k] = ypos[i] + 4;
-                            shotType[i][k] = 4;
-                            k = 100;
-                        } else if (data.newBulletDirs == 0) {
-                            bxdir[i][k] = -20 * fps;//was -20
-                            bydir[i][k] = 0;
-                            bx[i][k] = xpos[i];
-                            by[i][k] = ypos[i] + 4;
-                            shotType[i][k] = 4;
-                            k = 100;
-                        }
+            for (k = 0; k <= 99; k++) {
+                if (b[i][k] == false) {
+                    b[i][k] = true;
+                    if (data.newBulletDirs[i] == 1) {
+                        bxdir[i][k] = 20 * fps;//was 20
+                        bydir[i][k] = 0;
+                        bx[i][k] = data.newBulletXs[i];
+                        by[i][k] = data.newBulletYs[i];
+                        shotType[i][k] = 4;
+                        k = 100;
+                    } else if (data.newBulletDirs[i] == 0) {
+                        bxdir[i][k] = -20 * fps;//was -20
+                        bydir[i][k] = 0;
+                        bx[i][k] = data.newBulletXs[i];
+                        by[i][k] = data.newBulletYs[i];
+                        shotType[i][k] = 4;
+                        k = 100;
                     }
                 }
             }
         }
         //flamethrower
         if (data.newBulletType == 5) {
-            if (ammo[i][equip[i]] > 0) {
-                for (k = 0; k <= 99; k++) {
-                    if (b[i][k] == false) {
-                        b[i][k] = true;
-                        if (data.newBulletDirs == 1) {
-                            flameDis[i][k] = xpos[i] + 200;
-                            bxdir[i][k] = 11 * fps; // was 11
-                            bydir[i][k] = 0;
-                            bx[i][k] = xpos[i];
-                            by[i][k] = ypos[i] + 4;
-                            shotType[i][k] = 5;
-                            k = 100;
-                        } else if (data.newBulletDirs == 0) {
-                            flameDis[i][k] = xpos[i] - 180;
-                            bxdir[i][k] = -11 * fps;// was -11
-                            bydir[i][k] = 0;
-                            bx[i][k] = xpos[i];
-                            by[i][k] = ypos[i] + 4;
-                            shotType[i][k] = 5;
-                            k = 100;
-                        }
+            for (k = 0; k <= 99; k++) {
+                if (b[i][k] == false) {
+                    b[i][k] = true;
+                    if (data.newBulletDirs[i] == 1) {
+                        flameDis[i][k] = data.newBulletXs[i] + 200;
+                        bxdir[i][k] = 11 * fps; // was 11
+                        bydir[i][k] = 0;
+                        bx[i][k] = data.newBulletXs[i];
+                        by[i][k] = data.newBulletYs[i];
+                        shotType[i][k] = 5;
+                        k = 100;
+                    } else if (data.newBulletDirs[i] == 0) {
+                        flameDis[i][k] = data.newBulletXs[i] - 180;
+                        bxdir[i][k] = -11 * fps;// was -11
+                        bydir[i][k] = 0;
+                        bx[i][k] = data.newBulletXs[i];
+                        by[i][k] = data.newBulletYs[i];
+                        shotType[i][k] = 5;
+                        k = 100;
                     }
                 }
             }
         }
         //shotgun
         if (data.newBulletType == 6) {
-                for (k = 0; k <= 95; k++) {
-                    if (b[i][k] == false) {
-                        for (r = 0; r <= 4; r++) {
-                            b[i][k + r] = true;
-                            if (data.newBulletDirs == 1) {
-                                shotgunDis[i][k + r] = xpos[i] + 160;
-                                bxdir[i][k + r] = 15 * fps;//was 15
-                                bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
-                                bx[i][k + r] = xpos[i];
-                                by[i][k + r] = ypos[i] + 4;
-                                shotType[i][k + r] = 6;
-                            } else if (data.newBulletDirs == 0) {
-                                shotgunDis[i][k + r] = xpos[i] - 140;
-                                bxdir[i][k + r] = -15 * fps;//was 15
-                                bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
-                                bx[i][k + r] = xpos[i];
-                                by[i][k + r] = ypos[i] + 4;
-                                shotType[i][k + r] = 6;
-                            }
+            for (k = 0; k <= 95; k++) {
+                if (b[i][k] == false) {
+                    for (r = 0; r <= 4; r++) {
+                        b[i][k + r] = true;
+                        if (data.newBulletDirs[i] == 1) {
+                            shotgunDis[i][k + r] = data.newBulletXs[i] + 160;
+                            bxdir[i][k + r] = 15 * fps;//was 15
+                            bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
+                            bx[i][k + r] = data.newBulletXs[i];
+                            by[i][k + r] = data.newBulletYs[i];
+                            shotType[i][k + r] = 6;
+                        } else if (data.newBulletDirs[i] == 0) {
+                            shotgunDis[i][k + r] = data.newBulletXs[i] - 140;
+                            bxdir[i][k + r] = -15 * fps;//was 15
+                            bydir[i][k + r] = (-2 * fps) + (r * fps);//-2
+                            bx[i][k + r] = data.newBulletXs[i];
+                            by[i][k + r] = data.newBulletYs[i];
+                            shotType[i][k + r] = 6;
                         }
                     }
-                    k = 100;
                 }
+                k = 100;
             }
         }
+    }
 
     //}
 
@@ -1070,6 +1060,11 @@ function init() {//instance\
 
     resetGame();
 
+    //setting the AIs to false
+    for (i = 0; i < 24; i++) {
+        cpu[i] = false;  //ADDED cpu VALUES!!1 WILL CAUSE PROBLEMS?!!? @@@@@@@@@@@@@@@@@@@@@@@
+    }
+
     then = Date.now();
     map[1].onload = function () {
         console.log("Start game loop");
@@ -1079,6 +1074,7 @@ function init() {//instance\
 
 } //init
 
+//resets all vars
 function resetGame() {
     onlineState = 'Offline';
 
@@ -1118,11 +1114,13 @@ function resetGame() {
         left[i] = false;
         targetx[i] = gameWidth / 2;
         targety[i] = 0; //ADDED DEFAULT TARGET VALUES!!1 WILL CAUSE PROBLEMS?!!? @@@@@@@@@@@@@@@@@@@@@@@
-        cpu[i] = false;  //ADDED cpu VALUES!!1 WILL CAUSE PROBLEMS?!!? @@@@@@@@@@@@@@@@@@@@@@@
         gun[i][equip[i]] = 1;
         right[i] = false;
         fuelCount[i] = 0;
         fuel[i] = 0;
+
+        //OIWERNERGEDGHSFH
+        //cpu[i] = false;
     }
     //start positionss
     xpos[0] = 670;
@@ -3144,7 +3142,7 @@ function update(modifier) {
         if (onlineState == 'Offline') {
             //shooting
             for (i = 0; i < players; i++) {
-                updateShooting(i);
+                updateShooting(i, modifier);
             }
             //sword lunge
             for (i = 0; i < players; i++) {
@@ -3989,7 +3987,7 @@ function update(modifier) {
 //end update
 
 //update new shots helper (called in update
-function updateShooting(i) {
+function updateShooting(i, modifier) {
     shootCount[i] = shootCount[i] + fps * modifier;
     if (shooting[i] == true) {
 

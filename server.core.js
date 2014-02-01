@@ -113,13 +113,6 @@ var level = 0;
 var lives = [];
 var tempLives = 0;
 
-//ai
-var cpu = [];
-var targetx = [];
-var targety = [];
-var upPath = [];
-var zombieAlive = 1;
-
 //counters
 var runCount = [];
 var pleaseReload = 0;
@@ -197,6 +190,7 @@ var game_player = function (game_instance, player_instance) {
     this.game = game_instance;
 };
 
+//start the game + set vars
 server_instance.prototype.initGame = function () {
     then = Date.now();
 
@@ -208,13 +202,15 @@ server_instance.prototype.initGame = function () {
         right[i] = false;
         left[i] = false;
 
+        for (k = 0; k <= 99; k++)
+            b[i][k] = false;
+
         //set dirs
         ydir[i] = 0;
         ydir[i] = 0;
 
         //set positions
         ypos[i] = 410;
-
 
 
         //set guns
@@ -254,12 +250,12 @@ server_instance.prototype.initGame = function () {
     xpos[0] = 670;
     xpos[1] = 10;
 
-
+    console.log("Successfully init game");
 
     play = true;
 
 }; //intigame
-
+//end init game
 
 function loadMap() {
 
@@ -542,7 +538,7 @@ function loadMap() {
 
     }
 }
-
+//end loadmap
 
 server_instance.prototype.process_input = function (player) {
     //console.log("Processing input!");
@@ -586,6 +582,7 @@ server_instance.prototype.process_input = function (player) {
         }
         if (key == 222 || key == 96 || key == 32) {
             if (shooting[senderID] == false && reload[senderID] == false && stun[senderID] == false) {
+                console.log("Shots fired!");
                 shooting[senderID] = true;
             }
         }
@@ -615,7 +612,10 @@ server_instance.prototype.process_input = function (player) {
             down[senderID] = false;
         }
         if (key == 222) {
-            //shoot
+            if (shooting[senderID] == true && reload[senderID] == false && stun[senderID] == false) {
+                console.log("No more shooting!!");
+                shooting[senderID] = false;
+            }
         }
     }
 
@@ -640,6 +640,8 @@ server_instance.prototype.handle_server_input = function (client, input, input_t
 
 }; //handle_server_input
 
+//try to create a new bullet
+// return true if bullet created
 function newBullet(i) {
     //pistol
     if (gun[i][equip[i]] == 1) {
@@ -653,19 +655,19 @@ function newBullet(i) {
                         bydir[i][k] = 0;
                         bx[i][k] = xpos[i];
                         by[i][k] = ypos[i] + 4;
-                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                        if (streak[i] < 10) ammo[i][equip[i]]--;
                         shootCount[i] = 0;
                         shotType[i][k] = 1;
-                        k = 100;
+                        return true;
                     } else if (directionFacing[i] == 0) {
                         bxdir[i][k] = -10 * fps;//-10
                         bydir[i][k] = 0;
                         bx[i][k] = xpos[i];
                         by[i][k] = ypos[i] + 4;
-                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                        if (streak[i] < 10) ammo[i][equip[i]]--;
                         shotType[i][k] = 1;
                         shootCount[i] = 0;
-                        k = 100;
+                        return true;
                     }
                 }
             }
@@ -683,19 +685,19 @@ function newBullet(i) {
                         bydir[i][k] = 0;
                         bx[i][k] = xpos[i];
                         by[i][k] = ypos[i] + 4;
-                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                        if (streak[i] < 10) ammo[i][equip[i]]--;
                         shootCount[i] = 0;
                         shotType[i][k] = 2;
-                        k = 100;
+                        return true;
                     } else if (directionFacing[i] == 0) {
                         bxdir[i][k] = -14 * fps;//-14
                         bydir[i][k] = 0;
                         bx[i][k] = xpos[i];
                         by[i][k] = ypos[i] + 4;
-                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                        if (streak[i] < 10) ammo[i][equip[i]]--;
                         shootCount[i] = 0;
                         shotType[i][k] = 2;
-                        k = 100;
+                        return true;
                     }
                 }
             }
@@ -713,19 +715,19 @@ function newBullet(i) {
                         bydir[i][k] = 0;
                         bx[i][k] = xpos[i];
                         by[i][k] = ypos[i] + 4;
-                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                        if (streak[i] < 10) ammo[i][equip[i]]--;
                         shootCount[i] = 0;
                         shotType[i][k] = 3;
-                        k = 100;
+                        return true;
                     } else if (directionFacing[i] == 0) {
                         bxdir[i][k] = -14 * fps;//was -14
                         bydir[i][k] = 0;
                         bx[i][k] = xpos[i];
                         by[i][k] = ypos[i] + 4;
-                        if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
+                        if (streak[i] < 10) ammo[i][equip[i]]--;
                         shotType[i][k] = 3;
                         shootCount[i] = 0;
-                        k = 100;
+                        return true;
                     }
                 }
             }
@@ -746,7 +748,7 @@ function newBullet(i) {
                         if (streak[i] < 10) ammo[i][equip[i]]--;
                         shotType[i][k] = 4;
                         shootCount[i] = 0;
-                        k = 100;
+                        return true;
                     } else if (directionFacing[i] == 0) {
                         bxdir[i][k] = -20 * fps;//was -20
                         bydir[i][k] = 0;
@@ -755,7 +757,7 @@ function newBullet(i) {
                         if (streak[i] < 10) ammo[i][equip[i]]--;
                         shotType[i][k] = 4;
                         shootCount[i] = 0;
-                        k = 100;
+                        return true;
                     }
                 }
             }
@@ -778,7 +780,7 @@ function newBullet(i) {
                             ammo[i][equip[i]]--;
                         shotType[i][k] = 5;
                         shootCount[i] = 0;
-                        k = 100;
+                        return true;
                     } else if (directionFacing[i] == 0) {
                         flameDis[i][k] = xpos[i] - 180;
                         bxdir[i][k] = -11 * fps;// was -11
@@ -789,7 +791,7 @@ function newBullet(i) {
                             ammo[i][equip[i]]--;
                         shotType[i][k] = 5;
                         shootCount[i] = 0;
-                        k = 100;
+                        return true;
                     }
                 }
             }
@@ -825,12 +827,16 @@ function newBullet(i) {
                     }
                     if (streak[i] < 10 || zombie == true) ammo[i][equip[i]]--;
                 }
-                k = 100;
+                return true;
             }
         }
     }
+
+    //bullet creation failed
+    return false;
 }
 
+//updator!
 server_instance.prototype.update = function () {
 
     var now = Date.now();
@@ -843,7 +849,7 @@ server_instance.prototype.update = function () {
         this.server_time = this.local_time;
 
         //jetpack
-        for (i = 0; i < players; i++) {
+        for (i = 0; i < playerCount; i++) {
             if (streak[i] >= 3 && ydir[i] != 0 && jetpack[i] == true) {
                 if (fuel[i] > 0) {
                     fuel[i] = fuel[i] - fps * modifier;
@@ -870,15 +876,16 @@ server_instance.prototype.update = function () {
         for (i = 0; i < playerCount; i++) {
             shootCount[i] = shootCount[i] + fps * modifier;
             if (shooting[i] == true) {
-                
-                newBulletType[newBulletCount] = gun[i][equip[i]];
-                newBulletX[newBulletCount] = xpos[i];
-                newBulletY[newBulletCount] = ypos[i] + 4;
-                newBulletDir[newBulletCount] = directionFacing[i];
-                newBulletSender[newBulletCount] = i;
-                newBulletCount++;
-
-                newBullet(i);
+                console.log("try to create new bullet!");
+                if (newBullet(i)) {
+                    newBulletType[newBulletCount] = gun[i][equip[i]];
+                    newBulletX[newBulletCount] = xpos[i];
+                    newBulletY[newBulletCount] = ypos[i] + 4;
+                    newBulletDir[newBulletCount] = directionFacing[i];
+                    newBulletSender[newBulletCount] = i;
+                    newBulletCount++;
+                    console.log("Created!");
+                }
             }
 
             //flamethrower fire and shotgun
@@ -930,7 +937,7 @@ server_instance.prototype.update = function () {
             }
         }
 
-        for (i = 0; i < 2; i++) {
+        for (i = 0; i < playerCount; i++) {
             //do movement
 
             if (jump[i] == true) {
