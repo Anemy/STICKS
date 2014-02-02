@@ -644,6 +644,8 @@ client_onserverupdate_recieved = function (data) {
         xdir[1] = data.hpxdir;
         ydir[1] = data.hpydir;
 
+        console.log("The new player direction x: " + xdir[1]);
+
         //set other dir facing
         if (xdir[1] > 0.1)
             directionFacing[1] = 1;
@@ -671,21 +673,12 @@ client_onserverupdate_recieved = function (data) {
         if(m == 0)
             newGunsAdded = JSON.parse(data.newGun);
 
-        console.log("Hit up another gun type: " + newGunsAdded[m].newGunType + " homies at this x POS: " + newGunsAdded[m].newGunX);
+        //console.log("Hit up another gun type: " + newGunsAdded[m].newGunType + " homies at this x POS: " + newGunsAdded[m].newGunX);
 
         gunx[newGunsAdded[m].newGunType] = newGunsAdded[m].newGunX;
         guny[newGunsAdded[m].newGunType] = newGunsAdded[m].newGunY;
     }
     
-    /*
-        var newBullet = {
-        newBulletType: gun[i][equip[i]],
-            newBulletX: xpos[i],
-            newBulletY: ypos[i] + 4,
-            newBulletDir: directionFacing[i],  //true = right // false = left
-            newBulletSender: i
-    };
-    */
     var newBulletsAdded = [];
     //console.log("WE GOT NEW BULLETS?! SIZE: " + data.newBulletNum);
     //create new bullets
@@ -4611,9 +4604,9 @@ function keyPressed(e) {
     }
 
     //menu/space bar
-    if (key == 32) {
+    if (key == 32 || key == 13) {
         if (play == true && cpu[0] == false) {
-            if (onlineState == 'Offline' && shooting[0] == false && reload[0] == false && stun[0] == false) {
+            if (key != 13 &&onlineState == 'Offline' && shooting[0] == false && reload[0] == false && stun[0] == false) {
                 shooting[0] = true;
             }
         }
@@ -5153,6 +5146,7 @@ function keyReleased(e) {
 }
 //end key released
 
+/*
 //MOUSE YO
 window.addEventListener('mouseup', this.mouseUp, false);
 
@@ -5678,8 +5672,8 @@ function mouseUp(event) {
                 }
             }
         }
-    }*/
-}
+    }
+}*/
 
 function startThatMap(mapNum) {
     level = mapNum;

@@ -967,7 +967,7 @@ server_instance.prototype.update = function () {
                     newBullets.push(newBullet);//newBullet(xpos[i], ypos[i] + 4, directionFacing[i], i, gun[i][equip[i]]));
                     //console.log("About to print");
                     //console.log("The size of bullets: " + (newBullets[0]).newBulletX);
-                    console.log("Created a new bullet with gun type: " + newBullets[newBullets.length-1].newBulletType);
+                    //console.log("Created a new bullet with gun type: " + newBullets[newBullets.length-1].newBulletType);
                 }
             }
 
@@ -1229,7 +1229,7 @@ function updateGuns(i , modifier) {
 
 function updateReload(i, modifier) {
     //auto reload------keep or remove?
-    if (ammo[i][equip[i]] == 0 && clips[i][equip[i]] > 0 && reload[i] == false) {
+    if (reload[i] == false && ammo[i][equip[i]] == 0 && clips[i][equip[i]] > 0) {
         reload[i] = true;
         reloadCount[i] = 0;
         clips[i][equip[i]]--;
