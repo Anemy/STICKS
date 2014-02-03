@@ -628,9 +628,9 @@ client_onserverupdate_recieved = function (data) {
         ydir[1] = data.cpydir;
 
         //set dir face
-        if (xdir[1] > 0.1)
+        if (data.cpxdir > 0.1)
             directionFacing[1] = 1;
-        else if (xdir[1] < 0.1)
+        else if (data.cpxdir < 0.1)
             directionFacing[1] = 0;
 
         /*if (Math.abs(xpos[0] - data.hpx) > 150)
@@ -644,12 +644,12 @@ client_onserverupdate_recieved = function (data) {
         xdir[1] = data.hpxdir;
         ydir[1] = data.hpydir;
 
-        console.log("The new player direction x: " + xdir[1]);
+        //console.log("The new player direction x: " + xdir[1]);
 
         //set other dir facing
-        if (xdir[1] > 0.1)
+        if (data.hpxdir > 0.1)
             directionFacing[1] = 1;
-        else if (xdir[1] < 0.1)
+        else if (data.hpxdir < 0.1)
             directionFacing[1] = 0;
 
         /*if (Math.abs(xpos[0] - data.cpx) > 150)
@@ -658,13 +658,45 @@ client_onserverupdate_recieved = function (data) {
             ypos[0] = data.cpy;*/
     }
 
-    
+    //see if new clip amount exists
+    if (!(typeof data.newHClipsAmount === 'undefined')) {
+        console.log("New clips!");
+        if (playerHost) {
+            clips[0][equip[0]] = data.newHClipsAmount;
+            clips[1][equip[1]] = data.newCClipsAmount;
+        }
+        else {
+            clips[1][equip[1]] = data.newHClipsAmount;
+            clips[0][equip[0]] = data.newCClipsAmount;
+        }
+    }
 
-    /*    var newBulletType = type;
-    var newBulletX = x;
-    var newBulletY = y;
-    var newBulletDir = dir;  //true = right // false = left
-    var newBulletSender = send;*/
+    //new equiped update
+    if (!(typeof data.newHEquip === 'undefined')) {
+        console.log("New gun equiped!");
+        if (playerHost) {
+            equip[0] = data.newHEquip;
+            equip[1] = data.newCEquip;
+        }
+        else {
+            equip[1] = data.newHEquip;
+            equip[0] = data.newCEquip;
+        }
+    }
+
+    //newHHP
+    //new HEALTH update
+    if (!(typeof data.newHHP === 'undefined')) {
+        console.log("A player was hit!");
+        if (playerHost) {
+            health[0] = data.newHHP;
+            health[1] = data.newCHP;
+        }
+        else {
+            health[1] = data.newCHP;
+            health[0] = data.newHHP;
+        }
+    }
 
     var newGunsAdded = [];
 
@@ -714,9 +746,7 @@ client_onserverupdate_recieved = function (data) {
         else if (!playerHost && newBulletsAdded[m].newBulletSender == 1)
             i = 0;
 
-        //ammo[i][equip[i]] = newAmmoCount[i];
-        //ammo[i][equip[i]]
-
+        //create the new bullet!
         //pistol
         if (newBulletsAdded[m].newBulletType == 1) {
             //console.log("Shoot the pistol!");
@@ -3855,7 +3885,7 @@ function update(modifier) {
         }
 
         if (onlineState == 'Offline') {
-            //swap weapons
+            //swap weapons maybe should be also done online?
             for (i = 0; i < players; i++) {
                 if (swap[i] == true) {
                     swapCount[i] = swapCount[i] + fps * modifier;
