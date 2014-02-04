@@ -83,8 +83,10 @@ var down = [];
 var downCount = [];
 
 //weapons
+var flameDis = [];
 var gun = []; //(25 ,  2); // double 25 2
 for (i = 0; i < 25; i++) {
+    flameDis[i] = [];
     gun[i] = [];
 }
 var equip = [];
@@ -1039,12 +1041,40 @@ server_instance.prototype.update = function () {
         for (i = 0; i < playerCount; i++) {
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == true && shotType[i][k] == 5) {
-                    if (bxdir[i][k] > 0 && bx[i][k] >= flameDis[i][k]) b[i][k] = false;
-                    if (bxdir[i][k] < 0 && bx[i][k] <= flameDis[i][k]) b[i][k] = false;
+                    if (bxdir[i][k] > 0 && bx[i][k] >= flameDis[i][k]) {
+                        b[i][k] = false;
+                        var deadBullet = {
+                            owner: i,
+                            ID: k
+                        };
+                        killBullets.push(deadBullet);
+                    }
+                    if (bxdir[i][k] < 0 && bx[i][k] <= flameDis[i][k]) {
+                        b[i][k] = false;
+                        var deadBullet = {
+                            owner: i,
+                            ID: k
+                        };
+                        killBullets.push(deadBullet);
+                    }
                 }
                 if (b[i][k] == true && shotType[i][k] == 6) {
-                    if (bxdir[i][k] > 0 && bx[i][k] >= shotgunDis[i][k]) b[i][k] = false;
-                    if (bxdir[i][k] < 0 && bx[i][k] <= shotgunDis[i][k]) b[i][k] = false;
+                    if (bxdir[i][k] > 0 && bx[i][k] >= shotgunDis[i][k]) {
+                        b[i][k] = false;
+                        var deadBullet = {
+                            owner: i,
+                            ID: k
+                        };
+                        killBullets.push(deadBullet);
+                    }
+                    if (bxdir[i][k] < 0 && bx[i][k] <= shotgunDis[i][k]) {
+                        b[i][k] = false;
+                        var deadBullet = {
+                            owner: i,
+                            ID: k
+                        };
+                        killBullets.push(deadBullet);
+                    }
                 }
             }
         }
@@ -1124,6 +1154,11 @@ function sendUserUpdates() {
         newAmmoAmount = true;
     }
 
+    //there are bullets to be killed!
+    this.laststate.amountOfDeadBullets = killBullets.length;
+    if (killBullets.length > 0) {
+        this.laststate.newDeadBullet = JSON.stringify(killBullets);
+    }
 
     //new ammos
     if (newAmmoAmount) {
@@ -1188,6 +1223,9 @@ function sendUserUpdates() {
         newBullets = [];
     }
 
+    if (killBullets.length > 0)
+        killBullets = [];
+
     //reseting the new guns
     if (newGuns.length > 0) {
         newGuns = [];
@@ -1216,7 +1254,11 @@ function bulletCollisions(i, modifier) {
 
                     //Hello whoever is reading this! - Rhys porting to javascript
                     if (shotType[i][k] != 5) {
-                        killBullets.push(k);
+                        var deadBullet = {
+                            owner: i,
+                            ID: k
+                        };
+                        killBullets.push(deadBullet);
                         b[i][k] = false;
                     }/* else if (shotType[i][k] == 5) {
                                     shotsFired[i]++;
@@ -1292,6 +1334,30 @@ function bulletCollisions(i, modifier) {
                     }
                 }
             }
+        }
+    }
+
+    //bullet movement
+    for (k = 0; k <= 99; k++) {
+        bx[i][k] = bx[i][k] + (bxdir[i][k] * modifier);
+        by[i][k] = by[i][k] + (bydir[i][k] * modifier);
+        if ((bx[i][k] < -20 || bx[i][k] > 720) && level != 5) {
+            var deadBullet = {
+                owner: i,
+                ID: k
+            };
+            killBullets.push(deadBullet);
+            b[i][k] = false;
+            bxdir[i][k] = 0;
+        }
+        if ((bx[i][k] < -20 || bx[i][k] > 1420) && level == 5) {
+            var deadBullet = {
+                owner: i,
+                ID: k
+            };
+            killBullets.push(deadBullet);
+            b[i][k] = false;
+            bxdir[i][k] = 0;
         }
     }
 }

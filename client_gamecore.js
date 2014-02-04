@@ -690,6 +690,14 @@ client_onserverupdate_recieved = function (data) {
         }
     }
 
+    //there are bullets to kill
+    if (data.amountOfDeadBullets > 0) {
+        bulletsToKill = JSON.parse(data.newDeadBullet);
+        for (i = 0; i < data.amountOfDeadBullets; i++) {
+            b[bulletsToKill[i].owner][bulletsToKill[i].ID] = false;
+        }
+    }
+
     //newHHP
     //new HEALTH update
     if (!(typeof data.newHHP === 'undefined')) {
