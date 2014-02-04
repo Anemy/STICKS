@@ -630,7 +630,7 @@ client_onserverupdate_recieved = function (data) {
         //set dir face
         if (data.cpxdir > 0.1)
             directionFacing[1] = 1;
-        else if (data.cpxdir < 0.1)
+        else if (data.cpxdir < -0.1)
             directionFacing[1] = 0;
 
         /*if (Math.abs(xpos[0] - data.hpx) > 150)
@@ -649,7 +649,7 @@ client_onserverupdate_recieved = function (data) {
         //set other dir facing
         if (data.hpxdir > 0.1)
             directionFacing[1] = 1;
-        else if (data.hpxdir < 0.1)
+        else if (data.hpxdir < -0.1)
             directionFacing[1] = 0;
 
         /*if (Math.abs(xpos[0] - data.cpx) > 150)
@@ -673,14 +673,20 @@ client_onserverupdate_recieved = function (data) {
 
     //new equiped update
     if (!(typeof data.newHEquip === 'undefined')) {
-        console.log("New gun equiped!");
+        console.log("New gun equiped! Host now has: " + data.newHGunEquip);
         if (playerHost) {
             equip[0] = data.newHEquip;
             equip[1] = data.newCEquip;
+
+            gun[0][equip[0]] = data.newHGunEquip;
+            gun[1][equip[1]] = data.newCGunEquip;
         }
         else {
             equip[1] = data.newHEquip;
             equip[0] = data.newCEquip;
+
+            gun[1][equip[1]] = data.newHGunEquip;
+            gun[0][equip[0]] = data.newCGunEquip;
         }
     }
 
@@ -695,6 +701,21 @@ client_onserverupdate_recieved = function (data) {
         else {
             health[1] = data.newCHP;
             health[0] = data.newHHP;
+        }
+    }
+
+    //newHAmmoAmount
+    //setting the new ammo counts
+    if (!(typeof data.newHAmmoAmount === 'undefined')) {
+        newAmmoCountH = data.newHAmmoAmount;
+        newAmmoCountC = data.newCAmmoAmount;
+        if (playerHost) {
+            ammo[0][equip[0]] = newAmmoCountH;
+            ammo[1][equip[1]] = newAmmoCountC;
+        }
+        else {
+            ammo[0][equip[0]] = newAmmoCountC;
+            ammo[1][equip[1]] = newAmmoCountH;
         }
     }
 
@@ -722,16 +743,14 @@ client_onserverupdate_recieved = function (data) {
             //newBullets.push(xpos[i], ypos[i] + 4, directionFacing[i], i, gun[i][equip[i]]);
             newBulletsAdded = JSON.parse(data.newBulleters);
 
-            //setting the new ammo counts
-            newAmmoCountH = data.newHAmmoAmount;
-            newAmmoCountC = data.newCAmmoAmount;
-            if (playerHost) {
-                ammo[0][equip[0]] = newAmmoCountH;
-                ammo[1][equip[1]] = newAmmoCountC;
-            }
-            else {
-                ammo[0][equip[0]] = newAmmoCountC;
-                ammo[1][equip[1]] = newAmmoCountH;
+            //make reload blue bar thing
+            for (i = 0; i < players; i++) {
+                if (ammo[i][equip[i]] == 0) {
+                    if (clips[i][equip[i]] > 0 && gun[i][equip[i]] > 0 && reload[i] == false && streak[i] < 10) {
+                        reload[i] = true;
+                        reloadCount[i] = 0;
+                    }
+                }
             }
         }
 
@@ -847,7 +866,7 @@ client_onserverupdate_recieved = function (data) {
                 if (b[i][k] == false) {
                     for (r = 0; r <= 4; r++) {
                         b[i][k + r] = true;
-                        if (newBulletsAdded[im].newBulletDir == 1) {
+                        if (newBulletsAdded[m].newBulletDir == 1) {
                             shotgunDis[i][k + r] = newBulletsAdded[m].newBulletX + 160;
                             bxdir[i][k + r] = 15 * fps;//was 15
                         } else if (newBulletsAdded[m].newBulletDir == 0) {
@@ -3153,8 +3172,8 @@ function update(modifier) {
                         ydir[i] = ydir[i] - (3 * fps);//was - 3
                     }
                 }
-                //else
-                    //jetpack[i] = false;
+                else
+                    jetpack[i] = false;
             }
         }
 
@@ -3287,7 +3306,7 @@ function update(modifier) {
                                     health[t] = health[t] - 7;
                             }
                             if (gun[i][equip[i]] == 8 && jump[i] == false && stun[t] == false) {
-                                //jump[i] = true;
+                                jump[i] = true; //was commented out?
                                 stun[t] = true;
                                 xpos[i] = xpos[t];
                             }
@@ -3686,9 +3705,37 @@ function update(modifier) {
                 }
             }
         }
+        if (onlineState == 'Connected') {
+            //reload
+            pleaseReload = pleaseReload + fps * modifier;
+            if (pleaseReload >= 50) {
+                pleaseReload = 0;
+            }
+            for (i = 0; i < players; i++) {
+                //reload
+                if (reload[i] == true) {
+                    reloadCount[i] = reloadCount[i] + fps * modifier;
+                    var timeReload = 80;
+                    if (gun[i][equip[i]] == 1) timeReload = 20;
+                    if (gun[i][equip[i]] == 2 || gun[i][equip[i]] == 3) timeReload = 40;
+                    if (gun[i][equip[i]] == 4) timeReload = 80;
+                    if (gun[i][equip[i]] == 5) timeReload = 80;
+                    if (gun[i][equip[i]] == 6) timeReload = 40;
+                    if (gun[i][equip[i]] == 7) timeReload = 20;
+                    if (gun[i][equip[i]] == 8) timeReload = 20;
+
+                    if (reloadCount[i] >= timeReload) {
+                        //doesn't actually set anything lol just graphics when online
+
+                        reloadCount[i] = 0;
+                        reload[i] = false;
+                    }
+                }
+            }
+        }
         if (onlineState == 'Offline') {
             //reload
-            pleaseReload++;
+            pleaseReload = pleaseReload + fps * modifier;
             if (pleaseReload >= 50) {
                 pleaseReload = 0;
             }
@@ -4055,14 +4102,6 @@ function update(modifier) {
                 }
             }
 
-            //update direction facing based online movement to avoid sending extra data
-            if (onlineState == 'Connected') {
-                if (xdir[1] > 0.001)
-                    directionFacing[1] = 1;
-                else if (xdir[1] < 0.001)
-                    directionFacing[1] = 0;
-            }
-
             //console.log("Update the positions!!!");
 
             xpos[i] = xpos[i] + (xdir[i] * modifier);
@@ -4351,6 +4390,8 @@ function keyPressed(e) {
             }
         }
         if (play == true && cpu[0] == false) {
+            if (onlineState == 'Connected')
+                directionFacing[0] = 1;
             right[0] = true;
             left[0] = false;
         }
@@ -4379,6 +4420,8 @@ function keyPressed(e) {
             }
         }
         if (play == true && cpu[0] == false) {
+            if (onlineState == 'Connected')
+                directionFacing[0] = 0;
             left[0] = true;
             right[0] = false;
         }
@@ -5017,7 +5060,7 @@ function keyReleased(e) {
     if (upKey == 40) {
         if (play == true && cpu[0] == false) {
             down[0] = false;
-            if (gun[0][equip[0]] > 0) {
+            if (gun[0][equip[0]] > 0 && onlineState == 'Offline') {
                 if (ammo[0][equip[0]] < maxAmmo[gun[0][equip[0]] - 1] && swap[0] == true && clips[0][equip[0]] > 0 && gun[0][equip[0]] > 0 && reload[0] == false && swapCount[0] < 15 && ((streak[0] < 10 && custom == true) || zombie == true)) {
                     reload[0] = true;
                     shooting[0] = false;

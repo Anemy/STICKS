@@ -135,14 +135,16 @@ var then;
 var playerCount = 2;
 
 //should update or not?!
-var serverHasUpdate = 0;
+var serverHasUpdate = true;
 
 //bools to decide to send vars or not
 var newClipAmount = false;
 var newGunEquiped = false;
 var updateHealth = false;
 var updateLives = false;
+var newAmmoAmount = false;
 
+var killBullets = [];
 
 //ONLINE BULLET VARS
 var newBullets = [];
@@ -165,11 +167,8 @@ var newGuns = [];
 };*/
 
 var server_instance = function () {
-    console.log('in constructor');
-
+    console.log("Creating new server instance.");
     this.server_time = 0;
-
-    console.log('new server instance');
     //this.laststate = {};
 };
 
@@ -179,7 +178,6 @@ if ('undefined' != typeof global) {
 }
 
 server_instance.prototype.saySomething = function (game_instance) {
-    console.log("HLOOOOOOOOOO!");
     //Store the instance, if any
     this.instance = game_instance;
 
@@ -193,8 +191,6 @@ server_instance.prototype.saySomething = function (game_instance) {
         other: new game_player(this, pc),
         word: "hello"
     };
-
-    console.log("HELLOOOOOOOOOO!" + players.word);
 }
 
 var timer = setInterval(function(){
@@ -216,6 +212,16 @@ server_instance.prototype.initGame = function () {
 
     level = 1;
     loadMap();
+
+    //max ammo
+    maxAmmo[0] = 10;
+    maxAmmo[1] = 12;
+    maxAmmo[2] = 20;
+    maxAmmo[3] = 4;
+    maxAmmo[4] = 60;
+    maxAmmo[5] = 5;
+    maxAmmo[6] = 4;
+    maxAmmo[7] = 6;
 
     for(var i = 0; i < playerCount; i++) {
         //set sides
@@ -679,7 +685,7 @@ server_instance.prototype.process_input = function (player) {
             swapCount[senderID] = 0;
         }
         if (key == 222 || key == 96 || key == 32) {
-            if (shooting[senderID] == true && reload[senderID] == false && stun[senderID] == false) {
+            if (shooting[senderID] == true) {
                 //console.log("No more shooting!!");
                 shooting[senderID] = false;
             }
@@ -978,10 +984,8 @@ server_instance.prototype.update = function () {
 
         //updating 2 players
         for (i = 0; i < playerCount; i++) {//
-            //console.log("in here lol!");
             shootCount[i] = shootCount[i] + fps * modifier;
             if (shooting[i] == true) {
-                //console.log("try to create new bullet!");
                 if (createNewBullet(i)) { //(x, y, dir, send, type) {
                     serverHasUpdate = true;
                     var newBullet = {
@@ -992,9 +996,6 @@ server_instance.prototype.update = function () {
                         newBulletSender: i
                     };
                     newBullets.push(newBullet);//newBullet(xpos[i], ypos[i] + 4, directionFacing[i], i, gun[i][equip[i]]));
-                    //console.log("About to print");
-                    //console.log("The size of bullets: " + (newBullets[0]).newBulletX);
-                    //console.log("Created a new bullet with gun type: " + newBullets[newBullets.length-1].newBulletType);
                 }
             }
 
@@ -1007,7 +1008,7 @@ server_instance.prototype.update = function () {
             ydir[i] = ydir[i] + playerFallSpeed * modifier;// used to be 1
             //global collision y platforms
             for (k = 0; k <= 14; k++) {
-                if (block[k] == true && ground[i] == blocky[k] && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 + (ydir[i] * modifier) <= blocky[k] + (ydir[i] * modifier) && ypos[i] + 20 + (ydir[i] * modifier) >= blocky[k]) {// + (ydir[i]) 5
+                if (block[k] == true && xpos[i] + 20 >= blockx[k] && xpos[i] <= blockx[k] + blockw[k] && ypos[i] + 20 + (ydir[i] * modifier) <= blocky[k] + (ydir[i] * modifier) && ypos[i] + 20 + (ydir[i] * modifier) >= blocky[k]) {// + (ydir[i]) 5
                     serverHasUpdate = true;
                     ground[i] = blocky[k];
                     k = 15;
@@ -1120,12 +1121,16 @@ function sendUserUpdates() {
     if (newBullets.length > 0) {//create the bullets!!!
         //newBullets.push(xpos[i], ypos[i] + 4, directionFacing[i], i, gun[i][equip[i]]);
         this.laststate.newBulleters = JSON.stringify(newBullets);
-
-        //new ammos
-        this.laststate.newHAmmoAmount = ammo[0][equip[0]];//add ammo
-        this.laststate.newCAmmoAmount = ammo[1][equip[1]];//add ammo
+        newAmmoAmount = true;
     }
 
+
+    //new ammos
+    if (newAmmoAmount) {
+        this.laststate.newHAmmoAmount = ammo[0][equip[0]];//add ammo
+        this.laststate.newCAmmoAmount = ammo[1][equip[1]];//add ammo
+        newAmmoAmount = false;
+    }
     
     //send clips
     if (newClipAmount) {
@@ -1135,9 +1140,12 @@ function sendUserUpdates() {
     }
 
     if (newGunEquiped) {
-        console.log("New gun equiped!!!1");
+        //console.log("New gun equiped!!!1");
         this.laststate.newHEquip = equip[0];
         this.laststate.newCEquip = equip[1];
+
+        this.laststate.newHGunEquip = gun[0][equip[0]];
+        this.laststate.newCGunEquip = gun[1][equip[1]];
         newGunEquiped = false;
     }
 
@@ -1147,12 +1155,12 @@ function sendUserUpdates() {
         updateHealth = false;
     }
 
-    if (updateLives) {
+    /*if (updateLives) {
         //LOL NOT IMPLEMENTED YET
-        this.laststate.newHLives = equip[0];
-        this.laststate.newCLives = equip[1];
+        this.laststate.newHLives = health[0];
+        this.laststate.newCLives = health[1];
         updateLives = false;
-    }
+    }*/
 
     this.laststate.newGunNum = newGuns.length; //amount of new bullets
     if (newGuns.length > 0) {
@@ -1195,81 +1203,93 @@ function bulletCollisions(i, modifier) {
     killcount[i] = killcount[i] + fps * modifier;
 
     for (t = 0; t < playerCount; t++) {
-        for (k = 0; k <= 99; k++) {
-            if (b[i][k] == true && bx[i][k] >= xpos[t] - 5 && bx[i][k] <= xpos[t] + 25 && by[i][k] >= ypos[t] && by[i][k] <= ypos[t] + 20 && i != t && ypos[t] > 0) {
-                shotsHit[i]++;
-                updateHealth = true;
+        if(i != t) {
+            for (k = 0; k <= 99; k++) {
+                //console.log("Try the collide!!!!");
+                if (b[i][k] == true && bx[i][k] >= xpos[t] - 5 && bx[i][k] <= xpos[t] + 25 && by[i][k] >= ypos[t] && by[i][k] <= ypos[t] + 20 && ypos[t] > 0) {
 
-                //blood would be here
+                    console.log("a player has been shot. MEDIC!!!!");
+                    shotsHit[i]++;
+                    updateHealth = true;
 
-                //Hello whoever is reading this! - Rhys porting to javascript
-                if (shotType[i][k] != 5) {
-                    b[i][k] = false;
-                }/* else if (shotType[i][k] == 5) {
-                                shotsFired[i]++;
-                            }*/
-                if (shotType[i][k] == 1) {
-                    health[t] = health[t] - 5;
-                }
-                if (shotType[i][k] == 2) {
-                    health[t] = health[t] - 4;
-                }
-                if (shotType[i][k] == 3) {
-                    health[t] = health[t] - 3;
-                }
-                if (shotType[i][k] == 4) {
-                    health[t] = health[t] - 12;
-                }
-                if (shotType[i][k] == 5) {
-                    if (k % 2 == 0) health[t] = health[t] - 0.5;
-                }
-                if (shotType[i][k] == 6) {
-                    health[t] = health[t] - 4;
-                }
-                //die
-                if (health[t] <= 0) {
-                    updateLives = true;
-                    /*if (survival == true) {
-                        lives[t]--;
-                    }*/
-                    streak[i]++;
-                    streak[t] = 0;
-                    if (streak[i] == 2) {
-                        healthpack[i] = true;
-                        healthpacky[i] = -20;
+                    //blood would be here
+
+                    //Hello whoever is reading this! - Rhys porting to javascript
+                    if (shotType[i][k] != 5) {
+                        killBullets.push(k);
+                        b[i][k] = false;
+                    }/* else if (shotType[i][k] == 5) {
+                                    shotsFired[i]++;
+                                }*/
+                    if (shotType[i][k] == 1) {
+                        health[t] = health[t] - 5;
                     }
-                    if (streak[i] == 3) {
-                        fuel[i] = 20;
+                    if (shotType[i][k] == 2) {
+                        health[t] = health[t] - 4;
                     }
-                    if (streak[i] == 4) {
-                        healthpack[i] = true;
-                        healthpacky[i] = -20;
+                    if (shotType[i][k] == 3) {
+                        health[t] = health[t] - 3;
                     }
-                    if (streak[i] == 6) {
-                        fuel[i] = 40;
+                    if (shotType[i][k] == 4) {
+                        health[t] = health[t] - 12;
                     }
-                    if (streak[i] == 7) {
-                        healthpack[i] = true;
-                        healthpacky[i] = -20;
+                    if (shotType[i][k] == 5) {
+                        if (k % 2 == 0) health[t] = health[t] - 0.5;
                     }
-                    if (streak[i] % 20 == 0) {
-                        healthpack[i] = true;
-                        healthpacky[i] = -20;
+                    if (shotType[i][k] == 6) {
+                        health[t] = health[t] - 4;
                     }
-                    killcount[i] = 0;
-                    kills[i]++;
-                    deaths[t]++;
-                    health[t] = 20;
-                    deadCount[t] = 0;
-                    ypos[t] = -30;
-                    xpos[t] = (Math.random() * 680);
-                    gun[t][0] = 1;
-                    gun[t][1] = 0;
-                    equip[t] = 0;
-                    ammo[t][0] = 10;
-                    clips[t][0] = 3;
-                    ammo[t][1] = 0;
-                    clips[t][1] = 0;
+                    //die
+                    if (health[t] <= 0) {
+                        //Let the client know!
+                        updateLives = true;
+                        updateGuns = true;
+                        newAmmoAmount = true;
+                        newClipAmount = true;
+                        newGunEquiped = true;
+
+                        /*if (survival == true) {
+                            lives[t]--;
+                        }*/
+                        streak[i]++;
+                        streak[t] = 0;
+                        if (streak[i] == 2) {
+                            healthpack[i] = true;
+                            healthpacky[i] = -20;
+                        }
+                        if (streak[i] == 3) {
+                            fuel[i] = 20;
+                        }
+                        if (streak[i] == 4) {
+                            healthpack[i] = true;
+                            healthpacky[i] = -20;
+                        }
+                        if (streak[i] == 6) {
+                            fuel[i] = 40;
+                        }
+                        if (streak[i] == 7) {
+                            healthpack[i] = true;
+                            healthpacky[i] = -20;
+                        }
+                        if (streak[i] % 20 == 0) {
+                            healthpack[i] = true;
+                            healthpacky[i] = -20;
+                        }
+                        killcount[i] = 0;
+                        kills[i]++;
+                        deaths[t]++;
+                        health[t] = 20;
+                        deadCount[t] = 0;
+                        ypos[t] = -30;
+                        xpos[t] = (Math.random() * 680);
+                        gun[t][0] = 1;
+                        gun[t][1] = 0;
+                        equip[t] = 0;
+                        ammo[t][0] = 10;
+                        clips[t][0] = 3;
+                        ammo[t][1] = 0;
+                        clips[t][1] = 0;
+                    }
                 }
             }
         }
@@ -1280,14 +1300,17 @@ function updateGuns(i , modifier) {
     //falling weapons yah
     for (k = 0; k < playerCount; k++) {
         for (i = 0; i <= 9; i++) {
-            //hit falling gun
+            //hit falling gun player gun pickup
             if (((down[k] == false && downCount[k] > 0 && downCount[k] <= 15) || (i == 0) || (gun[k][0] - 1 == i) || (gun[k][1] - 1 == i)) && xpos[k] + 20 >= gunx[i] && xpos[k] <= gunx[i] + 20 && ypos[k] + 30 >= guny[i] && ypos[k] - 30 <= guny[i] && ypos[k] > 0 && i <= 7) {
+                //update clients
                 serverHasUpdate = true;
+                newClipAmount = true;
+                newGunEquiped = true;
+                newAmmoAmount = true;
+
                 down[k] = false;
                 downCount[k] = 0;
                 if (reload[k] == true) {
-                    //update clients on  newClipAmount
-                    newClipAmount = true;
                     reload[k] = false;
                     clips[k][equip[k]]++;
                 }
@@ -1310,8 +1333,6 @@ function updateGuns(i , modifier) {
                     }
                 } else {
                     //update the clients on the change
-                    newClipAmount = true;
-                    newGunEquiped = true;
                     //add ammo if have gun
                     if (gun[k][0] - 1 == i) {
                         clips[k][0] = clips[k][0] + 4;
@@ -1339,17 +1360,10 @@ function updateGuns(i , modifier) {
                     }
                         //remove gun and add new gun if spots are full
                     else if (gun[k][0] > 0 && gun[k][1] > 0) {
-                        if (equip[k] == 1) {
-                            gun[k][1] = i + 1;
-                            equip[k] = 1;
-                            clips[k][1] = 3;
-                            ammo[k][1] = maxAmmo[i];
-                        } else if (equip[k] == 0) {
-                            gun[k][0] = i + 1;
-                            equip[k] = 0;
-                            clips[k][0] = 3;
-                            ammo[k][0] = maxAmmo[i];
-                        }
+                        gun[k][equip[k]] = i + 1;
+                        equip[k] = 1;
+                        clips[k][equip[k]] = 3;
+                        ammo[k][equip[k]] = maxAmmo[i];
                     }
                      gunx[i] = (Math.random() * 680) + 2;
 
@@ -1360,6 +1374,8 @@ function updateGuns(i , modifier) {
                         newGunType: i
                     };
                     newGuns.push(newGun);
+
+                    //console.log("New gun picked up with clip size: " + clips[k][equip[k]] + " and ammo " + ammo[k][equip[k]]);
                 }
             }
         }
@@ -1391,27 +1407,26 @@ function updateReload(i, modifier) {
     }
     //end autoreload
 
-    //swap the guns!
-    for (i = 0; i < playerCount; i++) {
-        if (down[i] == true) {
-            swapCount[i] = swapCount[i] + fps * modifier;
-            if (swapCount[i] > 15) {
-                //update the clients on the change
-                newGunEquiped = true;
-                newClipAmount = true;
-                if (reload[i] == true) {
-                    reload[i] = false;
-                    clips[i][equip[i]]++;
-                    reloadCount[i] = 0;
-                }
-                if (equip[i] == 0) {
-                    equip[i] = 1;
-                } else if (equip[i] == 1) {
-                    equip[i] = 0;
-                }
-                down[i] = false;
-                swapCount[i] = 0;
+    //swap the guns! USED TO BE IN IT'S OWN FOR LOOP
+    if (down[i] == true) {
+        swapCount[i] = swapCount[i] + fps * modifier;
+        if (swapCount[i] > 15) {
+            //update the clients on the change
+            newAmmoAmount = true;
+            newGunEquiped = true;
+            newClipAmount = true;
+            if (reload[i] == true) {
+                reload[i] = false;
+                clips[i][equip[i]]++;
+                reloadCount[i] = 0;
             }
+            if (equip[i] == 0) {
+                equip[i] = 1;
+            } else if (equip[i] == 1) {
+                equip[i] = 0;
+            }
+            down[i] = false;
+            swapCount[i] = 0;
         }
     }//end gun swap
 
@@ -1428,6 +1443,8 @@ function updateReload(i, modifier) {
         if (gun[i][equip[i]] == 8) timeReload = 20;
 
         if (reloadCount[i] >= timeReload) {
+            //console.log("Finished reloading!");
+            newAmmoAmount = true;
             if (gun[i][equip[i]] == 1) ammo[i][equip[i]] = 10;
             if (gun[i][equip[i]] == 2) ammo[i][equip[i]] = 12;
             if (gun[i][equip[i]] == 3) ammo[i][equip[i]] = 20;
@@ -1439,6 +1456,9 @@ function updateReload(i, modifier) {
 
             reloadCount[i] = 0;
             reload[i] = false;
+
+            //ADDED TO STOP AUTO SHOOT
+            //shooting[i] = false;
         }
     }
 }

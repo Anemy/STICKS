@@ -110,11 +110,12 @@ game_server.createGame = function(player) {
         //tell the player that they are now the host
         //s=server message, h=you are hosting
     player.send('s.h.' + String(Date.now()).replace('.', '-'));// was in string thegame.gamecore.local_time
-    console.log('server host at  ' + Date.now());
+    //console.log('server host at  ' + Date.now());
     player.game = thegame;
     player.hosting = true;
         
-    this.log('player ' + player.userid + ' created a game with id ' + player.game.id);
+    this.log("Creating new game.");
+    //this.log('player ' + player.userid + ' created a game with id ' + player.game.id);
 
         //return it
     return thegame;
@@ -163,10 +164,10 @@ game_server.endGame = function(gameid, userid) {
         delete this.games[gameid];
         this.game_count--;
 
-        this.log('game removed. there are now ' + this.game_count + ' games' );
+        this.log('Game removed. there are now ' + this.game_count + ' games' );
 
     } else {
-        this.log('that game was not found!');
+        this.log('That game was not found!');
     }
 
 }; //game_server.endGame
@@ -198,7 +199,7 @@ game_server.startGame = function (game) {
 
 game_server.findGame = function(player) {
 
-    this.log('looking for a game. We have : ' + this.game_count);
+    this.log('Looking for a game. We have : ' + this.game_count + ' games.');
 
         //so there are games active,
         //lets see if one needs another player

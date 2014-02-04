@@ -36,8 +36,9 @@
     console.log('\t :: Express :: Listening on port ' + gameport );
 
         //By default, we forward the / path to index.html automatically.
-    app.get( '/', function( req, res ){
-        console.log('trying to load %s', __dirname + '/index.html');
+    app.get('/', function (req, res) {
+        console.log('User loading page. Loading %s', __dirname + '/index.html')
+        //console.log('trying to load %s', __dirname + '/index.html');
         res.sendfile( '/index.html' , { root:__dirname });
     });
 
@@ -102,8 +103,9 @@
             //if no game exists with someone waiting, they create one and wait.
         game_server.findGame(client);
 
-            //Useful to know when someone connects
-        console.log('\t socket.io:: player ' + client.userid + ' connected');
+        //Useful to know when someone connects
+        console.log("Player connected!");
+        //console.log('\t socket.io:: player ' + client.userid + ' connected');
         
 
             //Now we want to handle some of the messages that clients will send.
@@ -119,8 +121,9 @@
             //in, and make sure the other player knows that they left and so on.
         client.on('disconnect', function () {
 
-                //Useful to know when soomeone disconnects
-            console.log('\t socket.io:: client disconnected ' + client.userid + ' ' + client.game_id);
+            //Useful to know when soomeone disconnects
+            console.log("A client disconnected");
+            //console.log('\t socket.io:: client disconnected ' + client.userid + ' ' + client.game_id);
             
                 //If the client was in a game, set by game_server.findGame,
                 //we can tell the game server to update that game state.
