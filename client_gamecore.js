@@ -41,6 +41,9 @@ var menu = 0;
 //10=searching for game
 //11=found game, connecting
 //12=hosting game waiting for someong
+var mapSelect = 0;
+var mapSelectSpeed = 0;
+var mapSelectAcc = 0;
 
 var boxx = 420;
 var boxy = 140;
@@ -302,6 +305,8 @@ var control = [];
 var numbers = [];
 var endgame;
 var endgameZombie;
+var mapSelectImage;
+var mapSelectBackgroundImage;
 
 var controls = [];
 
@@ -687,14 +692,6 @@ client_onserverupdate_recieved = function (data) {
 
             gun[1][equip[1]] = data.newHGunEquip;
             gun[0][equip[0]] = data.newCGunEquip;
-        }
-    }
-
-    //there are bullets to kill
-    if (data.amountOfDeadBullets > 0) {
-        bulletsToKill = JSON.parse(data.newDeadBullet);
-        for (i = 0; i < data.amountOfDeadBullets; i++) {
-            b[bulletsToKill[i].owner][bulletsToKill[i].ID] = false;
         }
     }
 
@@ -1618,6 +1615,10 @@ function loadImages() {
     menuImage[7].src = (("images/SelectModeMulti.png"));
     menuImage[8] = new Image();
     menuImage[8].src = (("images/Mode.png"));
+    mapSelectImage = new Image();
+    mapSelectImage.src = (("images/mapSelectImage.png"));
+    mapSelectBackgroundImage = new Image();
+    mapSelectBackgroundImage.src = (("images/mapSelectBackgroundImage.png"));
 
     check[0] = new Image();
     check[0].src = (("images/Check.png"));
@@ -2124,6 +2125,7 @@ function render() {//ctx
                 if (pleaseReload >= 25) {
                     ctx.font = ("9px Arial");
                     ctx.fillText("No ammo", (xpos[i] - 1) * scale, (ypos[i] - 2) * scale);
+
                 }
             }
                 //reload
@@ -2472,7 +2474,7 @@ function render() {//ctx
     }
         //choose map
     else if (menu == 2) {
-        ctx.drawImage(menuImage[2], 0, 0, gameWidth, gameHeight);
+        /*ctx.drawImage(menuImage[2], 0, 0, gameWidth, gameHeight);
         ctx.fillStyle = "rgba(250, 250, 250 , 1)";
         //ctx.drawRect(boxx * scale, boxy * scale, 177 * scale, 106 * scale);//drawRectv
         ctx.beginPath();
@@ -2481,7 +2483,10 @@ function render() {//ctx
         //ctx.drawRect((boxx + 1) * scale, (boxy + 1) * scale, 175 * scale, 104 * scale);//drawRect
         ctx.beginPath();
         ctx.rect((boxx + 1) * scale, (boxy + 1) * scale, 175 * scale, 104 * scale);
-        ctx.stroke();
+        ctx.stroke();*/
+	
+	ctx.drawImage(mapSelectImage, 0 - (mapSelect * gameWidth) + mapSelectSpeed - gameWidth, 0, gameWidth * 11, gameHeight);
+	ctx.drawImage(mapSelectBackgroundImage, 0, 0, gameWidth, gameHeight);
 
     }
     //countdown at begin match
@@ -2663,6 +2668,17 @@ function update(modifier) {
         reset = false;
         rematch = false;
     }
+    //map select screen
+    if (menu == 2)
+    {
+	if(mapSelectSpeed > 0) mapSelectSpeed = mapSelectSpeed + mapSelectAcc;
+	else if(mapSelectSpeed < 0) mapSelectSpeed = mapSelectSpeed + mapSelectAcc;
+	if(mapSelectSpeed > -5 && mapSelectSpeed < 5) mapSelectSpeed = 0;
+
+	if(mapSelectAcc > 4) mapSelectAcc = mapSelectAcc - 1;
+	else if(mapSelectAcc < -4) mapSelectAcc = mapSelectAcc + 1;
+    }
+    else { mapSelectSpeed = 0; mapSelectAcc = 0; }
 
     //countdown
     if (menu == 3) {
@@ -4374,15 +4390,18 @@ function keyPressed(e) {
     }
 
     //player 0-Red
+    //right
     if (key == 39) {
         if (menu == 1) {
             if (boxx == 255) boxx = 414;
             else if (boxx == 414 && boxy > 165) boxx = 579;
         }
         if (menu == 2) {
-            if (boxx == 42) boxx = 259;
-            else if (boxx == 259) boxx = 470;
+            if(mapSelect == 8 && mapSelectSpeed == 0) { mapSelect = 0; mapSelectSpeed = gameWidth; mapSelectAcc = -40;}
+	    else if(mapSelect < 8 && mapSelectSpeed == 0) { mapSelect++; mapSelectSpeed = gameWidth; mapSelectAcc = -40;}
         }
+	
+
         if (menu == 5) {
             boxx = 508;
         }
@@ -4404,14 +4423,15 @@ function keyPressed(e) {
             left[0] = false;
         }
     }
+    //left
     if (key == 37) {
         if (menu == 1) {
             if (boxx == 579) boxx = 414;
             else if (boxx == 414) boxx = 255;
         }
         if (menu == 2) {
-            if (boxx == 470) boxx = 259;
-            else if (boxx == 259) boxx = 42;
+            if(mapSelect == 0 && mapSelectSpeed == 0) { mapSelect = 8; mapSelectSpeed = -1*gameWidth; mapSelectAcc = 40;}
+	    else if(mapSelect > 0 && mapSelectSpeed == 0) { mapSelect--; mapSelectSpeed = -1*gameWidth; mapSelectAcc = 40;}
         }
         if (menu == 5) {
             boxx = 275;
@@ -4998,25 +5018,48 @@ function keyPressed(e) {
             }
         } else if (menu == 2) //select map screen
         {
-            if (boxx == 42 && boxy == 78) {
+            if (mapSelect+1 == 1 && mapSelectSpeed == 0) {
                 startThatMap(1);
             }
-            if (boxx == 259 && boxy == 78) {
+            if (mapSelect+1 == 2 && mapSelectSpeed == 0) {
                 startThatMap(2);
             }
-            if (boxx == 42 && boxy == 195) {
+            if (mapSelect+1 == 3 && mapSelectSpeed == 0) {
                 startThatMap(3);
             }
-            if (boxx == 259 && boxy == 195) {
+            if (mapSelect+1 == 4 && mapSelectSpeed == 0) {
                 startThatMap(4);
             }
-            if (boxx == 470 && boxy == 78) {
+	    //if (mapSelect+1 == 5 && mapSelectSpeed == 0) {
+            //    startThatMap(5);
+            //}
+            if (mapSelect+1 == 6 && mapSelectSpeed == 0) {
                 startThatMap(6);
-            }
-            if (boxx == 470 && boxy == 195) {
-                startThatMap(7);
-            }
-
+            } 
+	    //if (mapSelect+1 == 7 && mapSelectSpeed == 0) {
+            //    startThatMap(7);
+            //}
+	    //if (mapSelect+1 == 8 && mapSelectSpeed == 0) {
+            //    startThatMap(8);
+            //}
+	    if (mapSelect+1 == 9 && mapSelectSpeed == 0) {
+		var rrr = Math.floor((Math.random() * 5)+1);
+		if(rrr == 1) {
+			startThatMap(1);
+		}
+		if(rrr == 2) {
+			startThatMap(2);
+		}
+		if(rrr == 3) {
+			startThatMap(3);
+		}
+		if(rrr == 4) {
+			startThatMap(4);
+		}
+		if(rrr == 5) {
+			startThatMap(6);
+		}
+	    }
         }
         else if (menu == 5) //post game screen
         {
