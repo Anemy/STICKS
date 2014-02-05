@@ -157,7 +157,7 @@ var stun = [];
 var stunCount = [];
 
 //kill limit/survival
-var killLimit = 25;
+var killLimit = 15;
 var teamkills = [];
 
 //blood
@@ -228,7 +228,7 @@ var level = 0;
 //modes
 var zombie = false;
 var custom = false;
-var swords = true;
+var swords = false;
 var survival = false;
 var lives = [];
 var tempLives = 0;
@@ -307,8 +307,20 @@ var endgame;
 var endgameZombie;
 var mapSelectImage;
 var mapSelectBackgroundImage;
+var menuBackgroundImage;
+var cloudsImage;
+var menuPlayerImage;
 
 var controls = [];
+var option = [];
+var optionArrow;
+var optionArrowLeft;
+var optionY = 0;
+var optionX = 0;
+var optionXacc = 0;
+var cloudsX = [];
+var optionPlayerX = [];
+var optionSettingsX = [];
 
 //dogs
 var dogRm = [];
@@ -1152,6 +1164,18 @@ function init() {//instance\
     maxAmmo[6] = 4;
     maxAmmo[7] = 6;
 
+    optionPlayerX[0] = 0;
+    optionPlayerX[1] = 0;
+    optionPlayerX[2] = 2;
+    optionPlayerX[3] = 2;
+    optionPlayerX[4] = 1;
+
+    optionSettingsX[0] = 0;
+    optionSettingsX[1] = 0;
+    optionSettingsX[2] = 2;
+    optionSettingsX[3] = 0;
+    optionSettingsX[4] = 0;
+
     resetGame();
 
     //setting the AIs to false
@@ -1170,12 +1194,24 @@ function init() {//instance\
 
 //resets all vars
 function resetGame() {
+    
     onlineState = 'Offline';
-
+    optionY = 0;
+    optionX = 0;
+    //optionPlayerX[0] = 0;
+    //optionPlayerX[1] = 0;
+    //optionPlayerX[2] = 2;
+    //optionPlayerX[3] = 2;
+    //optionPlayerX[4] = 1;
+    cloudsX[0] = 0;
+    cloudsX[1] = gameWidth;
+    optionXacc = 0;
     for (i = 0; i <= 3; i++) {
         checked[i] = false;
         deadCount[i] = 100;
     }
+    //swords = false;
+    //survival = false;
 
     play = false;
     startCount = 0;
@@ -1221,10 +1257,25 @@ function resetGame() {
     xpos[2] = 230;
     xpos[3] = 450;
     xpos[1] = 10;
-
-
     directionFacing[0] = 0;
     directionFacing[3] = 0;
+    if(teams){
+        xpos[0] = 0;
+        ypos[0] = 410;
+        xpos[1] = 40;
+        ypos[1] = 410;
+
+        directionFacing[0] = 1;
+        directionFacing[1] = 1;
+        directionFacing[2] = 0;
+        directionFacing[3] = 0;
+
+        xpos[2] = 680;
+        ypos[2] = 410;
+        xpos[3] = 640;
+        ypos[3] = 410;
+    }
+    
     for (i = 0; i <= 24; i++) {
         ypos[i] = 410;
     }
@@ -1261,11 +1312,13 @@ function resetGame() {
         boxy = 140;
         zombie = false;
         custom = false;
+        for(i = 0; i<4;i++){            
+            lives[i] = tempLives;
+        }
         players = 0;
         checkCount = 0;
         level = 0;
         split = false;
-        teams = false;
     } else if (rematch == true) {
         menu = 3;
         if (teams == true && split == false) {
@@ -1343,15 +1396,12 @@ function resetGame() {
                 health[k] = 10;
             }
         }
-        for (i = 0; i < players; i++) {
+        for (i = 0; i < 4; i++) {
             if (swords == true) {
                 ammo[i][0] = 4;
                 ammo[i][1] = 6;
             }
-            if (tempLives == 3) lives[i] = 3;
-            if (tempLives == 5) lives[i] = 5;
-            if (tempLives == 10) lives[i] = 10;
-            if (tempLives == 15) lives[i] = 15;
+            lives[i] = tempLives;
 
         }
     }
@@ -1616,10 +1666,26 @@ function loadImages() {
     menuImage[8] = new Image();
     menuImage[8].src = (("images/Mode.png"));
     mapSelectImage = new Image();
-    mapSelectImage.src = (("images/mapSelectImage.png"));
+    mapSelectImage.src = (("images/mapSelectImage2.png"));
     mapSelectBackgroundImage = new Image();
-    mapSelectBackgroundImage.src = (("images/mapSelectBackgroundImage.png"));
+    mapSelectBackgroundImage.src = (("images/mapSelectBackgroundImage2.png"));
+    menuBackgroundImage = new Image();
+    menuBackgroundImage.src = (("images/menuBackground.png"));
+    cloudsImage = new Image();    
+    cloudsImage.src = (("images/clouds.png"));
+    menuPlayerImage = new Image();
+    menuPlayerImage.src = (("images/menuPlayerImage.png"));
 
+    option[0] = new Image();
+    option[0].src = (("images/option0.png"));
+    option[1] = new Image();
+    option[1].src = (("images/option1.png"));
+   
+    optionArrow = new Image();
+    optionArrow.src = (("images/optionArrow.png"));
+    optionArrowLeft = new Image();
+    optionArrowLeft.src = (("images/optionArrowLeft.png"));
+    
     check[0] = new Image();
     check[0].src = (("images/Check.png"));
     check[1] = new Image();
@@ -1764,7 +1830,7 @@ function loadMap() {
         block[3] = true;
         block[4] = true;
         block[5] = true;
-
+  
         blockx[0] = 0;
         blocky[0] = 350;
         blockw[0] = 60;
@@ -2414,63 +2480,84 @@ function render() {//ctx
 
         //menus
         //main menu
+    
     else if (menu == 0) {
+        ctx.drawImage(menuBackgroundImage,0,0,gameWidth,gameHeight);        
+        ctx.drawImage(cloudsImage,cloudsX[0],0,gameWidth,100* scale);  
+        ctx.drawImage(cloudsImage,cloudsX[1],0,gameWidth,100 * scale);  
         ctx.drawImage(menuImage[0], 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(menuPlayerImage, 0, 0, gameWidth, gameHeight);
     }
         //player select for custom game
     else if (menu == 1) {
+        ctx.drawImage(menuBackgroundImage,0,0,gameWidth,gameHeight);        
+        ctx.drawImage(cloudsImage,cloudsX[0],0,gameWidth,100* scale);  
+        ctx.drawImage(cloudsImage,cloudsX[1],0,gameWidth,100 * scale);         
         ctx.drawImage(menuImage[1], 0, 0, 700 * scale, 450 * scale);
-        if (boxx == 368 && boxy == 400 && checked[0] == true && checked[1] == true && checked[2] == true && checked[3] == true && ((checkedx[2] < 579 && checkedx[3] < 579) || (checkedx[2] == 579 && checkedx[3] == 579) || (checkedx[2] < 579 && checkedx[3] == 579))) {
-            ctx.drawImage(check[1], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
-        } else if (boxx == 368 && boxy == 400) {
-            ctx.drawImage(X, boxx * scale, (boxy + 5) * scale, 30 * scale, 30 * scale);
-        } else ctx.drawImage(check[0], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
-        for (i = 0; i <= 3; i++) {
-            if (checked[i] == true) {
-                ctx.drawImage(check[1], checkedx[i] * scale, checkedy[i] * scale, 30 * scale, 30 * scale);
-            }
+        
+        if(optionY <= 3) ctx.drawImage(optionArrow, (35 + optionX + optionPlayerX[optionY]*100) * scale, (45 + optionY*85) * scale, 33 * scale, 63 * scale); 
+        if(optionY == 4) ctx.drawImage(optionArrow, (95 + optionX + optionPlayerX[optionY]*300) * scale, (50 + optionY*83) * scale, 33 * scale, 63 * scale);         
+        ctx.drawImage(playerR[0], (65 + optionPlayerX[0]*100) * scale, (60 + 0*85) * scale, 40 * scale, 40 * scale); 
+        ctx.drawImage(playerR[1], (65 + optionPlayerX[1]*100) * scale, (60 + 1*85) * scale, 40 * scale, 40 * scale); 
+        ctx.drawImage(playerR[2], (65 + optionPlayerX[2]*100) * scale, (60 + 2*85) * scale, 40 * scale, 40 * scale); 
+        ctx.drawImage(playerR[3], (65 + optionPlayerX[3]*100) * scale, (60 + 3*85) * scale, 40 * scale, 40 * scale);
+        ctx.fillStyle = "rgb(0, 0, 0)";
+        ctx.font = ("Bold 24px Arial");   
+        ctx.fontStyle = ("Bold");     
+        if(teams)
+        ctx.fillText("Teams", 510 * scale, 60*scale);
+        else
+        ctx.fillText("Free for All", 510*scale, 60*scale);        
+        if(survival){        
+            ctx.fillText("Survival", 510 * scale, 100 * scale); 
+            ctx.fillText("Lives: " + tempLives, 510 * scale, 140*scale);
         }
+        else if(!survival){
+            ctx.fillText("Deathmatch", 510 * scale, 100 * scale); 
+            ctx.fillText("Kill Limit: " + killLimit, 510 * scale, 140 * scale); 
+        }
+        if(swords)
+        ctx.fillText("Swords and Daggers", 510 * scale, 180 * scale);
+        else if(!swords)
+        ctx.fillText("All Weapons", 510 * scale, 180 * scale);
     }
     //select multiplayer settings
     else if (menu == 7) {
+        ctx.drawImage(menuBackgroundImage,0,0,gameWidth,gameHeight);        
+        ctx.drawImage(cloudsImage,cloudsX[0],0,gameWidth,100* scale);  
+        ctx.drawImage(cloudsImage,cloudsX[1],0,gameWidth,100 * scale);              
         ctx.drawImage(menuImage[7], 0, 0, gameWidth, gameHeight);
-        if (boxx == 368 && boxy == 400 && checked[0] == true && checked[1] == true) {
-            ctx.drawImage(check[1], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
-        } else if (boxx == 368 && boxy == 400) {
-            ctx.drawImage(X, boxx * scale, (boxy + 5) * scale, 30 * scale, 30 * scale);
-        } else ctx.drawImage(check[0], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
-
-        if (checked[0] == true) ctx.drawImage(check[1], checkedx[0] * scale, checkedy[0] * scale, 30 * scale, 30 * scale);
-        if (checked[1] == true) ctx.drawImage(check[1], checkedx[1] * scale, checkedy[1] * scale, 30 * scale, 30 * scale);
+        
+        if(optionY <= 3) ctx.drawImage(optionArrow, (47 + optionX) * scale, (95 + optionY*68) * scale, 33 * scale, 63 * scale); 
+        if(optionY == 4) ctx.drawImage(optionArrow, (270 + optionX) * scale, (40 + optionY*83) * scale, 33 * scale, 63 * scale);         
+        ctx.drawImage(check[1], (265 + optionSettingsX[0]*215) * scale, (110 + 0*85) * scale, 30 * scale, 30 * scale); 
+        ctx.drawImage(check[1], (265 + optionSettingsX[1]*240) * scale, (90 + 1*85) * scale, 30 * scale, 30 * scale); 
+        ctx.drawImage(check[1], (375 + optionSettingsX[2]*72) * scale, (75 + 2*85) * scale, 30 * scale, 30 * scale); 
+        ctx.drawImage(check[1], (265 + optionSettingsX[3]*300) * scale, (60 + 3*85) * scale, 30 * scale, 30 * scale);
     }
         //select multiplayer mode
     else if (menu == 8) {
+        ctx.drawImage(menuBackgroundImage,0,0,gameWidth,gameHeight);
+        ctx.drawImage(cloudsImage,cloudsX[0],0,gameWidth,100* scale);  
+        ctx.drawImage(cloudsImage,cloudsX[1],0,gameWidth,100 * scale);            
         ctx.drawImage(menuImage[8], 0, 0, gameWidth, gameHeight);
-        if (boxx == 368 && boxy == 400 && checked[0] == true) {
-            ctx.drawImage(check[1], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
-        } else if (boxx == 368 && boxy == 400) {
-            ctx.drawImage(X, boxx * scale, (boxy + 5) * scale, 30 * scale, 30 * scale);
-        } else ctx.drawImage(check[0], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
-        if (checked[0] == true) {
-            ctx.drawImage(check[1], checkedx[0] * scale, checkedy[0] * scale, 30 * scale, 30 * scale);
-        }
+        ctx.drawImage(option[1], 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(optionArrow, (210 + optionX) * scale, (138 + optionY*85) * scale, 33 * scale, 63 * scale); 
+        ctx.drawImage(menuPlayerImage, 0, 0, gameWidth, gameHeight);
     }
         //select game mode  zombie or custom
     else if (menu == 6) {
-
+        ctx.drawImage(menuBackgroundImage,0,0,gameWidth,gameHeight);
+        ctx.drawImage(cloudsImage,cloudsX[0],0,gameWidth,100* scale);  
+        ctx.drawImage(cloudsImage,cloudsX[1],0,gameWidth,100 * scale);          
         ctx.drawImage(menuImage[6], 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(option[0], 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(optionArrow, (210 + optionX) * scale, (138 + optionY*60) * scale, 33 * scale, 63 * scale);
+        ctx.drawImage(menuPlayerImage, 0, 0, gameWidth, gameHeight);  
 
-        if (boxx == 368 && boxy == 400 && checked[0] == true) {
-            ctx.drawImage(check[1], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
-        } else if (boxx == 368 && boxy == 400) {
-            ctx.drawImage(X, boxx * scale, (boxy + 5) * scale, 30 * scale, 30 * scale);
-        } else ctx.drawImage(check[0], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
+        
 
-        if (checked[0] == true) {
-            ctx.drawImage(check[1], checkedx[0] * scale, checkedy[0] * scale, 30, 30);//30 * scale, 30 * scale);
-        }
-
-        ctx.drawImage(controls[0], gameWidth - 256 * scale, gameHeight - 256 * scale, 256 * scale, 256 * scale);
+        //ctx.drawImage(controls[0], gameWidth - 256 * scale, gameHeight - 256 * scale, 256 * scale, 256 * scale);
     }
         //choose map
     else if (menu == 2) {
@@ -2484,9 +2571,20 @@ function render() {//ctx
         ctx.beginPath();
         ctx.rect((boxx + 1) * scale, (boxy + 1) * scale, 175 * scale, 104 * scale);
         ctx.stroke();*/
-	
-	ctx.drawImage(mapSelectImage, 0 - (mapSelect * gameWidth) + mapSelectSpeed - gameWidth, 0, gameWidth * 11, gameHeight);
-	ctx.drawImage(mapSelectBackgroundImage, 0, 0, gameWidth, gameHeight);
+	    ctx.drawImage(menuBackgroundImage,0,0,gameWidth,gameHeight);
+        ctx.drawImage(cloudsImage,cloudsX[0],0,gameWidth,100* scale);  
+        ctx.drawImage(cloudsImage,cloudsX[1],0,gameWidth,100 * scale);
+        
+	    ctx.drawImage(mapSelectImage, 0 - (mapSelect * gameWidth) + mapSelectSpeed - gameWidth, 0, gameWidth * 11, gameHeight);
+	    ctx.drawImage(mapSelectBackgroundImage, 0, 0, gameWidth, gameHeight);
+        //if(mapSelectSpeed == 0){
+            ctx.drawImage(optionArrowLeft, (28 + optionX/2) * scale, 192 * scale, 33 * scale, 63 * scale);
+            ctx.drawImage(optionArrow, (638 - optionX/2) * scale, 192 * scale, 33 * scale, 63 * scale);
+        //} else{
+        //    ctx.drawImage(optionArrowLeft, (28) * scale, 192 * scale, 33 * scale, 63 * scale);
+        //    ctx.drawImage(optionArrow, (640) * scale, 192 * scale, 33 * scale, 63 * scale);
+        //}
+        
 
     }
     //countdown at begin match
@@ -2679,7 +2777,18 @@ function update(modifier) {
 	else if(mapSelectAcc < -4) mapSelectAcc = mapSelectAcc + 1;
     }
     else { mapSelectSpeed = 0; mapSelectAcc = 0; }
-
+    //animation in menues
+    optionXacc++;        
+    optionX = optionX + (optionXacc * modifier);
+    if(optionX >= 0){
+        optionXacc = -80;
+    }
+    cloudsX[0] = cloudsX[0] - 7*modifier;
+    cloudsX[1] = cloudsX[1] - 7*modifier;
+    if(cloudsX[0] + gameWidth < 0) cloudsX[0] = gameWidth;
+    if(cloudsX[1] + gameWidth < 0) cloudsX[1] = gameWidth;
+        
+    
     //countdown
     if (menu == 3) {
         startCount = startCount + fps * modifier;
@@ -4372,6 +4481,14 @@ function keyPressed(e) {
     if (key == 27) {
         if (onlineState != 'Offline')
             client_ondisconnect();
+        /*GOING BACK THROUGH MENUS
+        if(menu == 3 || playing)reset = true;
+        else if(menu == 6)reset = true;
+        else if(menu == 8)menu = 6;
+        else if(menu == 2)menu = 1;
+        else if(menu == 7)menu = 1;
+        else if(menu == 1)menu = 8;
+        */
         reset = true;
     }
 
@@ -4393,8 +4510,13 @@ function keyPressed(e) {
     //right
     if (key == 39) {
         if (menu == 1) {
-            if (boxx == 255) boxx = 414;
-            else if (boxx == 414 && boxy > 165) boxx = 579;
+            if(optionY == 0 && optionPlayerX[0] < 1) optionPlayerX[0]++; 
+            if(optionY == 1 && optionPlayerX[1] < 1) optionPlayerX[1]++;
+            if(optionY == 2 && optionPlayerX[2] < 2 && (optionSettingsX[0] == 0 || optionPlayerX[2] == 0)) optionPlayerX[2]++; 
+            if(optionY == 3 && optionPlayerX[3] < 2 && (optionSettingsX[0] == 0 || optionPlayerX[3] == 0)) optionPlayerX[3]++;
+            if(optionY == 4 && optionPlayerX[4] < 1) optionPlayerX[4]++;
+                
+             
         }
         if (menu == 2) {
             if(mapSelect == 8 && mapSelectSpeed == 0) { mapSelect = 0; mapSelectSpeed = gameWidth; mapSelectAcc = -40;}
@@ -4406,15 +4528,15 @@ function keyPressed(e) {
             boxx = 508;
         }
         if (menu == 7) {
-            if (boxy == 85 && boxx == 374) {
-                boxx = 638;
+            if(optionY == 0 && optionSettingsX[0] < 1) {
+                optionSettingsX[0]++; 
+                if(optionPlayerX[2] == 2) optionPlayerX[2]=1;
+                if(optionPlayerX[3] == 2) optionPlayerX[3]=1;
             }
-            if (boxy == 173 && boxx < 190 + (113 * 4)) {
-                boxx = boxx + 113;
-            }
-            if (boxy == 315 && boxx < 190 + (113 * 3)) {
-                boxx = boxx + 113;
-            }
+            if(optionY == 1 && optionSettingsX[1] < 1) optionSettingsX[1]++;
+            if(optionY == 2 && optionSettingsX[2] < 4) optionSettingsX[2]++; 
+            if(optionY == 3 && optionSettingsX[3] < 1) optionSettingsX[3]++;
+                
         }
         if (play == true && cpu[0] == false) {
             if (onlineState == 'Connected')
@@ -4426,8 +4548,11 @@ function keyPressed(e) {
     //left
     if (key == 37) {
         if (menu == 1) {
-            if (boxx == 579) boxx = 414;
-            else if (boxx == 414) boxx = 255;
+            if(optionY == 0 && optionPlayerX[0] > 0) optionPlayerX[0]--; 
+            if(optionY == 1 && optionPlayerX[1] > 0) optionPlayerX[1]--;
+            if(optionY == 2 && optionPlayerX[2] > 0) optionPlayerX[2]--; 
+            if(optionY == 3 && optionPlayerX[3] > 0) optionPlayerX[3]--;
+            if(optionY == 4 && optionPlayerX[4] > 0) optionPlayerX[4]--;
         }
         if (menu == 2) {
             if(mapSelect == 0 && mapSelectSpeed == 0) { mapSelect = 8; mapSelectSpeed = -1*gameWidth; mapSelectAcc = 40;}
@@ -4437,15 +4562,10 @@ function keyPressed(e) {
             boxx = 275;
         }
         if (menu == 7) {
-            if (boxy == 85 && boxx == 638) {
-                boxx = 374;
-            }
-            if (boxy == 173 && boxx > 190) {
-                boxx = boxx - 113;
-            }
-            if (boxy == 315 && boxx > 190) {
-                boxx = boxx - 113;
-            }
+            if(optionY == 0 && optionSettingsX[0] > 0) optionSettingsX[0]--; 
+            if(optionY == 1 && optionSettingsX[1] > 0) optionSettingsX[1]--;
+            if(optionY == 2 && optionSettingsX[2] > 0) optionSettingsX[2]--; 
+            if(optionY == 3 && optionSettingsX[3] > 0) optionSettingsX[3]--;
         }
         if (play == true && cpu[0] == false) {
             if (onlineState == 'Connected')
@@ -4457,49 +4577,22 @@ function keyPressed(e) {
     if (key == 38) {
         //menu
         if (menu == 1) {
-            if (boxy == 332) boxy = 245;
-            else if (boxy == 245 && boxx < 579) boxy = 157;
-            else if (boxy == 157) boxy = 70;
-            else if (boxx == 368 && boxy == 400) {
-                boxx = 255;
-                boxy = 332;
-            }
+            if(optionY > 0) optionY--;
         } else if (menu == 2) {
             if (boxy == 313) boxy = 195;
             else if (boxy == 195) boxy = 78;
 
 
 
-        } else if (menu == 6) {
-            if (boxy == 400) {
-                boxx = 458;
-                boxy = 228;
-            } else if (boxy == 228) {
-                boxx = 420;
-                boxy = 140;
-            }
-        } else if (menu == 7) {
-            if (boxy == 173) {
-                boxx = 374;
-                boxy = 85;
-            } else if (boxy == 315) {
-                boxy = 173;
-                boxx = 190;
-            } else if (boxy == 400) {
-                boxx = 190;
-                boxy = 315;
-            }
-        } else if (menu == 8) {
-            if (boxy == 204) {
-                boxx = 424;
-                boxy = 120;
-            } else if (boxy == 283) {
-                boxy = 204;
-                boxx = 466;
-            } else if (boxy == 400) {
-                boxy = 283;
-                boxx = 449;
-            }
+        } 
+        else if (menu == 6) {
+             if(optionY > 0) optionY--;
+        } 
+        else if (menu == 7) {
+            if(optionY > 0) optionY--; 
+        }
+        else if (menu == 8) {
+           if(optionY > 0) optionY--;
         }
         //in game
         if (play == true && cpu[0] == false) {
@@ -4513,46 +4606,17 @@ function keyPressed(e) {
     if (key == 40) {
         //menu
         if (menu == 1) {
-            if (boxy == 70) boxy = 157;
-            else if (boxy == 157) boxy = 245;
-            else if (boxy == 245) boxy = 332;
-            else if (boxy == 332) {
-                boxx = 368;
-                boxy = 400;
-            }
+            if(optionY < 4) optionY++;
         } else if (menu == 2) {
             if (boxy == 78) boxy = 195;
             else if (boxy == 195) boxy = 313;
         } else if (menu == 6) {
-            if (boxy == 140) {
-                boxx = 458;
-                boxy = 228;
-            } else if (boxy == 228) {
-                boxx = 368;
-                boxy = 400;
-            }
+            if(optionY < 2) optionY++;
         } else if (menu == 7) {
-            if (boxy == 85) {
-                boxy = 173;
-                boxx = 190;
-            } else if (boxy == 173) {
-                boxx = 190;
-                boxy = 315;
-            } else if (boxy == 315) {
-                boxx = 368;
-                boxy = 400;
-            }
+            if(optionY < 4)
+                optionY++;
         } else if (menu == 8) {
-            if (boxy == 120) {
-                boxx = 466;// stun
-                boxy = 204;
-            } else if (boxy == 204) {
-                boxy = 283;
-                boxx = 449;
-            } else if (boxy == 283) {
-                boxy = 400;
-                boxx = 368;
-            }
+            if(optionY < 1) optionY++;
         }
         //ingame
         if (play == true && cpu[0] == false) {
@@ -4714,83 +4778,295 @@ function keyPressed(e) {
         if (menu == 0) //opening screen
         {
             menu = 6;
-        } else if (menu == 8) {
-            if (boxy == 120) {
-                checked[0] = true;
+        } 
+	    else if (menu == 8) {
+            if (optionY == 0) {
+                /*checked[0] = true;
                 checkedx[0] = boxx;
                 checkedy[0] = boxy;
                 boxx = 368;
-                boxy = 400;
-            } else if (boxy == 204) {
-                checked[0] = true;
-                checkedx[0] = boxx;
-                checkedy[0] = boxy;
-                boxx = 368;
-                boxy = 400;
-            } else if (boxy == 283) {
-                checked[0] = true;
-                checkedx[0] = boxx;
-                checkedy[0] = boxy;
-                boxx = 368;
-                boxy = 400;
-            } else if (checked[0] == true && boxx == 368 && boxy == 400) {
-                if (checkedy[0] == 120) {//dm
-                    menu = 1;
+                boxy = 400;*/
+		        menu = 1;
 
-                    teams = false;
-                    split = false;
-                    level = 1;
-                    for (k = 0; k <= 9; k++) {
-                        gunx[k] = (Math.random() * 680) + 2;
-                        guny[k] = -20 - ((Math.random() * 1500));
+                split = false;
+                level = 1;
+                for (k = 0; k <= 9; k++) {
+                    gunx[k] = (Math.random() * 680) + 2;
+                    guny[k] = -20 - ((Math.random() * 1500));
+                }
+		        checked[0] = false;
+                //menu = 1;
+
+                boxx = 255;
+                boxy = 70;
+            } 
+	        else if (optionY == 1) {
+                players = 2;
+                level = 1;
+
+                //set the random guns!
+                //we get no guns!
+                for (i = 0; i <= 9; i++) {
+	            gunx[i] = -3000;
+	            guny[i] = 3000;
+                }
+                swords = false;
+                zombie = false;
+                teams = false;
+                survival = false;
+                split = false;
+                equip[0] = 0;
+                gun[0][0] = 1;
+                ammo[0][0] = 10;
+                clips[0][0] = 3;
+                gun[0][1] = 0;
+                clips[0][1] = 0;
+                ammo[0][1] = 0;
+
+                equip[1] = 0;
+                gun[1][0] = 1;
+                ammo[1][0] = 10;
+                clips[1][0] = 3;
+                gun[1][1] = 0;
+                clips[1][1] = 0;
+                ammo[1][1] = 0;
+
+                //maybe false?
+                custom = true;
+
+                menu = 10;
+
+                onlineState = "Searching for game";
+
+                client_connect_to_server();
+                checked[0] = false;
+                //menu = 1;
+
+                boxx = 255;
+                boxy = 70;
+            } 
+            /*SEARCH TEAMS FOR LATER USE  else if (boxy == 283) {
+                menu = 1;
+
+                teams = true;
+                split = false;
+                xpos[0] = 0;
+                ypos[0] = 410;
+                xpos[1] = 40;
+                ypos[1] = 410;
+
+                directionFacing[0] = 1;
+                directionFacing[1] = 1;
+                directionFacing[2] = 0;
+                directionFacing[3] = 0;
+
+                xpos[2] = 680;
+                ypos[2] = 410;
+                xpos[3] = 640;
+                ypos[3] = 410;
+
+                level = 0;
+                for (k = 0; k <= 9; k++) {
+                    gunx[k] = (Math.random() * 680) + 2;
+                    guny[k] = -20 - ((Math.random() * 1500));
+                }
+                checked[0] = false;
+                //menu = 1;
+
+                boxx = 255;
+                boxy = 70;
+            } 
+            */
+        }
+        else if (menu == 6) //choose zombie or multiplayer
+        {
+            if (optionY == 1) {
+		        menu = 2;
+		        
+		        level = 0;
+		        for (i = 0; i <= 9; i++) {
+			    if (level != 5) gunx[i] = (Math.random() * 680) + 2;
+			    if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
+			    guny[i] = -20 - ((Math.random() * 1500));
+		        }
+		        swords = false;
+		        zombie = true;
+		        teams = false;
+		        survival = false;
+		        split = false;
+		        equip[0] = 0;
+		        gun[0][0] = 1;
+		        ammo[0][0] = 10;
+		        clips[0][0] = 3;
+		        gun[0][1] = 0;
+		        clips[0][1] = 0;
+		        ammo[0][1] = 0;
+
+		        custom = false;
+		        health[1] = 10;
+		        health[2] = 10;
+		        health[3] = 10;
+
+		        if (zombie == true) {
+			    players = 2;
+			    for (i = 1; i <= players; i++) {
+			        cpu[i] = true;
+			        if (play == false) {//what
+			            health[i] = 10;
+			        }
+			    }
+			    //cpu[0] = false;
+
+		        }
+		        checked[0] = false;
+                checkedx[0] = -50;
+                optionY = 0;
+            }
+            else if (optionY == 0) {
+		        menu = 8;
+                
+                custom = true;
+                zombie = false;
+		        checked[0] = false;
+                checkedx[0] = -50;
+                optionY = 0;
+            }
+        } 
+        else if (menu == 1) //player select screen
+        {
+            if(optionY < 4) optionY++;            
+            else if(optionY == 4 && optionPlayerX[4] == 1){            
+                for (i = 0; i <= 3; i++) {
+                    if (optionPlayerX[i] == 0) {
+                        checkCount++;
+                        cpu[i] = false;
+                    }
+                    if (optionPlayerX[i] == 1) {
+                        checkCount++;
+                        cpu[i] = true;
                     }
                 }
-                if (checkedy[0] == 204) { //1v1 mode chosen
-                    players = 2;
-                    level = 1;
-
-                    //set the random guns!
-                    //we get no guns!
+                players = checkCount;
+                if(swords == false)
+                {
                     for (i = 0; i <= 9; i++) {
-                        gunx[i] = -3000;
-                        guny[i] = 3000;
+                        if (level != 5) gunx[i] = (Math.random() * 680) + 2;
+                        if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
+                        guny[i] = -20 - ((Math.random() * 1500));
                     }
-                    swords = false;
-                    zombie = false;
-                    teams = false;
-                    survival = false;
-                    split = false;
-                    equip[0] = 0;
-                    gun[0][0] = 1;
-                    ammo[0][0] = 10;
-                    clips[0][0] = 3;
-                    gun[0][1] = 0;
-                    clips[0][1] = 0;
-                    ammo[0][1] = 0;
-
-                    equip[1] = 0;
-                    gun[1][0] = 1;
-                    ammo[1][0] = 10;
-                    clips[1][0] = 3;
-                    gun[1][1] = 0;
-                    clips[1][1] = 0;
-                    ammo[1][1] = 0;
-
-                    //maybe false?
-                    custom = true;
-
-                    menu = 10;
-
-                    onlineState = "Searching for game";
-
-                    client_connect_to_server();
-                  
+                    for (i = 0; i < players; i++) {
+                        gun[i][0] = 1;
+                        ammo[i][0] = 10;
+                        clips[i][0] = 3;
+                        gun[i][1] = 0;
+                        clips[i][1] = 0;
+                        ammo[i][1] = 0;
+                    }
                 }
-                if (checkedy[0] == 283) {//tdm
-                    menu = 1;
+                else if(swords == true)
+                {
+                    for (i = 0; i < players; i++) {
+                        gun[i][0] = 7;
+                        gun[i][1] = 8;
+                        clips[i][0] = 2;
+                        clips[i][1] = 2;
+                        ammo[i][0] = 4;
+                        ammo[i][1] = 6;
+                    }
+                }
+                
+                menu = 2;
+                for (i = 0; i <= 3; i++) {
+                    checked[i] = false;
+                }
+                if (zombie == true) {
+                    players = 2;
+                    for (i = 1; i <= players; i++) {
+                        cpu[i] = true;
+                        if (play == false) {//what
+                            health[i] = 10;
+                        }
+                    }
+                    //cpu[0] = false;
+                }  
+            }
+            else if(optionY == 4 && optionPlayerX[4] == 0){
+                optionY = 0;
+                menu = 7;
+            }
+        } else if (menu == 7) //multiplayer settings screen
+        {
+            if(optionY < 4) optionY++;            
+            else if(optionY == 4){
+                if(optionSettingsX[3] == 0){                
+                    swords = false;
+                    for (i = 0; i <= 9; i++) {
+                        if (level != 5) gunx[i] = (Math.random() * 680) + 2;
+                        if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
+                        guny[i] = -20 - ((Math.random() * 1500));
+                    }
+                    for (i = 0; i < 3; i++) {
+                        gun[i][0] = 1;
+                        ammo[i][0] = 10;
+                        clips[i][0] = 3;
+                        gun[i][1] = 0;
+                        clips[i][1] = 0;
+                        ammo[i][1] = 0;
+                    }
+                }
+                else if(optionSettingsX[3] == 1){
+                    swords = true;
+                    for (i = 0; i < 3; i++) {
+                        gun[i][0] = 7;
+                        gun[i][1] = 8;
+                        clips[i][0] = 2;
+                        clips[i][1] = 2;
 
+                        ammo[i][0] = 4;
+                        ammo[i][1] = 6;
+                    }
+                }
+                if(optionSettingsX[1] == 0)
+                {
+                    survival = false;
+
+                    if (optionSettingsX[2] == 0) killLimit = 5;
+                    if (optionSettingsX[2] == 1) killLimit = 10;
+                    if (optionSettingsX[2] == 2) killLimit = 15;
+                    if (optionSettingsX[2] == 3) killLimit = 20;
+                    if (optionSettingsX[2] == 4) killLimit = 25;
+                }   
+                else if(optionSettingsX[1] == 1)
+                {
+                    survival = true;
+                    for (i = 0; i < 4; i++) {
+                        if (optionSettingsX[2]==0) {
+                            lives[i] = 5;
+                            tempLives = 5;
+                        }
+                        if (optionSettingsX[2]==1) {
+                            lives[i] = 10;
+                            tempLives = 10;
+                        }
+                        if (optionSettingsX[2]==2) {
+
+                            lives[i] = 15;
+                            tempLives = 15;
+                        }
+                        if (optionSettingsX[2]==3) {
+                            lives[i] = 20;
+                            tempLives = 20;
+
+                        }   
+                        if (optionSettingsX[2]==4) {
+                            lives[i] = 25;
+                            tempLives = 25;
+                        }
+                    }
+                }
+                if(optionSettingsX[0] == 0)teams = false;
+                else if(optionSettingsX[0] == 1){
                     teams = true;
-                    split = false;
                     xpos[0] = 0;
                     ypos[0] = 410;
                     xpos[1] = 40;
@@ -4805,142 +5081,12 @@ function keyPressed(e) {
                     ypos[2] = 410;
                     xpos[3] = 640;
                     ypos[3] = 410;
-
-                    level = 0;
-                    for (k = 0; k <= 9; k++) {
-                        gunx[k] = (Math.random() * 680) + 2;
-                        guny[k] = -20 - ((Math.random() * 1500));
-                    }
-                    
-
                 }
-                checked[0] = false;
-                //menu = 1;
-                boxx = 255;
-                boxy = 70;
-            }
-        } else if (menu == 6) //choose zombie or multiplayer
-        {
-            if (checked[0] == true && boxx == 368 && boxy == 400) {
-                if (checkedy[0] == 140) {
-                    menu = 8;
-                    boxx = 424;
-                    boxy = 120;
-                    custom = true;
-                    zombie = false;
-                } else if (checkedy[0] == 228) {
-                    menu = 2;
-                    boxx = 42;
-                    boxy = 78;
-                    level = 0;
-                    for (i = 0; i <= 9; i++) {
-                        if (level != 5) gunx[i] = (Math.random() * 680) + 2;
-                        if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
-                        guny[i] = -20 - ((Math.random() * 1500));
-                    }
-                    swords = false;
-                    zombie = true;
-                    teams = false;
-                    survival = false;
-                    split = false;
-                    equip[0] = 0;
-                    gun[0][0] = 1;
-                    ammo[0][0] = 10;
-                    clips[0][0] = 3;
-                    gun[0][1] = 0;
-                    clips[0][1] = 0;
-                    ammo[0][1] = 0;
-
-                    custom = false;
-                    health[1] = 10;
-                    health[2] = 10;
-                    health[3] = 10;
-
-                    if (zombie == true) {
-                        players = 2;
-                        for (i = 1; i <= players; i++) {
-                            cpu[i] = true;
-                            if (play == false) {//what
-                                health[i] = 10;
-                            }
-                        }
-                        //cpu[0] = false;
-
-                    }
-                }
-                checked[0] = false;
-                checkedx[0] = -50;
-            }
-            if (boxy == 228) {
-                checked[0] = true;
-                checkedx[0] = 458;
-                checkedy[0] = 228;
-                boxx = 368;
-                boxy = 400;
-            }
-            if (boxy == 140) {
-                checked[0] = true;
-                checkedx[0] = 420;
-                checkedy[0] = 140;
-                boxx = 368;
-                boxy = 400;
-            }
-        } else if (menu == 1) //player select screen
-        {
-            if (boxy == 70) {
-                checked[0] = true;
-                checkedx[0] = boxx;
-                checkedy[0] = boxy;
-                boxy = 157;
-            } else if (boxy == 157) {
-                checked[1] = true;
-                checkedx[1] = boxx;
-                checkedy[1] = boxy;
-                boxy = 245;
-            } else if (boxy == 245) {
-                checked[2] = true;
-                checkedx[2] = boxx;
-                checkedy[2] = boxy;
-                boxy = 332;
-            } else if (boxy == 332) {
-                checked[3] = true;
-                checkedx[3] = boxx;
-                checkedy[3] = boxy;
-                boxy = 400;
-                boxx = 368;
-            } else if (boxx == 368 && boxy == 400 && checked[0] == true && checked[1] == true && checked[2] == true && checked[3] == true && ((checkedx[2] < 579 && checkedx[3] < 579) || (checkedx[2] == 579 && checkedx[3] == 579) || (checkedx[2] < 579 && checkedx[3] == 579))) {
-                for (i = 0; i <= 3; i++) {
-                    if (checkedx[i] == 255) {
-                        checkCount++;
-                        cpu[i] = false;
-                    }
-                    if (checkedx[i] == 414) {
-                        checkCount++;
-                        cpu[i] = true;
-                    }
-                }
-                players = checkCount;
-                menu = 7;
-                boxx = 374;
-                boxy = 85;
-                for (i = 0; i <= 3; i++) {
-                    checked[i] = false;
-                }
-                if (zombie == true) {
-                    players = 2;
-                    for (i = 1; i <= players; i++) {
-                        cpu[i] = true;
-                        if (play == false) {//what
-                            health[i] = 10;
-                        }
-                    }
-                    //cpu[0] = false;
-
-                }
-            }
-        } else if (menu == 7) //multiplayer settings screen
-        {
-            if (boxy == 85) {
+                
+                optionPlayerX[4] = 1;
+                menu = 1;
+            } 
+            /*if (boxy == 85) {
                 checked[0] = true;
                 checkedx[0] = boxx;
                 checkedy[0] = boxy;
@@ -4989,7 +5135,7 @@ function keyPressed(e) {
                 }
                 if (checkedy[1] == 315) {
                     survival = true;
-                    for (i = 0; i < players; i++) {
+                    for (i = 0; i < 4; i++) {
                         if (checkedx[1] == 190) {
                             lives[i] = 3;
                             tempLives = 3;
@@ -5011,11 +5157,12 @@ function keyPressed(e) {
                 if (split == false) {
                     boxx = 42;
                     boxy = 78;
-                    menu = 2;
+                    menu = 1;
+                    optionPlayerX[4] = 1;
                 } else if (split == true) {
-                    menu = 3;
+                    menu = 1;
                 }
-            }
+            }*/
         } else if (menu == 2) //select map screen
         {
             if (mapSelect+1 == 1 && mapSelectSpeed == 0) {
