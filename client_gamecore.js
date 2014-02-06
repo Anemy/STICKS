@@ -677,7 +677,7 @@ client_onserverupdate_recieved = function (data) {
 
     //see if new clip amount exists
     if (!(typeof data.newHClipsAmount === 'undefined')) {
-        console.log("New clips!");
+        //console.log("New clips!");
         if (playerHost) {
             clips[0][equip[0]] = data.newHClipsAmount;
             clips[1][equip[1]] = data.newCClipsAmount;
@@ -688,9 +688,18 @@ client_onserverupdate_recieved = function (data) {
         }
     }
 
+    //there are bullets to kill
+    if (data.amountOfDeadBullets > 0) {
+        bulletsToKill = JSON.parse(data.newDeadBullet);
+        //console.log("Thar be a bullet to kill!");
+        for (i = 0; i < data.amountOfDeadBullets; i++) {
+            b[bulletsToKill[i].owner][bulletsToKill[i].ID] = false;
+        }
+    }
+
     //new equiped update
     if (!(typeof data.newHEquip === 'undefined')) {
-        console.log("New gun equiped! Host now has: " + data.newHGunEquip);
+        //console.log("New gun equiped! Host now has: " + data.newHGunEquip);
         if (playerHost) {
             equip[0] = data.newHEquip;
             equip[1] = data.newCEquip;
@@ -710,14 +719,26 @@ client_onserverupdate_recieved = function (data) {
     //newHHP
     //new HEALTH update
     if (!(typeof data.newHHP === 'undefined')) {
-        console.log("A player was hit!");
         if (playerHost) {
             health[0] = data.newHHP;
             health[1] = data.newCHP;
+            if (health[0] == 0) {
+                xpos[0] = data.hpx;
+                ypos[0] = data.hpy;
+                xdir[0] = data.hpxdir;
+                ydir[0] = data.hpydir;
+            }
         }
         else {
-            health[1] = data.newCHP;
-            health[0] = data.newHHP;
+            health[1] = data.newHHP;
+            health[0] = data.newCHP;
+
+            if (health[0] == 0) {
+                xpos[0] = data.cpx;
+                ypos[0] = data.cpy;
+                xdir[0] = data.cpxdir;
+                ydir[0] = data.cpydir;
+            }
         }
     }
 
@@ -1679,7 +1700,7 @@ function loadImages() {
     option[0] = new Image();
     option[0].src = (("images/option0.png"));
     option[1] = new Image();
-    option[1].src = (("images/option1.png"));
+    option[1].src = (("images/Option1.png"));
    
     optionArrow = new Image();
     optionArrow.src = (("images/optionArrow.png"));

@@ -233,6 +233,10 @@ server_instance.prototype.initGame = function () {
         for (k = 0; k <= 99; k++) {
             shotType[i][k] = 0;
             b[i][k] = false;
+            bx[i][k] = -100;
+            by[i][k] = -100
+            bxdir[i][k] = 0;
+            bydir[i][k] = 0;
         }
 
         //set dirs
@@ -723,6 +727,7 @@ function createNewBullet(i) {
         if (shootCount[i] >= 12 && ammo[i][equip[i]] > 0) {
             for (k = 0; k <= 99; k++) {
                 if (b[i][k] == false) {
+                    //console.log("Making new pistol bullet");
                     shotsFired[i]++;
                     b[i][k] = true;
                     if (directionFacing[i] == 1) {
@@ -952,7 +957,9 @@ server_instance.prototype.update = function () {
         }
 
         //update player - bullet collisions
-        bulletCollisions(i, modifier);
+        for (i = 0; i < playerCount; i++) {
+            bulletCollisions(i, modifier);
+        }
 
         //update guns!
         for (i = 0; i < playerCount; i++) {
@@ -1245,8 +1252,6 @@ function bulletCollisions(i, modifier) {
             for (k = 0; k <= 99; k++) {
                 //console.log("Try the collide!!!!");
                 if (b[i][k] == true && bx[i][k] >= xpos[t] - 5 && bx[i][k] <= xpos[t] + 25 && by[i][k] >= ypos[t] && by[i][k] <= ypos[t] + 20 && ypos[t] > 0) {
-
-                    console.log("a player has been shot. MEDIC!!!!");
                     shotsHit[i]++;
                     updateHealth = true;
 
@@ -1285,14 +1290,10 @@ function bulletCollisions(i, modifier) {
                     if (health[t] <= 0) {
                         //Let the client know!
                         updateLives = true;
-                        updateGuns = true;
                         newAmmoAmount = true;
                         newClipAmount = true;
                         newGunEquiped = true;
 
-                        /*if (survival == true) {
-                            lives[t]--;
-                        }*/
                         streak[i]++;
                         streak[t] = 0;
                         if (streak[i] == 2) {
@@ -1337,27 +1338,32 @@ function bulletCollisions(i, modifier) {
         }
     }
 
+    //console.log("Let's update these bullets.");
+
     //bullet movement
     for (k = 0; k <= 99; k++) {
-        bx[i][k] = bx[i][k] + (bxdir[i][k] * modifier);
-        by[i][k] = by[i][k] + (bydir[i][k] * modifier);
-        if ((bx[i][k] < -20 || bx[i][k] > 720) && level != 5) {
-            var deadBullet = {
-                owner: i,
-                ID: k
-            };
-            killBullets.push(deadBullet);
-            b[i][k] = false;
-            bxdir[i][k] = 0;
-        }
-        if ((bx[i][k] < -20 || bx[i][k] > 1420) && level == 5) {
-            var deadBullet = {
-                owner: i,
-                ID: k
-            };
-            killBullets.push(deadBullet);
-            b[i][k] = false;
-            bxdir[i][k] = 0;
+        if (b[i][k]) { //update bullet if it exists
+            //console.log("Let's update these bullets. X pos: " + bx[i][k]);
+            bx[i][k] = bx[i][k] + (bxdir[i][k] * modifier);
+            by[i][k] = by[i][k] + (bydir[i][k] * modifier);
+            if ((bx[i][k] < -20 || bx[i][k] > 720)) {
+                var deadBullet = {
+                    owner: i,
+                    ID: k
+                };
+                killBullets.push(deadBullet);
+                b[i][k] = false;
+                bxdir[i][k] = 0;
+            }
+            if ((bx[i][k] < -20 || bx[i][k] > 1420)) {
+                var deadBullet = {
+                    owner: i,
+                    ID: k
+                };
+                killBullets.push(deadBullet);
+                b[i][k] = false;
+                bxdir[i][k] = 0;
+            }
         }
     }
 }
