@@ -351,6 +351,10 @@ var leader = [];
 var playerID;
 var playerHost; //true/f was player_instance
 
+var searchingScreen;
+var hostingScreen;
+var connectingScreen;
+
 var mapChosen = false;
 
 var server;
@@ -1691,6 +1695,14 @@ function loadImages() {
     redSwordStill[0].src = (("images/RedSwordLeftStill.png"));
 
 
+    //online screens
+    searchingScreen = new Image();
+    searchingScreen.src = (("images/Searching.png"));
+    hostingScreen = new Image();
+    hostingScreen.src = (("images/Hosting.png"));
+    connectingScreen = new Image();
+    connectingScreen.src = (("images/Connecting.png"));
+
 
     //explosion
     ex2 = new Image();
@@ -2781,19 +2793,23 @@ function render() {//ctx
     }
 
     if (menu == 10) { // searching for game
-        ctx.font = ("60px Arial");
-        ctx.fillStyle = "rgb(0, 0, 0)"; 
-        ctx.fillText("Searching for match...", 100 * scale, 260 * scale);
+        //ctx.font = ("60px Arial");
+        //ctx.fillStyle = "rgb(0, 0, 0)"; 
+        //ctx.fillText("Searching for match...", 100 * scale, 260 * scale);
+
+        ctx.drawImage(searchingScreen, 0, 0, gameWidth, gameHeight);
     }//end if menu 10
     else if (menu == 11) { // searching for game
-        ctx.font = ("60px Arial");
+        /*ctx.font = ("60px Arial");
         ctx.fillStyle = "rgb(0, 0, 0)"; 
-        ctx.fillText("Found game, connecting...", 100 * scale, 260 * scale);
+        ctx.fillText("Found game, connecting...", 100 * scale, 260 * scale);*/
+        ctx.drawImage(connectingScreen, 0, 0, gameWidth, gameHeight);
     }//end if menu 11
     else if (menu == 12) { // searching for game
-        ctx.font = ("60px Arial");
+        /*ctx.font = ("60px Arial");
         ctx.fillStyle = "rgb(0, 0, 0)"; 
-        ctx.fillText("No matches found, hosting game...", 0, 260 * scale);
+        ctx.fillText("No matches found, hosting game...", 0, 260 * scale);*/
+        ctx.drawImage(hostingScreen, 0, 0, gameWidth, gameHeight);
     }//end if menu 12
 }
 //end render
