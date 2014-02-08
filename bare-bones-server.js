@@ -39,6 +39,7 @@ setInterval(function(){
 }, 4);
 
 game_server.onMessage = function (client, message) {
+    //console.log("Game server message recieved onMessage!!!")
 
         //Cut the message up into sub components
     var message_parts = message.split('.');
@@ -56,19 +57,33 @@ game_server.onMessage = function (client, message) {
         //game_server.log('input recieved');
             //Input handler will forward this
         this.onInput(client, message_parts);
-    } else if(message_type == 'p') {
+    } else if (message_type == 'm') { ///MAP SELECTED
+        //console.log("Map chosen!!!!! onMessage server");
+        this.onMapSelect(client, message_parts[1]);
+    } else if (message_type == 'p') {
         client.send('s.p.' + message_parts[1]);
-    } else if(message_type == 'c') {    //Client changed their color!
-        if(other_client)
+    } else if (message_type == 'c') {    //Client changed their color!
+        if (other_client)
             other_client.send('s.c.' + message_parts[1]);
     }
 
 }; //game_server.onMessage
 
+game_server.onMapSelect = function (client, newMap) {
+    //console.log("Big server map chosen");
+    //the client should be in a game, so
+    //we can tell that game to handle the input
+    if (client && client.game && client.game.gamecore) {
+        client.game.gamecore.onMapSelected(newMap);
+    }
+}
+
 game_server.onInput = function(client, parts) {
         //The input commands come in like u-l,
         //so we split them up into separate commands,
     //and then update the players
+
+
 
     var input_commands = parts[1];
     var input_time = parts[2];

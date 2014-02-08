@@ -142,6 +142,9 @@ var killBullets = [];
 
 var gamePlayers = [];
 
+var startTime = Date.now();
+var mapSelected = false;
+
 var game_player = function (game_instance, player_instance, playerNum) {
     this.lastInput = null;
     //Store the instance, if any
@@ -279,8 +282,10 @@ server_instance.prototype.initGame = function () {
 
     create_timer();
 
-    level = 1;
-    loadMap();
+    if (!mapSelected) {
+        level = 1;
+        loadMap();
+    }
 
     //max ammo
     maxAmmo[0] = 10;
@@ -676,6 +681,21 @@ function loadMap() {
 }
 //end loadmap
 
+server_instance.prototype.onMapSelected = function (mapNum) {
+    //console.log("Map chosen map selected!!!");
+    if (mapSelected == false) {
+        mapSelected = true;
+        level = mapNum;
+
+        //console.log("Sending message to clients!!!");
+        //send map to both players
+        players.self.instance.send('s.m.' + mapNum);
+        players.other.instance.send('s.m.' + mapNum);
+
+        loadMap();
+    }
+}
+
 server_instance.prototype.process_input = function (player) {
     //console.log("Processing input!");
 
@@ -1002,7 +1022,7 @@ server_instance.prototype.update = function () {
         //this.server_time = ;
 
         //update the clients every half second fully
-        if (Date.now() - lastFullUpdate > 500) {
+        if (Date.now() - lastFullUpdate > 1000) {
             fullUpdate = true;
         }
 
@@ -1297,7 +1317,7 @@ function sendUserUpdates() {
     }
 
     if (fullUpdate) { //totally update clients!!!!
-        console.log("Update them fully!!!!");
+        //console.log("Update them fully!!!!");
         this.laststate.updateFully = true;
         //variables to think about:
         //streak

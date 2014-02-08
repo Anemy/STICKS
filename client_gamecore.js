@@ -351,6 +351,8 @@ var leader = [];
 var playerID;
 var playerHost; //true/f was player_instance
 
+var mapChosen = false;
+
 var server;
 
 var onlineState = "Offline";
@@ -406,8 +408,6 @@ function createOnlineGame() {
     this.net_latency = 0.001;           //the latency between the client and the server (ping/2)
     this.net_ping = 0.001;              //The round trip time from here to the server,and back
     this.last_ping_time = 0.001;        //The time we last sent a ping
-    this.fake_lag = 0;                //If we are simulating lag, this applies only to the input client (not others)
-    this.fake_lag_time = 0;
 
     this.net_offset = 100;              //100 ms latency between server and client interpolation for other clients
     this.buffer_size = 2;               //The size of the server history to keep for rewinding/interpolating.
@@ -784,7 +784,7 @@ client_onserverupdate_recieved = function (data) {
     }
 
     if (data.updateFully == true) { //do everything the server has to ensure integrity.
-        console.log("Fully update me!!!!");
+        //console.log("Fully update me!!!!");
 
         if (playerHost) {
             streak[0] = data.hstreak;
@@ -805,9 +805,9 @@ client_onserverupdate_recieved = function (data) {
             kills[0] = data.hkills;
             kills[1] = data.ckills;
 
-            if (Math.abs(xpos[0] - data.hpx) > 50)
+            //if (Math.abs(xpos[0] - data.hpx) > 50)
                 xpos[0] = data.hpx;
-            if (Math.abs(ypos[0] - data.hpy) > 50)
+            //if (Math.abs(ypos[0] - data.hpy) > 50)
                 ypos[0] = data.hpy;
         }
         else {
@@ -829,9 +829,9 @@ client_onserverupdate_recieved = function (data) {
             kills[1] = data.hkills;
             kills[0] = data.ckills;
 
-            if (Math.abs(xpos[0] - data.cpx) > 50)
+            //if (Math.abs(xpos[0] - data.cpx) > 50)
                 xpos[0] = data.cpx;
-            if (Math.abs(ypos[0] - data.cpy) > 50)
+            //if (Math.abs(ypos[0] - data.cpy) > 50)
                 ypos[0] = data.cpy;
         }
     }
@@ -1070,6 +1070,21 @@ client_onreadygame = function (data) {
 
     if (connectedGame) {
         connectedGame = false;
+
+        if (mapChosen && playerHost) {
+            console.log("Sending message to server");
+            //Send the packet of information to the server.
+            //The input packets are labelled with an 'm' in front.
+            var server_packet = 'm.';
+            server_packet += level;//send the chosen level to the server
+
+            //Go
+            this.socket.send(server_packet);
+            //menu = 12;
+
+            mapChosen = false;
+        }
+
         createOnlineGame();
     }
 
@@ -1087,7 +1102,7 @@ client_onjoingame = function (data) {
 }; //client_onjoingame
 
 client_onhostgame = function (data) {
-    this.menu = 12;
+    this.menu = 2;
 
     //The server sends the time when asking us to host, but it should be a new game.
     //so the value will be really small anyway (15 or 16ms)
@@ -1148,6 +1163,11 @@ client_onnetmessage = function (data) {
         case 's': //server message
 
             switch (subcommand) {
+                case 'm': //map chosen
+                    //console.log("Map chosen message recieved by server");
+                    level = commanddata;
+                    startThatMap(commanddata);
+                    break;
 
                 case 'h': //host a game requested
                     this.client_onhostgame(commanddata); break;
@@ -1226,6 +1246,8 @@ client_connect_to_server = function () {
 
 
 function init() {//instance\
+
+    mapChosen = false;
 
     console.log("On init");
 
@@ -2684,7 +2706,11 @@ function render() {//ctx
         //    ctx.drawImage(optionArrowLeft, (28) * scale, 192 * scale, 33 * scale, 63 * scale);
         //    ctx.drawImage(optionArrow, (640) * scale, 192 * scale, 33 * scale, 63 * scale);
         //}
-        
+        if (onlineState == 'Hosting game, waiting') {
+            ctx.font = ("60px Arial");
+            ctx.fillStyle = "rgb(0, 0, 0)";
+            ctx.fillText("No matches found, hosting game...", 0, gameHeight - (100 * scale));
+        }
 
     }
     //countdown at begin match
@@ -5263,48 +5289,55 @@ function keyPressed(e) {
             }*/
         } else if (menu == 2) //select map screen
         {
-            if (mapSelect+1 == 1 && mapSelectSpeed == 0) {
+            if (mapSelect + 1 == 1 && mapSelectSpeed == 0) {
                 startThatMap(1);
             }
-            if (mapSelect+1 == 2 && mapSelectSpeed == 0) {
+            if (mapSelect + 1 == 2 && mapSelectSpeed == 0) {
                 startThatMap(2);
             }
-            if (mapSelect+1 == 3 && mapSelectSpeed == 0) {
+            if (mapSelect + 1 == 3 && mapSelectSpeed == 0) {
                 startThatMap(3);
             }
-            if (mapSelect+1 == 4 && mapSelectSpeed == 0) {
+            if (mapSelect + 1 == 4 && mapSelectSpeed == 0) {
                 startThatMap(4);
             }
-	    //if (mapSelect+1 == 5 && mapSelectSpeed == 0) {
+            //if (mapSelect+1 == 5 && mapSelectSpeed == 0) {
             //    startThatMap(5);
             //}
-            if (mapSelect+1 == 6 && mapSelectSpeed == 0) {
+            if (mapSelect + 1 == 6 && mapSelectSpeed == 0) {
                 startThatMap(6);
-            } 
-	    //if (mapSelect+1 == 7 && mapSelectSpeed == 0) {
+            }
+            //if (mapSelect+1 == 7 && mapSelectSpeed == 0) {
             //    startThatMap(7);
             //}
-	    //if (mapSelect+1 == 8 && mapSelectSpeed == 0) {
+            //if (mapSelect+1 == 8 && mapSelectSpeed == 0) {
             //    startThatMap(8);
             //}
-	    if (mapSelect+1 == 9 && mapSelectSpeed == 0) {
-		var rrr = Math.floor((Math.random() * 5)+1);
-		if(rrr == 1) {
-			startThatMap(1);
-		}
-		if(rrr == 2) {
-			startThatMap(2);
-		}
-		if(rrr == 3) {
-			startThatMap(3);
-		}
-		if(rrr == 4) {
-			startThatMap(4);
-		}
-		if(rrr == 5) {
-			startThatMap(6);
-		}
-	    }
+            if (mapSelect + 1 == 9 && mapSelectSpeed == 0) {
+                var rrr = Math.floor((Math.random() * 5) + 1);
+                if (rrr == 1) {
+                    startThatMap(1);
+                }
+                if (rrr == 2) {
+                    startThatMap(2);
+                }
+                if (rrr == 3) {
+                    startThatMap(3);
+                }
+                if (rrr == 4) {
+                    startThatMap(4);
+                }
+                if (rrr == 5) {
+                    startThatMap(6);
+                }
+            }
+            if (onlineState == 'Hosting game, waiting') {
+                console.log("Map chosen by host (me)!!");
+                mapChosen = true;
+                menu = 12;
+            }
+
+
         }
         else if (menu == 5) //post game screen
         {
