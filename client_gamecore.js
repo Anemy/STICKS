@@ -1875,6 +1875,10 @@ function loadImages() {
 
 function loadMap() {
 
+    for (i = 0; i < 12; i++) { //set all blocks to false
+        block[i] = false;
+    }
+
     if (level == 1) {
         block[0] = true;
         block[1] = true;

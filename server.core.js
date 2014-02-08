@@ -282,7 +282,7 @@ server_instance.prototype.initGame = function () {
 
     create_timer();
 
-    if (!mapSelected) {
+    if (mapSelected == false) {
         level = 1;
         loadMap();
     }
@@ -399,6 +399,10 @@ server_instance.prototype.initGame = function () {
 //end init game
 
 function loadMap() {
+
+    for (i = 0; i < 12; i++) { //set all blocks to false
+        block[i] = false;
+    }
 
     if (level == 1) {
         block[0] = true;
@@ -682,17 +686,17 @@ function loadMap() {
 //end loadmap
 
 server_instance.prototype.onMapSelected = function (mapNum) {
-    //console.log("Map chosen map selected!!!");
+    
     if (mapSelected == false) {
+        console.log("Map chosen map selected!!! Level #: " + mapNum);
         mapSelected = true;
         level = mapNum;
+        loadMap();
 
         //console.log("Sending message to clients!!!");
         //send map to both players
         players.self.instance.send('s.m.' + mapNum);
         players.other.instance.send('s.m.' + mapNum);
-
-        loadMap();
     }
 }
 
@@ -1173,7 +1177,7 @@ server_instance.prototype.update = function () {
                     }
                 }
                 if (gamePlayers[i].b[k] == true && gamePlayers[i].shotType[k] == 6) {
-                    if (gamePlayers[i].bxdir[k] > 0 && gamePlayers[i].bx[k] >= shotgunDis[i][k]) {
+                    if (gamePlayers[i].bxdir[k] > 0 && gamePlayers[i].bx[k] >= gamePlayers[i].shotgunDis[k]) {
                         gamePlayers[i].b[k] = false;
                         var deadBullet = {
                             owner: i,
@@ -1181,7 +1185,7 @@ server_instance.prototype.update = function () {
                         };
                         killBullets.push(deadBullet);
                     }
-                    if (gamePlayers[i].bxdir[k] < 0 && gamePlayers[i].bx[k] <= shotgunDis[i][k]) {
+                    if (gamePlayers[i].bxdir[k] < 0 && gamePlayers[i].bx[k] <= gamePlayers[i].shotgunDis[k]) {
                         gamePlayers[i].b[k] = false;
                         var deadBullet = {
                             owner: i,
