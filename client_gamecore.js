@@ -693,7 +693,16 @@ client_onserverupdate_recieved = function (data) {
         bulletsToKill = JSON.parse(data.newDeadBullet);
         //console.log("Thar be a bullet to kill!");
         for (i = 0; i < data.amountOfDeadBullets; i++) {
-            b[bulletsToKill[i].owner][bulletsToKill[i].ID] = false;
+            if (playerHost) {
+                b[bulletsToKill[i].owner][bulletsToKill[i].ID] = false;
+            }
+            else {// REMEMBER FOR MANY PLAYERS THERE IS THIS AND NEED TO IMPLEMENT AND STUFF EWSDHVFUOSDBV %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                //NOT JUST THE ! TO SHOW
+                if (bulletsToKill[i].owner == 0)
+                    b[1][bulletsToKill[i].ID] = false;
+                else
+                    b[0][bulletsToKill[i].ID] = false;
+            }
         }
     }
 
@@ -754,6 +763,76 @@ client_onserverupdate_recieved = function (data) {
         else {
             ammo[0][equip[0]] = newAmmoCountC;
             ammo[1][equip[1]] = newAmmoCountH;
+        }
+    }
+
+    if (data.jetpackActivated) {
+        if (playerHost) {
+            jetpack[0] = data.hjpack;
+            jetpack[1] = data.cjpack;
+
+            fuel[0] = data.hfuel;
+            fuel[1] = data.cfuel;
+        }
+        else {
+            jetpack[1] = data.hjpack;
+            jetpack[0] = data.cjpack;
+
+            fuel[1] = data.hfuel;
+            fuel[0] = data.cfuel;
+        }
+    }
+
+    if (data.updateFully == true) { //do everything the server has to ensure integrity.
+        console.log("Fully update me!!!!");
+
+        if (playerHost) {
+            streak[0] = data.hstreak;
+            streak[1] = data.cstreak;
+
+            jetpack[0] = data.hjpack;
+            jetpack[1] = data.cjpack;
+
+            fuel[0] = data.hfuel;
+            fuel[1] = data.cfuel;
+
+            deadCount[0] = data.hdeadcount;
+            deadCount[1] = data.cdeadcount;
+
+            deaths[0] = data.hdeaths;
+            deaths[1] = data.cdeaths;
+
+            kills[0] = data.hkills;
+            kills[1] = data.ckills;
+
+            if (Math.abs(xpos[0] - data.hpx) > 50)
+                xpos[0] = data.hpx;
+            if (Math.abs(ypos[0] - data.hpy) > 50)
+                ypos[0] = data.hpy;
+        }
+        else {
+            streak[1] = data.hstreak;
+            streak[0] = data.cstreak;
+
+            jetpack[1] = data.hjpack;
+            jetpack[0] = data.cjpack;
+
+            fuel[1] = data.hfuel;
+            fuel[0] = data.cfuel;
+
+            deadCount[1] = data.hdeadcount;
+            deadCount[0] = data.cdeadcount;
+
+            deaths[1] = data.hdeaths;
+            deaths[0] = data.cdeaths;
+
+            kills[1] = data.hkills;
+            kills[0] = data.ckills;
+
+            if (Math.abs(xpos[0] - data.cpx) > 50)
+                xpos[0] = data.cpx;
+            if (Math.abs(ypos[0] - data.cpy) > 50)
+                ypos[0] = data.cpy;
         }
     }
 
@@ -2563,7 +2642,7 @@ function render() {//ctx
         ctx.drawImage(cloudsImage,cloudsX[1],0,gameWidth,100 * scale);            
         ctx.drawImage(menuImage[8], 0, 0, gameWidth, gameHeight);
         ctx.drawImage(option[1], 0, 0, gameWidth, gameHeight);
-        ctx.drawImage(optionArrow, (210 + optionX) * scale, (138 + optionY*85) * scale, 33 * scale, 63 * scale); 
+        ctx.drawImage(optionArrow, (221+ optionX) * scale, (151 + optionY*85) * scale, 22 * scale, 42 * scale); 
         ctx.drawImage(menuPlayerImage, 0, 0, gameWidth, gameHeight);
     }
         //select game mode  zombie or custom
@@ -2573,7 +2652,7 @@ function render() {//ctx
         ctx.drawImage(cloudsImage,cloudsX[1],0,gameWidth,100 * scale);          
         ctx.drawImage(menuImage[6], 0, 0, gameWidth, gameHeight);
         ctx.drawImage(option[0], 0, 0, gameWidth, gameHeight);
-        ctx.drawImage(optionArrow, (210 + optionX) * scale, (138 + optionY*60) * scale, 33 * scale, 63 * scale);
+        ctx.drawImage(optionArrow, (221 + optionX) * scale, (151 + optionY*60) * scale, 22 * scale, 42 * scale);
         ctx.drawImage(menuPlayerImage, 0, 0, gameWidth, gameHeight);  
 
         
@@ -3835,13 +3914,11 @@ function update(modifier) {
 
         }
         //dead counter
-        if (onlineState == 'Offline') {
-            for (i = 0; i < players; i++) {
-                deadCount[i] = deadCount[i] + fps * modifier;
-                if (ypos[i] <= 0 && deadCount[i] < 100) {
-                    ypos[i] = -30;
-                    ydir[i] = 0;
-                }
+        for (i = 0; i < players; i++) {
+            deadCount[i] = deadCount[i] + fps * modifier;
+            if (ypos[i] <= 0 && deadCount[i] < 100) {
+                ypos[i] = -30;
+                ydir[i] = 0;
             }
         }
         //bullet movement
