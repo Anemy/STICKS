@@ -2723,9 +2723,9 @@ function render() {//ctx
         //    ctx.drawImage(optionArrow, (640) * scale, 192 * scale, 33 * scale, 63 * scale);
         //}
         if (onlineState == 'Hosting game, waiting') {
-            ctx.font = ("60px Arial");
+            ctx.font = ("30px Arial");
             ctx.fillStyle = "rgb(0, 0, 0)";
-            ctx.fillText("No matches found, hosting game...", 0, gameHeight - (100 * scale));
+            ctx.fillText("Hosting game", 3, 31 * scale);//gameHeight - (100 * scale));
         }
 
     }
