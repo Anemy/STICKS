@@ -852,6 +852,7 @@ client_onserverupdate_recieved = function (data) {
         }
 
         if (data.gameIsOver == true) {
+            console.log("From server: game is over!!!");
             //play = false;
             //menu = 5;
         }
@@ -4416,7 +4417,7 @@ function update(modifier) {
 //end update
 
 function createNewBlood(t) {
-    console.log("Create new blood");
+    //console.log("Create new blood");
     //blood
     for (q = 0; q <= 999; q++) {
         if (blood[t][q] == false) {

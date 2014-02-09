@@ -101,7 +101,7 @@ var blockw = [];
 var blockh = [];
 
 //levels
-var level = 0;
+var level = 1;
 
 //IDK
 /*var lives = [];
@@ -243,6 +243,8 @@ var newGuns = [];
     var newGunType = gunType;  //true = right // false = left
 };*/
 
+var mapNumber = 1;
+
 var server_instance = function () {
     console.log("Creating new server instance.");
     this.server_time = 0;
@@ -286,9 +288,18 @@ server_instance.prototype.initGame = function () {
 
     create_timer();
 
-    if (mapSelected == false) {
-        level = 1;
+    level = 1;
+    loadMap();
+
+    if (mapSelected == true && mapNumber != 5) {
+        console.log("Reloading map!!! Level #: " + mapNumber);
+        level = mapNumber;
         loadMap();
+
+        //console.log("Sending message to clients!!!");
+        //send map to both players
+        players.self.instance.send('s.m.' + mapNumber);
+        players.other.instance.send('s.m.' + mapNumber);
     }
 
     //max ammo
@@ -691,9 +702,10 @@ function loadMap() {
 
 server_instance.prototype.onMapSelected = function (mapNum) {
     
-    if (mapSelected == false) {
+    if (mapSelected == false && mapNum != 5) {
         console.log("Map chosen map selected!!! Level #: " + mapNum);
         mapSelected = true;
+        mapNumber = mapNum;
         level = mapNum;
         loadMap();
 
@@ -1024,15 +1036,15 @@ server_instance.prototype.update = function () {
     var modifier = delta / 1000;
 
     if (counter == 0) {
-        if (mapSelected == true) {
-            console.log("Reloading map!!! Level #: " + mapNum);
-            level = mapNum;
+        if (mapSelected == true && mapNumber != 5) {
+            console.log("Reloading map!!! Level #: " + mapNumber);
+            level = mapNumber;
             loadMap();
 
             //console.log("Sending message to clients!!!");
             //send map to both players
-            players.self.instance.send('s.m.' + mapNum);
-            players.other.instance.send('s.m.' + mapNum);
+            players.self.instance.send('s.m.' + mapNumber);
+            players.other.instance.send('s.m.' + mapNumber);
         }
     }
     counter++;
