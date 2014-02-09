@@ -304,6 +304,7 @@ var X;
 var control = [];
 var numbers = [];
 var endgame;
+var endgameonline;
 var endgameZombie;
 var mapSelectImage;
 var mapSelectBackgroundImage;
@@ -733,6 +734,12 @@ client_onserverupdate_recieved = function (data) {
     //new HEALTH update
     if (!(typeof data.newHHP === 'undefined')) {
         if (playerHost) {
+
+            if (health[0] != data.newHHP)
+                createNewBlood(0);
+            else if (health[1] != data.newCHP)
+                createNewBlood(1);
+
             health[0] = data.newHHP;
             health[1] = data.newCHP;
             if (health[0] == 0) {
@@ -743,6 +750,11 @@ client_onserverupdate_recieved = function (data) {
             }
         }
         else {
+            if (health[1] != data.newHHP)
+                createNewBlood(1);
+            else if (health[0] != data.newCHP)
+                createNewBlood(0);
+
             health[1] = data.newHHP;
             health[0] = data.newCHP;
 
@@ -837,6 +849,11 @@ client_onserverupdate_recieved = function (data) {
                 xpos[0] = data.cpx;
             //if (Math.abs(ypos[0] - data.cpy) > 50)
                 ypos[0] = data.cpy;
+        }
+
+        if (data.gameIsOver == true) {
+            //play = false;
+            //menu = 5;
         }
     }
 
@@ -1845,6 +1862,8 @@ function loadImages() {
 
     endgame = new Image();
     endgame.src = (("images/endgame.png"));
+    endgameonline = new Image();
+    endgameonline.src = (("images/endgameonline.png"));
     endgameZombie = new Image();
     endgameZombie.src = (("images/endgameZombie.png"));
 
@@ -2742,7 +2761,10 @@ function render() {//ctx
     //endgame menu
     if (menu == 5) {
         if (custom == true) {
-            ctx.drawImage(endgame, 100 * scale, 20 * scale, 500 * scale, 400 * scale);
+            if (onlineState != 'Connected')
+                ctx.drawImage(endgame, 100 * scale, 20 * scale, 500 * scale, 400 * scale);
+            else
+                ctx.drawImage(endgameonline, 100 * scale, 20 * scale, 500 * scale, 400 * scale);
             ctx.font = "30px Arial";
             ctx.fillStyle = "rgb(211, 211, 211)"; //light gray
             if (teams == false) ctx.fillText(winner + " wins!", 280 * scale, 60 * scale);
@@ -2788,7 +2810,10 @@ function render() {//ctx
             if (kills[0] < 10) ctx.fillText(kills[0] + "", 320 * scale, 260 * scale);
             else ctx.fillText(kills[0] + "", 280 * scale, 260 * scale);
         }
-        ctx.drawImage(check[1], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
+        if (onlineState != 'Connected')
+            ctx.drawImage(check[1], boxx * scale, boxy * scale, 30 * scale, 30 * scale);
+        else
+            ctx.drawImage(check[1], 400 * scale, 345 * scale, 30 * scale, 30 * scale);
 
     }
 
@@ -4390,6 +4415,38 @@ function update(modifier) {
 }
 //end update
 
+function createNewBlood(t) {
+    console.log("Create new blood");
+    //blood
+    for (q = 0; q <= 999; q++) {
+        if (blood[t][q] == false) {
+            num = (Math.random() * 15 + 5);
+            if ((q + num) <= 999) {
+                for (r = q; r <= q + num; r++) {
+                    blood[t][r] = true;
+                    bloodx[t][r] = xpos[t] + (Math.random() * 20);
+                    bloody[t][r] = ypos[t] + (Math.random() * 10);
+                    if (bxdir[i][k] > 0) bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
+                    else bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
+                    bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
+                    bloodCount[t][r] = 0;
+                }
+            } else if ((q + num) > 999) {
+                for (r = q; r <= 999; r++) {
+                    blood[t][r] = true;
+                    bloodx[t][r] = xpos[t] + (Math.random() * 20);
+                    bloody[t][r] = ypos[t] + (Math.random() * 10);
+                    if (bxdir[i][k] > 0) bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
+                    else bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
+                    bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
+                    bloodCount[t][r] = 0;
+                }
+            }
+            q = 1000;
+        }
+    }
+}
+
 //update new shots helper (called in update
 function updateShooting(i, modifier) {
     shootCount[i] = shootCount[i] + fps * modifier;
@@ -4669,7 +4726,8 @@ function keyPressed(e) {
 	
 
         if (menu == 5) {
-            boxx = 508;
+            if(onlineState != 'Connected')
+                boxx = 508;
         }
         if (menu == 7) {
             if(optionY == 0 && optionSettingsX[0] < 1) {
@@ -4703,7 +4761,8 @@ function keyPressed(e) {
 	    else if(mapSelect > 0 && mapSelectSpeed == 0) { mapSelect--; mapSelectSpeed = -1*gameWidth; mapSelectAcc = 40;}
         }
         if (menu == 5) {
-            boxx = 275;
+            if (onlineState != 'Connected')
+                boxx = 275;
         }
         if (menu == 7) {
             if(optionY == 0 && optionSettingsX[0] > 0) optionSettingsX[0]--; 
@@ -5361,6 +5420,10 @@ function keyPressed(e) {
         }
         else if (menu == 5) //post game screen
         {
+            if (onlineState == 'Connected') {
+                reset = true;
+                client_ondisconnect();
+            }
             if (boxx == 275) {
                 reset = true;
             } else if (boxx == 508) {

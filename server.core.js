@@ -41,7 +41,7 @@ var shotsFired = [];
 var shotsHit = [];*/
 
 //kill limit/survival
-var killLimit = 25;
+var killLimit = 10;
 var teamkills = [];
 
 //shooting
@@ -137,6 +137,7 @@ var killUpdate = false;
 var fullUpdate = false;
 
 var lastFullUpdate = 0;
+var counter = 0;
 
 var killBullets = [];
 
@@ -144,6 +145,9 @@ var gamePlayers = [];
 
 var startTime = Date.now();
 var mapSelected = false;
+
+//add setting gameover to true
+var gameOver = false
 
 var game_player = function (game_instance, player_instance, playerNum) {
     this.lastInput = null;
@@ -1019,7 +1023,21 @@ server_instance.prototype.update = function () {
 
     var modifier = delta / 1000;
 
-    
+    if (counter == 0) {
+        if (mapSelected == true) {
+            console.log("Reloading map!!! Level #: " + mapNum);
+            level = mapNum;
+            loadMap();
+
+            //console.log("Sending message to clients!!!");
+            //send map to both players
+            players.self.instance.send('s.m.' + mapNum);
+            players.other.instance.send('s.m.' + mapNum);
+        }
+    }
+    counter++;
+    if (counter > 10000)
+        counter = 1;
 
     if (play) {
         //Update the state of our local clock to match the timer
@@ -1323,6 +1341,8 @@ function sendUserUpdates() {
     if (fullUpdate) { //totally update clients!!!!
         //console.log("Update them fully!!!!");
         this.laststate.updateFully = true;
+
+        this.laststate.gameIsOver = gameOver;
         //variables to think about:
         //streak
         //jetpack
@@ -1495,6 +1515,11 @@ function bulletCollisions(i, modifier) {
                         gamePlayers[t].clips[0] = 3;
                         gamePlayers[t].ammo[1] = 0;
                         gamePlayers[t].clips[1] = 0;
+
+                        if (gamePlayers[i].kills >= killLimit) {
+                            console.log("End game!!!");
+                            gameOver = true;
+                        }
                     }
                 }
             }
