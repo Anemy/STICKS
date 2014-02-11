@@ -783,6 +783,7 @@ client_onserverupdate_recieved = function (data) {
     }
 
     if (data.jetpackActivated) {
+        console.log("Using jetpack");
         if (playerHost) {
             jetpack[0] = data.hjpack;
             jetpack[1] = data.cjpack;
@@ -852,9 +853,9 @@ client_onserverupdate_recieved = function (data) {
         }
 
         if (data.gameIsOver == true) {
-            console.log("From server: game is over!!!");
-            //play = false;
-            //menu = 5;
+            console.log("From server: game is over!!! : " + data.gameIsOver);
+            play = false;
+            menu = 5;
         }
     }
 
@@ -2772,13 +2773,16 @@ function render() {//ctx
             else if (teams == true) ctx.fillText(winner + " wins!", 200 * scale, 60 * scale);
             ctx.font = "20px Arial";
             for (i = 0; i < players; i++) {
-                ctx.fillText("Kills         Deaths         Accuracy", 220 * scale, 110 * scale);
+                if (onlineState != 'Connected')
+                    ctx.fillText("Kills         Deaths         Accuracy", 220 * scale, 110 * scale);
+                else
+                    ctx.fillText("Kills           Deaths", 220 * scale, 110 * scale);
                 if (i == 0) {
                     round = Math.round((shotsHit[i] / shotsFired[i]) * 100);
                     ctx.fillText("Red -", 150 * scale, 150 * scale);
                     ctx.fillText(kills[i] + "", 235 * scale, 150 * scale);
                     ctx.fillText(deaths[i] + "", 340 * scale, 150 * scale);
-                    ctx.fillText(round + "%", 460 * scale, 150 * scale);
+                    if (onlineState != 'Connected') ctx.fillText(round + "%", 460 * scale, 150 * scale);
 
                 }
                 if (i == 1) {
@@ -2786,21 +2790,21 @@ function render() {//ctx
                     ctx.fillText("Blue -", 150 * scale, 200 * scale);
                     ctx.fillText(kills[i] + "", 235 * scale, 200 * scale);
                     ctx.fillText(deaths[i] + "", 340 * scale, 200 * scale);
-                    ctx.fillText(round + "%", 460 * scale, 200 * scale);
+                    if (onlineState != 'Connected') ctx.fillText(round + "%", 460 * scale, 200 * scale);
                 }
                 if (i == 2) {
                     round = Math.round((shotsHit[i] / shotsFired[i]) * 100);
                     ctx.fillText("Black -", 150 * scale, 250 * scale);
                     ctx.fillText(kills[i] + "", 235 * scale, 250 * scale);
                     ctx.fillText(deaths[i] + "", 340 * scale, 250 * scale);
-                    ctx.fillText(round + "%", 460 * scale, 250 * scale);
+                    if (onlineState != 'Connected') ctx.fillText(round + "%", 460 * scale, 250 * scale);
                 }
                 if (i == 3) {
                     round = Math.round((shotsHit[i] / shotsFired[i]) * 100);
                     ctx.fillText("Yellow -", 150 * scale, 300 * scale);
                     ctx.fillText(kills[i] + "", 235 * scale, 300 * scale);
                     ctx.fillText(deaths[i] + "", 340 * scale, 300 * scale);
-                    ctx.fillText(round + "%", 460 * scale, 300 * scale);
+                    if (onlineState != 'Connected') ctx.fillText(round + "%", 460 * scale, 300 * scale);
                 }
             }
         } else if (zombie == true) {

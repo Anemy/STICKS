@@ -27,8 +27,8 @@ var fuel = [];
 var jetpack = [];
 var fuelCount = [];*/
 
-//kill streaks 25
-/*var streak = [];
+//kill gamePlayers[i].streaks 25
+/*var gamePlayers[i].streak = [];
 var killcount = [];
 var healthpack = [];
 var healthpackx = [];
@@ -209,7 +209,7 @@ var game_player = function (game_instance, player_instance, playerNum) {
     this.jetpack = false;
     this.fuelCount = 0;
 
-    //kill streaks 25
+    //kill gamePlayers[i].streaks 25
     this.streak = 0;
     this.killcount = 0;
     this.healthpack = false;
@@ -409,6 +409,9 @@ server_instance.prototype.initGame = function () {
     console.log("Successfully init game");
 
     play = true;
+
+    gameOver = false;
+
 
 }; //intigame
 //end init game
@@ -1110,7 +1113,7 @@ server_instance.prototype.update = function () {
             updateReload(i, modifier);
         }
 
-        //kill streaks(health packs falling etc..)
+        //kill gamePlayers[i].streaks(health packs falling etc..)
         for (i = 0; i < playerCount; i++) {
             for (k = 0; k < playerCount; k++) {
                 //player healthpack collision
@@ -1171,6 +1174,15 @@ server_instance.prototype.update = function () {
             if (gamePlayers[i].ypos + 20 + (gamePlayers[i].ydir * modifier) >= gamePlayers[i].ground && gamePlayers[i].ydir > 0) {
                 gamePlayers[i].ydir = 0;
                 gamePlayers[i].ypos = gamePlayers[i].ground - 20;
+
+                if (gamePlayers[i].streak >= 3 && gamePlayers[i].streak < 6 && gamePlayers[i].fuel < 20 && gamePlayers[i].fuelCount >= 2) {
+                    gamePlayers[i].fuel = gamePlayers[i].fuel + fps * modifier;
+                    gamePlayers[i].fuelCount = 0;
+                }
+                if (gamePlayers[i].streak[i] >= 6 && gamePlayers[i].fuel < 40 && gamePlayers[i].fuelCount >= 2) {
+                    gamePlayers[i].fuel = gamePlayers[i].fuel + fps * modifier;
+                    gamePlayers[i].fuelCount = 0;
+                }
             }
 
             //x movement
@@ -1356,7 +1368,7 @@ function sendUserUpdates() {
 
         this.laststate.gameIsOver = gameOver;
         //variables to think about:
-        //streak
+        //gamePlayers[i].streak
         //jetpack
         //fuel
         //deadcount
