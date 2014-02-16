@@ -1,9 +1,13 @@
-/*
- * STICK BATTLE by Paul H.
- * Ported painstakingly by Rhys h. lol
- * fun!
+/*  Copyright (c) 2014 Rhys Howell & Paul Henninger
+    
+    Written for: http://stick-battle.com
+    
+    * Stick Battle
+    * Client game core
+*/
 
- */
+const version = 1.01;
+
 var canvas;
 var gameWidth;
 var gameHeight;
@@ -95,6 +99,35 @@ var dogright = [];
 var dogtargetx = [];
 var dogtargety = [];
 var dogupPath = [];
+
+//CONSTANTS
+const RIGHT = 1;
+const LEFT = 0;
+
+var mouseX = 0;
+var mouseY = 0;
+
+//loading poppums!!!!
+var loadingPActivated = false;
+//window.onmousemove = null;
+//popXPos , popYPos , popXDir , popYDir , popFacing(0 or 1) , runCount
+var dogBase = function () {
+    this.xPos = 30;
+    this.yPos = 410;
+
+    this.xDir = 0;
+    this.yDir = 0;
+
+    this.facing = RIGHT; //1 right 0 left
+    this.left = false;
+    this.right = false;
+
+    this.runCount = 0;
+
+    this.jump = false;
+
+};
+var pop;
 
 //teams
 var teams = false;
@@ -352,9 +385,17 @@ var leader = [];
 var playerID;
 var playerHost; //true/f was player_instance
 
+var lastPlayerMovement = 0;
+
 var searchingScreen;
 var hostingScreen;
 var connectingScreen;
+
+var endGameCounter = 0;
+
+//ping vars
+var lastPingTime = 0.0001;
+var netPing = 0.0001;
 
 var mapChosen = false;
 
@@ -370,6 +411,33 @@ var onlineState = "Offline";
 * "Connected"
 * "Disconnected"
 */
+//constants for states
+const OFFLINE = 'Offline', CONNECTING = 'Connecting', SEARCHING = 'Searching for game', HOSTING = 'Hosting game, waiting', CONNECTED = 'Connected', DISCONNECTED = 'Disconnected', CONNECTEDWAIT = 'Connected please wait';
+
+var playerPosition = function(x,y,xd,yd) {
+    this.xPos = x;
+    this.yPos = y;
+    this.xDir = xd;
+    this.yDir = yd;
+}
+
+var lastPlayerPos = new playerPosition(0, 0, 0, 0);
+
+//lerp function
+//take in 2 return %p on how close to 1st one is requested
+function lerp(p, first, second) {
+    var difference = second - first;
+    return first + ((p / 100) * difference);
+}
+
+//my own absoluteValue
+/*function abs(first, second) {
+    var difference = first - second;
+    return (difference > 0) ? difference : -difference;
+}*/
+function abs(num) {
+    return (num > 0) ? num : -num;
+}
 
 var server_updates = [];
 
@@ -382,11 +450,9 @@ function onColorChange(newColor) {
 
 var local_time,
     net_latency,
-    net_ping,
     net_offset,
     server_time,
-    client_time,
-    last_ping_time,
+    time,
     buffer_size,
     _dtev = Date.now(),
     _dt = Date.now();
@@ -419,7 +485,7 @@ function createOnlineGame() {
     this.target_time = 0.01;            //the time where we want to be in the server timeline
     this.oldest_tick = 0.01;            //the last time tick we have available in the buffer
 
-    this.client_time = 0.01;            //Our local 'clock' based on server time - client interpolation(net_offset).
+    this.time = 0.01;            //Our local 'clock' based on server time - client interpolation(net_offset).
     this.server_time = 0.01;            //The time the server reported it was at, last we heard from it
 
     //added from restet game in the /**/
@@ -460,164 +526,19 @@ function createOnlineGame() {
     level = 1;
     loadMap();
     menu = 3;
+    loadingPActivated = false;
+
+    lastPlayerMovement = Date.now();
 
     onlineState = 'Connected';
 
-        /*this.players = {
-            self: new game_player(this),
-            other: new game_player(this)
-        };
-
-        //Debugging ghosts, to help visualise things
-        this.ghosts = {
-            //Our ghost position on the server
-            server_pos_self: new game_player(this),
-            //The other players server position as we receive it
-            server_pos_other: new game_player(this),
-            //The other players ghost destination position (the lerp)
-            pos_other: new game_player(this)
-        };
-
-        this.ghosts.pos_other.state = 'dest_pos';
-
-        this.ghosts.pos_other.info_color = 'rgba(255,255,255,0.1)';
-
-        this.ghosts.server_pos_self.info_color = 'rgba(255,255,255,0.2)';
-        this.ghosts.server_pos_other.info_color = 'rgba(255,255,255,0.2)';
-
-        this.ghosts.server_pos_self.state = 'server_pos';
-        this.ghosts.server_pos_other.state = 'server_pos';
-
-        this.ghosts.server_pos_self.pos = { x: 20, y: 20 };
-        this.ghosts.pos_other.pos = { x: 500, y: 200 };
-        this.ghosts.server_pos_other.pos = { x: 500, y: 200 };*/
-
-    //Client specific initialisation
-    /*if (!this.server) {
-        //Create the default configuration settings
-        this.client_create_configuration();
-
-        //A list of recent server updates we interpolate across
-        //This is the buffer that is the driving factor for our networking
-        this.server_updates = [];
-
-        //Connect to the socket.io server!
-        this.client_connect_to_server();
-
-        //We start pinging the server to determine latency
-        this.client_create_ping_timer();
-
-        //Set their colors from the storage or locally
-        this.color = localStorage.getItem('color') || '#cc8822';
-        localStorage.setItem('color', this.color);
-        this.players.self.color = this.color;
-
-        //Make this only if requested
-        if (String(window.location).indexOf('debug') != -1) {
-            this.client_create_debug_gui();
-        }
-
-    } else { //if !server
-
-        this.server_time = 0;
-        this.laststate = {};
-
-    }*/
+    /*this.players = {
+        self: new game_player(this),
+        other: new game_player(this)
+    };*/
 }
 
-client_process_net_prediction_correction = function () {
-
-    //No updates...
-    if (!this.server_updates.length) return;
-
-    //The most recent server update
-    var latest_server_data = this.server_updates[this.server_updates.length - 1];
-
-    //Our latest server position
-    var my_server_pos = this.playerHost ? latest_server_data.hp : latest_server_data.cp;
-
-    //here we handle our local input prediction ,
-    //by correcting it with the server and reconciling its differences
-
-    /*var my_last_input_on_server = this.players.self.host ? latest_server_data.his : latest_server_data.cis;
-    if (my_last_input_on_server) {
-        //The last input sequence index in my local input list
-        var lastinputseq_index = -1;
-        //Find this input in the list, and store the index
-        for (var i = 0; i < this.players.self.inputs.length; ++i) {
-            if (this.players.self.inputs[i].seq == my_last_input_on_server) {
-                lastinputseq_index = i;
-                break;
-            }
-        }
-
-        //Now we can crop the list of any updates we have already processed
-        if (lastinputseq_index != -1) {
-            //so we have now gotten an acknowledgement from the server that our inputs here have been accepted
-            //and that we can predict from this known position instead
-
-            //remove the rest of the inputs we have confirmed on the server
-            var number_to_clear = Math.abs(lastinputseq_index - (-1));
-            this.players.self.inputs.splice(0, number_to_clear);
-            //The player is now located at the new server position, authoritive server
-            this.players.self.cur_state.pos = this.pos(my_server_pos);
-            this.players.self.last_input_seq = lastinputseq_index;
-            //Now we reapply all the inputs that we have locally that
-            //the server hasn't yet confirmed. This will 'keep' our position the same,
-            //but also confirm the server position at the same time.
-            this.client_update_physics();
-            this.client_update_local_position();
-
-        } // if(lastinputseq_index != -1)
-    } //if my_last_input_on_server*/
-
-}; //client_process_net_prediction_correction
-
-client_process_net_updates = function () {
-
-    //No updates...
-    if (!this.server_updates.length) return;
-
-    //First : Find the position in the updates, on the timeline
-    //We call this current_time, then we find the past_pos and the target_pos using this,
-    //searching throught the server_updates array for current_time in between 2 other times.
-    // Then :  other player position = lerp ( past_pos, target_pos, current_time );
-
-    //update player positions
-
-    //Find the position in the timeline of updates we stored.
-    var current_time = this.client_time;
-    var count = this.server_updates.length - 1;
-    var target = null;
-    var previous = null;
-
-    //We look from the 'oldest' updates, since the newest ones
-    //are at the end (list.length-1 for example). This will be expensive
-    //only when our time is not found on the timeline, since it will run all
-    //samples. Usually this iterates very little before breaking out with a target.
-    for (var i = 0; i < count; ++i) {
-
-        var point = this.server_updates[i];
-        var next_point = this.server_updates[i + 1];
-
-        //Compare our point in time with the server times we have
-        if (current_time > point.t && current_time < next_point.t) {
-            target = next_point;
-            previous = point;
-            break;
-        }
-    }
-
-    //With no target we store the last known
-    //server position and move to that instead
-    if (!target) {
-        target = this.server_updates[0];
-        previous = this.server_updates[0];
-    }
-
-}; //client_process_net_updates
-
-client_onserverupdate_recieved = function (data) {
+onserverupdate_recieved = function (data) {
 
     //Lets clarify the information we have locally. One of the players is 'hosting' and
     //the other is a joined in client, so we name these host and client for making sure
@@ -629,9 +550,9 @@ client_onserverupdate_recieved = function (data) {
     //console.log("Data recieved from server: " + data);
     //MAKE THE NOT COMMENTED
     //Store the server time (this is offset by the latency in the network, by the time we get it)
-    //this.server_time = data.t;
+    this.server_time = data.t;
     //Update our local offset time from the last server update
-    //this.client_time = this.server_time - (this.net_offset / 1000);
+    this.time = this.server_time - (this.net_offset / 1000);
 
 
     //console.log('New server data recieved!');
@@ -642,6 +563,43 @@ client_onserverupdate_recieved = function (data) {
     //interpolation between the points.
     //this.server_updates.push(data);
     
+    //newHHP
+    //new HEALTH update (first so the positions arn't reset
+    if (!(typeof data.newHHP === 'undefined')) {
+        if (playerHost) {
+
+            if (health[0] != data.newHHP)
+                createNewBlood(0);
+            else if (health[1] != data.newCHP)
+                createNewBlood(1);
+
+            health[0] = data.newHHP;
+            health[1] = data.newCHP;
+            if (health[0] == 0) {
+                xpos[0] = data.hpx;
+                ypos[0] = data.hpy;
+                xdir[0] = data.hpxdir;
+                ydir[0] = data.hpydir;
+            }
+        }
+        else {
+            if (health[1] != data.newHHP)
+                createNewBlood(1);
+            else if (health[0] != data.newCHP)
+                createNewBlood(0);
+
+            health[1] = data.newHHP;
+            health[0] = data.newCHP;
+
+            if (health[0] == 0) {
+                xpos[0] = data.cpx;
+                ypos[0] = data.cpy;
+                xdir[0] = data.cpxdir;
+                ydir[0] = data.cpydir;
+            }
+        }
+    }
+
     //xpos[1] = data.hpx;
     if (playerHost) {
         xpos[1] = data.cpx;
@@ -655,10 +613,34 @@ client_onserverupdate_recieved = function (data) {
         else if (data.cpxdir < -0.1)
             directionFacing[1] = 0;
 
-        /*if (Math.abs(xpos[0] - data.hpx) > 150)
-            xpos[0] = data.hpx;
-        if (Math.abs(ypos[0] - data.hpy) > 150)
-            ypos[0] = data.hpy;*/
+        //calculating local player with relation to server
+        //don't want to override server
+
+        //auto position if player hasn't moved in a while
+        if(Date.now() - lastPlayerMovement > 250) { // hasn't moved in quarter second
+            xpos[0] = lerp(75 , xpos[0] , data.hpx);
+            xdir[0] = data.hpxdir;
+            ypos[0] = lerp(75 , ypos[0] , data.hpy);//75 % to host y pos
+            ydir[0] = data.hpydir;
+        }
+        //otherwise make it lerp between the two
+        //after checking for large server/client differences
+        else {
+            if (netPing < 120) {
+                if(abs(data.hpx - xpos[0]) > 100) { //if there is big server/client dissagreement and ping is lowish then auto snap
+                    xpos[0] = data.hpx;
+                    xdir[0] = data.hpxdir;
+                }
+                if (abs(data.hpy - ypos[0]) > 100) { //if there is big server/client dissagreement and ping is lowish then auto snap
+                    ypos[0] = data.hpy;
+                    ydir[0] = data.hpydir;
+                }
+
+                //lerp between the two positions based on ping
+                xpos[0] = lerp(100 * (netPing / 120), xpos[0], data.hpx);
+                ypos[0] = lerp(100 * (netPing / 120), ypos[0], data.hpy);
+            }
+        }
     }
     if (!playerHost) {
         xpos[1] = data.hpx;
@@ -666,18 +648,37 @@ client_onserverupdate_recieved = function (data) {
         xdir[1] = data.hpxdir;
         ydir[1] = data.hpydir;
 
-        //console.log("The new player direction x: " + xdir[1]);
-
         //set other dir facing
         if (data.hpxdir > 0.1)
             directionFacing[1] = 1;
         else if (data.hpxdir < -0.1)
             directionFacing[1] = 0;
 
-        /*if (Math.abs(xpos[0] - data.cpx) > 150)
-            xpos[0] = data.cpx;
-        if (Math.abs(ypos[0] - data.cpy) > 150)
-            ypos[0] = data.cpy;*/
+        //auto position if player hasn't moved in a while
+        if (Date.now() - lastPlayerMovement > 250) { // hasn't moved in quarter second
+            xpos[0] = lerp(75, xpos[0], data.cpx);
+            xdir[0] = data.cpxdir;
+            ypos[0] = lerp(75, ypos[0], data.cpy);//75 % to host y pos
+            ydir[0] = data.cpydir;
+        }
+            //otherwise make it lerp between the two
+            //after checking for large server/client differences
+        else {
+            if (netPing < 120) {
+                if (abs(data.cpx - xpos[0]) > 100) { //if there is big server/client dissagreement and ping is lowish then auto snap
+                    xpos[0] = data.cpx;
+                    xdir[0] = data.cpxdir;
+                }
+                if (abs(data.cpy - ypos[0]) > 100) { //if there is big server/client dissagreement and ping is lowish then auto snap
+                    ypos[0] = data.cpy;
+                    ydir[0] = data.cpydir;
+                }
+
+                //lerp between the two positions based on ping
+                xpos[0] = lerp(100 * (netPing / 120), xpos[0], data.cpx);
+                ypos[0] = lerp(100 * (netPing / 120), ypos[0], data.cpy);
+            }
+        }
     }
 
     //see if new clip amount exists
@@ -730,43 +731,6 @@ client_onserverupdate_recieved = function (data) {
         }
     }
 
-    //newHHP
-    //new HEALTH update
-    if (!(typeof data.newHHP === 'undefined')) {
-        if (playerHost) {
-
-            if (health[0] != data.newHHP)
-                createNewBlood(0);
-            else if (health[1] != data.newCHP)
-                createNewBlood(1);
-
-            health[0] = data.newHHP;
-            health[1] = data.newCHP;
-            if (health[0] == 0) {
-                xpos[0] = data.hpx;
-                ypos[0] = data.hpy;
-                xdir[0] = data.hpxdir;
-                ydir[0] = data.hpydir;
-            }
-        }
-        else {
-            if (health[1] != data.newHHP)
-                createNewBlood(1);
-            else if (health[0] != data.newCHP)
-                createNewBlood(0);
-
-            health[1] = data.newHHP;
-            health[0] = data.newCHP;
-
-            if (health[0] == 0) {
-                xpos[0] = data.cpx;
-                ypos[0] = data.cpy;
-                xdir[0] = data.cpxdir;
-                ydir[0] = data.cpydir;
-            }
-        }
-    }
-
     //newHAmmoAmount
     //setting the new ammo counts
     if (!(typeof data.newHAmmoAmount === 'undefined')) {
@@ -783,12 +747,12 @@ client_onserverupdate_recieved = function (data) {
     }
 
     if (data.jetpackActivated) {
-        console.log("Using jetpack");
+        //console.log("Using jetpack");
         if (playerHost) {
             jetpack[0] = data.hjpack;
             jetpack[1] = data.cjpack;
 
-            fuel[0] = data.hfuel;
+            //fuel[0] = data.hfuel;
             fuel[1] = data.cfuel;
         }
         else {
@@ -796,7 +760,7 @@ client_onserverupdate_recieved = function (data) {
             jetpack[0] = data.cjpack;
 
             fuel[1] = data.hfuel;
-            fuel[0] = data.cfuel;
+            //fuel[0] = data.cfuel;
         }
     }
 
@@ -822,6 +786,9 @@ client_onserverupdate_recieved = function (data) {
             kills[0] = data.hkills;
             kills[1] = data.ckills;
 
+            healthpack[0] = data.hhppack;
+            healthpack[1] = data.chppack;
+
             //if (Math.abs(xpos[0] - data.hpx) > 50)
                 xpos[0] = data.hpx;
             //if (Math.abs(ypos[0] - data.hpy) > 50)
@@ -840,6 +807,9 @@ client_onserverupdate_recieved = function (data) {
             deadCount[1] = data.hdeadcount;
             deadCount[0] = data.cdeadcount;
 
+            healthpack[1] = data.hhppack;
+            healthpack[0] = data.chppack;
+
             deaths[1] = data.hdeaths;
             deaths[0] = data.cdeaths;
 
@@ -853,9 +823,8 @@ client_onserverupdate_recieved = function (data) {
         }
 
         if (data.gameIsOver == true) {
-            console.log("From server: game is over!!! : " + data.gameIsOver);
-            play = false;
-            menu = 5;
+            //console.log("From server: game is over!!! : " + data.gameIsOver);
+            endGameCounter++;
         }
     }
 
@@ -1026,39 +995,33 @@ client_onserverupdate_recieved = function (data) {
 
     //}
 
-    //we limit the buffer in seconds worth of updates
-    //60fps*buffer seconds = number of samples
-    /*if (this.server_updates.length >= (60 * this.buffer_size)) {
-        this.server_updates.splice(0, 1);
-    }*/
-
     //We can see when the last tick we know of happened.
-    //If client_time gets behind this due to latency, a snap occurs
+    //If time gets behind this due to latency, a snap occurs
     //to the last tick. Unavoidable, and a reallly bad connection here.
     //If that happens it might be best to drop the game after a period of time.
     this.oldest_tick = data.t;
 
-    //Handle the latest positions from the server
-    //and make sure to correct our local predictions, making the server have final say.
-    //this.client_process_net_prediction_correction();
+}; //onserverupdate_recieved
 
-}; //client_onserverupdate_recieved
+resetOnlinePlayer = function () {
 
-client_create_ping_timer = function () {
+}
+
+create_ping_timer = function () {
 
     //Set a ping timer to 1 second, to maintain the ping/latency between
     //client and server and calculated roughly how our connection is doing
 
     setInterval(function () {
 
-        this.last_ping_time = new Date().getTime();
-        this.socket.send('p.' + (this.last_ping_time));
+        this.lastPingTime = new Date().getTime();
+        this.socket.send('p.' + (this.lastPingTime));
 
     }.bind(this), 1000);
 
-}; //client_create_ping_timer
+}; //create_ping_timer
 
-client_onreadygame = function (data) {
+onreadygame = function (data) {
 
     var server_time = parseFloat(data.replace('-', '.'));
 
@@ -1074,6 +1037,7 @@ client_onreadygame = function (data) {
     if (playerHost) {
         this.onlineState = 'Connected please wait';
         menu = 11;
+        loadingPActivated = true;
     }
 
     //Store their info colors for clarity. server is always blue
@@ -1111,9 +1075,9 @@ client_onreadygame = function (data) {
         createOnlineGame();
     }
 
-}; //client_onreadygame
+}; //onreadygame
 
-client_onjoingame = function (data) {
+onjoingame = function (data) {
 
     //We are not the host
     this.playerHost = false;
@@ -1121,11 +1085,14 @@ client_onjoingame = function (data) {
     this.menu = 11;
     this.onlineState = 'Connected please wait';
     this.onlinePlayerColor = '#00bb00';
+    loadingPActivated = true;
+    //window.onmousemove = mouseMove;
+}; //onjoingame
 
-}; //client_onjoingame
-
-client_onhostgame = function (data) {
+onhostgame = function (data) {
     this.menu = 2;
+    loadingPActivated = false;
+    //window.onmousemove = null;
 
     //The server sends the time when asking us to host, but it should be a new game.
     //so the value will be really small anyway (15 or 16ms)
@@ -1141,9 +1108,9 @@ client_onhostgame = function (data) {
     onlineState = 'Hosting game, waiting';
     onlinePlayerColor = '#cc0000';
 
-}; //client_onhostgame
+}; //onhostgame
 
-client_onconnected = function (data) {
+onconnected = function (data) {
 
     //The server responded that we are now in a game,
     //this lets us store the information about ourselves and set the colors
@@ -1160,22 +1127,22 @@ client_onconnected = function (data) {
         readyGame = false;
         createOnlineGame();
     }
-}; //client_onconnected
+}; //onconnected
 
-client_on_otherclientcolorchange = function (data) {
+on_otherclientcolorchange = function (data) {
 
     otherPlayerColor = data;
 
-}; //client_on_otherclientcolorchange
+}; //on_otherclientcolorchange
 
-client_onping = function (data) {
+onping = function (data) {
 
-    this.net_ping = new Date().getTime() - parseFloat(data);
-    this.net_latency = this.net_ping / 2;
+    this.netPing = new Date().getTime() - parseFloat(data);
+    this.net_latency = this.newPing / 2;
 
-}; //client_onping
+}; //onping
 
-client_onnetmessage = function (data) {
+onnetmessage = function (data) {
 
     var commands = data.split('.');
     var command = commands[0];
@@ -1193,31 +1160,31 @@ client_onnetmessage = function (data) {
                     break;
 
                 case 'h': //host a game requested
-                    this.client_onhostgame(commanddata); break;
+                    this.onhostgame(commanddata); break;
 
                 case 'j': //join a game requested
-                    this.client_onjoingame(commanddata); break;
+                    this.onjoingame(commanddata); break;
 
                 case 'r': //ready a game requested
-                    this.client_onreadygame(commanddata); break;
+                    this.onreadygame(commanddata); break;
 
                 case 'e': //end game requested
-                    this.client_ondisconnect(commanddata); break;
+                    this.ondisconnect(commanddata); break;
 
                 case 'p': //server ping
-                    this.client_onping(commanddata); break;
+                    this.onping(commanddata); break;
 
                 case 'c': //other player changed colors
-                    this.client_on_otherclientcolorchange(commanddata); break;
+                    this.on_otherclientcolorchange(commanddata); break;
 
             } //subcommand
 
             break; //'s'
     } //command
 
-}; //client_onnetmessage
+}; //onnetmessage
 
-client_ondisconnect = function (data) {
+ondisconnect = function (data) {
     socket.disconnect();
     reset = true;
 
@@ -1231,9 +1198,9 @@ client_ondisconnect = function (data) {
     this.players.other.info_color = 'rgba(255,255,255,0.1)';
     this.players.other.state = 'not-connected';*/
 
-}; //client_ondisconnect
+}; //ondisconnect
 
-client_connect_to_server = function () {
+connect_to_server = function () {
 
     //Store a local reference to our connection to the server
     this.socket = io.connect();
@@ -1245,27 +1212,27 @@ client_connect_to_server = function () {
     }.bind(this));
 
     //Sent when we are disconnected (network, server down, etc)
-    this.socket.on('disconnect', this.client_ondisconnect.bind(this));
+    this.socket.on('disconnect', this.ondisconnect.bind(this));
     //Sent each tick of the server simulation. This is our authoritive update
-    this.socket.on('onserverupdate', this.client_onserverupdate_recieved.bind(this));
+    this.socket.on('onserverupdate', this.onserverupdate_recieved.bind(this));
     //Handle when we connect to the server, showing state and storing id's.
-    this.socket.on('onconnected', this.client_onconnected.bind(this));
+    this.socket.on('onconnected', this.onconnected.bind(this));
     //On error we just show that we are not connected for now. Can print the data.
-    this.socket.on('error', this.client_ondisconnect.bind(this));
+    this.socket.on('error', this.ondisconnect.bind(this));
     //On message from the server, we parse the commands and send it to the handlers
-    this.socket.on('message', this.client_onnetmessage.bind(this));
+    this.socket.on('message', this.onnetmessage.bind(this));
 
     //A list of recent server updates we interpolate across
     //This is the buffer that is the driving factor for our networking
     this.server_updates = [];
 
     //Connect to the socket.io server!
-    //this.client_connect_to_server();
+    //this.connect_to_server();
 
     //We start pinging the server to determine latency
-    this.client_create_ping_timer();
+    this.create_ping_timer();
 
-}; //client_connect_to_server
+}; //connect_to_server
 
 
 function init() {//instance\
@@ -1273,6 +1240,8 @@ function init() {//instance\
     mapChosen = false;
 
     console.log("On init");
+
+    pop = new dogBase();
 
     //game.canvas = document.createElement("canvas");
 
@@ -1339,6 +1308,15 @@ function init() {//instance\
 
 //resets all vars
 function resetGame() {
+
+    loadingPActivated = false;
+    //window.onmousemove = null;
+
+    //online vars
+    netPing = 0.0001;
+    lastPingTime = 0.0001;
+
+    endGameCounter = 0;
     
     onlineState = 'Offline';
     optionY = 0;
@@ -2769,14 +2747,24 @@ function render() {//ctx
                 ctx.drawImage(endgameonline, 100 * scale, 20 * scale, 500 * scale, 400 * scale);
             ctx.font = "30px Arial";
             ctx.fillStyle = "rgb(211, 211, 211)"; //light gray
-            if (teams == false) ctx.fillText(winner + " wins!", 280 * scale, 60 * scale);
-            else if (teams == true) ctx.fillText(winner + " wins!", 200 * scale, 60 * scale);
+            if (onlineState == CONNECTED) {
+                if (kills[0] >= kills[1]) {
+                    winner = "You"
+                } else {
+                    winner = "They"
+                }
+                ctx.fillText(winner + " win!", 280 * scale, 60 * scale);
+            }
+            else {
+                if (teams == false) ctx.fillText(winner + " wins!", 280 * scale, 60 * scale);
+                else if (teams == true) ctx.fillText(winner + " wins!", 200 * scale, 60 * scale);
+            }
             ctx.font = "20px Arial";
             for (i = 0; i < players; i++) {
                 if (onlineState != 'Connected')
-                    ctx.fillText("Kills         Deaths         Accuracy", 220 * scale, 110 * scale);
+                    ctx.fillText("Kills              Deaths             Accuracy", 220 * scale, 110 * scale);
                 else
-                    ctx.fillText("Kills           Deaths", 220 * scale, 110 * scale);
+                    ctx.fillText("Kills                     Deaths", 220 * scale, 110 * scale);
                 if (i == 0) {
                     round = Math.round((shotsHit[i] / shotsFired[i]) * 100);
                     ctx.fillText("Red -", 150 * scale, 150 * scale);
@@ -2841,6 +2829,48 @@ function render() {//ctx
         ctx.fillText("No matches found, hosting game...", 0, 260 * scale);*/
         ctx.drawImage(hostingScreen, 0, 0, gameWidth, gameHeight);
     }//end if menu 12
+
+    //ctx.fillStyle = "rgb(0, 0, 0)";
+    //ctx.fillRect(299, 200, 20 * scale, 20 * scale);
+    //ctx.fillRect(299, 410, 20 * scale, 20 * scale);
+
+    if (loadingPActivated) { //draw loading poppums
+        //console.log("We will draw pops!");
+        //ctx.fillStyle = "rgb(200, 200, 0)";
+        //ctx.fillRect(pop.xPos * scale, 410 * scale, 20 * scale, 20 * scale);
+        //ctx.fillStyle = "rgb(255, 0, 0)";
+        //ctx.fillRect(pop.xPos * scale, pop.yPos * scale, 20 * scale, 20 * scale);
+        if (pop.left && pop.yDir == 0) {
+            if (pop.runCount <= 7) {
+                ctx.drawImage(dogLm[0], pop.xPos * scale, pop.yPos * scale, 20 * scale, 20 * scale);
+            }
+            if (pop.runCount > 7) {
+                ctx.drawImage(dogLm[1], pop.xPos * scale, pop.yPos * scale, 20 * scale, 20 * scale);
+            }
+        } else if (pop.right && pop.yDir == 0) {
+            if (pop.runCount <= 7) {
+                ctx.drawImage(dogRm[0], pop.xPos * scale, pop.yPos * scale, 20 * scale, 20 * scale);
+            }
+            if (pop.runCount > 7) {
+                ctx.drawImage(dogRm[1], pop.xPos * scale, pop.yPos * scale, 20 * scale, 20 * scale);
+            }
+        } else {
+            if (pop.facing == LEFT) ctx.drawImage(dogL, pop.xPos * scale, pop.yPos * scale, 20 * scale, 20 * scale);
+            else if (pop.facing == RIGHT) ctx.drawImage(dogR, pop.xPos * scale, pop.yPos * scale, 20 * scale, 20 * scale);
+        }
+        //console.log("We drew pops!");
+    }//popXPos , popYPos , popXDir , popYDir , popFacing(0 or 1) , runCount
+
+    if (onlineState == 'Connected') {//displaying ping status
+        ctx.fillStyle = "rgb(255, 255, 255)";
+        ctx.font = ("10px Arial");
+        ctx.fillText("Ping: " + netPing, 0, 15 * scale);
+
+        if(netPing > 120) {
+            ctx.font = ("12px Arial");
+            ctx.fillText("Your ping is very high. This will result in poor performance.", gameWidth/2 - 300*scale, gameHeight);
+        }
+    }
 }
 //end render
 
@@ -2859,7 +2889,7 @@ function gameLoop() {
     }*/
 
     if (onlineState == "Connected") {
-        //client_process_net_updates();
+        //process_net_updates();
     }
 
     //avoid update if low fps
@@ -2867,14 +2897,6 @@ function gameLoop() {
     update(delta / 1000);
     render();
     then = now;
-
-
-    //it was 40 fps and 8 movement = 320 pixel movement/s
-    //changing player movement speeds a lot to compensate for max fps
-    //update(delta/1000000);//(delta / 1000)
-    //render();
-
-    //then = now;
 }
 
 function getKey(numba) {
@@ -2904,9 +2926,9 @@ function blah(num, key)
     });
 
     //Sent when we are disconnected (network, server down, etc)
-    this.zombsocket.on('disconnect', this.client_ondisconnect.bind(this));
+    this.zombsocket.on('disconnect', this.ondisconnect.bind(this));
     //On error we just show that we are not connected for now. Can print the data.
-    this.zombsocket.on('error', this.client_ondisconnect.bind(this));
+    this.zombsocket.on('error', this.ondisconnect.bind(this));
 
 
     /*var xmlhttp;
@@ -2936,6 +2958,70 @@ function blah(num, key)
 
 function update(modifier) {
 
+    //for game ended, making sure they can't exit game too fast
+    if (menu == 5 && onlineState == 'Connected') {
+        endGameCounter = endGameCounter + fps * modifier;
+    }
+
+    if (loadingPActivated) { //update loading poppums
+        //console.log("Move the poppums!!!!");
+        //mouse support
+        /*if (mouseX > pop.xPos + (gameWidth / 14)) {
+            pop.right = true;
+            pop.facing = RIGHT;
+            pop.left = false;
+        }
+        else if (mouseX < pop.xPos - (gameWidth / 14)) {
+            pop.left = true;
+            pop.facing = LEFT;
+            pop.right = false;
+        }
+        else {
+            pop.right = false;
+            pop.left = false;
+        }*/
+
+        //console.log("Update the poppums!! x: " + pop.xPos + " y pos: " + pop.yPos);
+        pop.yDir = pop.yDir + playerFallSpeed * modifier;// used to be 1
+
+        pop.runCount = pop.runCount + fps * modifier;
+        if (pop.runCount >= 14) {
+            pop.runCount = 0;
+        }
+
+        if (pop.left == true) {
+            pop.xDir = -playerSpeed;
+        }
+        else if (pop.right == true) {
+            pop.xDir = playerSpeed;
+        }
+        else {
+            pop.xDir = 0;
+        }
+
+        //edge of map
+        if (pop.xPos + (pop.xDir * modifier) >= 680) {
+            pop.xPos = 679;
+            if (pop.xDir > 0.01)
+                pop.xDir = 0;
+        }
+        if (pop.xPos + (pop.xDir * modifier) <= 0) {
+            pop.xPos = 1;
+            if (pop.xDir < -0.01)
+                pop.xDir = 0;
+        }
+
+        //bottom collision
+        if (pop.yPos + (pop.yDir * modifier) > 410) {
+            pop.yDir = 0;
+            pop.yPos = 410;
+            pop.jump = false;
+        }
+
+        pop.xPos = pop.xPos + (pop.xDir * modifier);
+        pop.yPos = pop.yPos + (pop.yDir * modifier);
+    }
+
     //reset/rematch
     if (reset == true || rematch == true) {
         resetGame();
@@ -2945,12 +3031,17 @@ function update(modifier) {
     //map select screen
     if (menu == 2)
     {
-	if(mapSelectSpeed > 0) mapSelectSpeed = mapSelectSpeed + mapSelectAcc;
-	else if(mapSelectSpeed < 0) mapSelectSpeed = mapSelectSpeed + mapSelectAcc;
-	if(mapSelectSpeed > -5 && mapSelectSpeed < 5) mapSelectSpeed = 0;
+        if (mapSelectSpeed > 0)
+            mapSelectSpeed = mapSelectSpeed + mapSelectAcc;
+        else if (mapSelectSpeed < 0)
+            mapSelectSpeed = mapSelectSpeed + mapSelectAcc;
+        if (mapSelectSpeed > -5 && mapSelectSpeed < 5)
+            mapSelectSpeed = 0;
 
-	if(mapSelectAcc > 4) mapSelectAcc = mapSelectAcc - 1;
-	else if(mapSelectAcc < -4) mapSelectAcc = mapSelectAcc + 1;
+        if (mapSelectAcc > 4)
+            mapSelectAcc = mapSelectAcc - 1;
+        else if (mapSelectAcc < -4)
+            mapSelectAcc = mapSelectAcc + 1;
     }
     else { mapSelectSpeed = 0; mapSelectAcc = 0; }
     //animation in menues
@@ -2984,7 +3075,7 @@ function update(modifier) {
                     clips[i][0] = 2;
                     clips[i][1] = 2;
                 }
-                for (i = 0; i <= 9; i++) {
+                for (i = 0; i <= 7; i++) {
                     gunx[i] = -1000;
                     guny[i] = 3000;
                 }
@@ -3836,11 +3927,12 @@ function update(modifier) {
                                     }
                                 }
                                 //Hello whoever is reading this! - Rhys porting to javascript
-                                if (shotType[i][k] != 5) {
-                                    b[i][k] = false;
-                                }/* else if (shotType[i][k] == 5) {
+                                /*if (shotType[i][k] != 5) {
+                                    
+                                } else if (shotType[i][k] == 5) {
                                         shotsFired[i]++;
                                     }*/
+                                b[i][k] = false;
                                 if (shotType[i][k] == 1) {
                                     health[t] = health[t] - 5;
                                 }
@@ -3854,7 +3946,7 @@ function update(modifier) {
                                     health[t] = health[t] - 12;
                                 }
                                 if (shotType[i][k] == 5) {
-                                    if (k % 2 == 0) health[t] = health[t] - 0.5;
+                                    health[t] = health[t] - 0.25;
                                 }
                                 if (shotType[i][k] == 6) {
                                     health[t] = health[t] - 4;
@@ -4154,6 +4246,8 @@ function update(modifier) {
                     }
                 }
                 for (i = 0; i <= 9; i++) {
+                    if (onlineState == CONNECTED && i >= 7)
+                        break;
                     //hit falling gun
                     if (((down[k] == false && downCount[k] > 0 && downCount[k] <= 15) || (i == 0) || (cpu[k] == true) || (gun[k][0] - 1 == i) || (gun[k][1] - 1 == i)) && xpos[k] + 20 >= gunx[i] && xpos[k] <= gunx[i] + 20 && ypos[k] + 30 >= guny[i] && ypos[k] - 30 <= guny[i] && ypos[k] > 0 && i <= 7 && (custom == true || (zombie == true && k == 0))) {
                         down[k] = false;
@@ -4232,9 +4326,16 @@ function update(modifier) {
         for (i = 0; i <= 9; i++) {
             //guns falling + collide
             for (q = 0; q <= 14; q++) {
+                if (onlineState == CONNECTED && i >= 7) {
+                    i = 20;
+                    break;
+                }
                 if ((block[q] == true && gunx[i] + 10 >= blockx[q] && gunx[i] <= blockx[q] + blockw[q] && guny[i] + 20 <= blocky[q] + blockh[q] && guny[i] + 20 >= blocky[q]) || guny[i] >= 410) {
                     q = 15;
-                } else if (q == 14) guny[i] = guny[i] + ((2 * fps) * modifier);
+                }
+                else if (q == 14) {
+                    guny[i] = guny[i] + ((2 * fps) * modifier);
+                }
             }
         }
 
@@ -4411,12 +4512,20 @@ function update(modifier) {
 
             //console.log("Update the positions!!!");
 
+
+
             xpos[i] = xpos[i] + (xdir[i] * modifier);
             ypos[i] = ypos[i] + (ydir[i] * modifier);
             dogxpos[i] = dogxpos[i] + (dogxdir[i] * modifier);
             dogypos[i] = dogypos[i] + (dogydir[i] * modifier);
         }
+        if (onlineState == 'Connected') {
+            if (xdir[0] > 0.01 || xdir[0] < -0.01 || ydir[0] > 0.01 || ydir[0] < -0.01) {
+                lastPlayerMovement = Date.now();
+            }
+        }
     }
+
 }
 //end update
 
@@ -4686,7 +4795,7 @@ function keyPressed(e) {
     //reset esc
     if (key == 27) {
         if (onlineState != 'Offline')
-            client_ondisconnect();
+            ondisconnect();
         /*GOING BACK THROUGH MENUS
         if(menu == 3 || playing)reset = true;
         else if(menu == 6)reset = true;
@@ -4710,6 +4819,25 @@ function keyPressed(e) {
 
         //Go
         this.socket.send(server_packet);
+    }
+
+    if (loadingPActivated) {
+        if (key == 39) {
+            pop.right = true;
+            pop.facing = RIGHT;
+            pop.left = false;
+        }
+        if (key == 37) {
+            pop.left = true;
+            pop.facing = LEFT;
+            pop.right = false;
+        }
+        if (key == 38) {
+            if (pop.jump == false) {
+                pop.jump = true;
+                pop.yDir = -jumpSpeed;
+            }
+        }
     }
 
     //player 0-Red
@@ -5045,8 +5173,10 @@ function keyPressed(e) {
                 menu = 10;
 
                 onlineState = "Searching for game";
+                loadingPActivated = true;
+                //window.onmousemove = mouseMove;
 
-                client_connect_to_server();
+                connect_to_server();
                 checked[0] = false;
                 //menu = 1;
 
@@ -5093,9 +5223,9 @@ function keyPressed(e) {
 		        
 		        level = 0;
 		        for (i = 0; i <= 9; i++) {
-			    if (level != 5) gunx[i] = (Math.random() * 680) + 2;
-			    if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
-			    guny[i] = -20 - ((Math.random() * 1500));
+			        if (level != 5) gunx[i] = (Math.random() * 680) + 2;
+			        if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
+			        guny[i] = -20 - ((Math.random() * 1500));
 		        }
 		        swords = false;
 		        zombie = true;
@@ -5417,6 +5547,7 @@ function keyPressed(e) {
             }
             if (onlineState == 'Hosting game, waiting') {
                 console.log("Map chosen by host (me)!!");
+                loadingPActivated = true;
                 mapChosen = true;
                 menu = 12;
             }
@@ -5426,13 +5557,17 @@ function keyPressed(e) {
         else if (menu == 5) //post game screen
         {
             if (onlineState == 'Connected') {
-                reset = true;
-                client_ondisconnect();
+                if (endGameCounter > 20) {
+                    reset = true;
+                    ondisconnect();
+                }
             }
-            if (boxx == 275) {
-                reset = true;
-            } else if (boxx == 508) {
-                rematch = true;
+            else {
+                if (boxx == 275) {
+                    reset = true;
+                } else if (boxx == 508) {
+                    rematch = true;
+                }
             }
         }
     }
@@ -5456,6 +5591,15 @@ function keyReleased(e) {
 
         //Go
         this.socket.send(server_packet);
+    }
+
+    if (loadingPActivated) {
+        if (upKey == 39) {
+            pop.right = false;
+        }
+        if (upKey == 37) {
+            pop.left = false;
+        }
     }
 
     //player 0-Red
@@ -5636,9 +5780,18 @@ function keyReleased(e) {
 }
 //end key released
 
-/*
+function startThatMap(mapNum) {
+    loadingPActivated = false;
+    //window.onmousemove = null;
+    level = mapNum;
+    loadMap();
+    menu = 3;
+}
+
 //MOUSE YO
-window.addEventListener('mouseup', this.mouseUp, false);
+//window.addEventListener('mousemove', this.mouseMove, false);
+
+var lastMouseY = 0;
 
 //mouse helper method
 function getMousePos(canvas, evt) {
@@ -5649,11 +5802,24 @@ function getMousePos(canvas, evt) {
     };
 }
 
-function mouseUp(event) {
+function mouseMove(event) {
+    console.log("Mouse moved!");
     var mousePos = getMousePos(canvas, event);
-    var mouseX = mousePos.x;
-    var mouseY = mousePos.y;
+    mouseX = mousePos.x/scale;
+    mouseY = mousePos.y/scale;
 
+    if (loadingPActivated) { //move loading poppums
+
+        if (lastMouseY > mouseY && pop.jump == false) {
+            pop.jump = true;
+            pop.yDir = -jumpSpeed;
+        }
+    }
+
+    lastMouseY = mouseY;
+}
+
+/*
     //var scaledNorm = 1.4;
 
     document.getElementById("p1").innerHTML = "New mouse click! X: "+mouseX + " Y: " + mouseY;
@@ -5900,7 +6066,7 @@ function mouseUp(event) {
 
                         onlineState = "Searching for game";
 
-                        client_connect_to_server();
+                        connect_to_server();
                     }
                     if (checkedy[0] == 283) {//tdm
                         menu = 1;
@@ -6164,12 +6330,6 @@ function mouseUp(event) {
         }
     }
 }*/
-
-function startThatMap(mapNum) {
-    level = mapNum;
-    loadMap();
-    menu = 3;
-}
 
 
 

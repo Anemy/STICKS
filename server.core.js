@@ -1,18 +1,12 @@
-//server code
-//v1
+/*  Copyright (c) 2014 Rhys Howell & Paul Henninger
+    
+    Written for: http://stick-battle.com
+    
+    * Stick Battle
+    * Server core
+*/
 
-//GAME VARIABLES
-//6=mode select
-//players
-/*var xpos = [];
-var ypos = [];
-var xdir = [];
-//6=mode select
-var ydir = [];
-var ground = [];
-var right = [];
-var left = [];
-var directionFacing = [];*/
+const version = 1.01;
 
 var fps = 40;
 
@@ -21,76 +15,16 @@ var playerSpeed = 8 * fps; //it was 8 at fps = 25(40)
 var playerFallSpeed = 40 * fps; // was 1
 var playerLungeSpeed = 15 * fps; // was 15
 
-//player stats
-/*var health = []; // all 25
-var fuel = [];
-var jetpack = [];
-var fuelCount = [];*/
-
-//kill gamePlayers[i].streaks 25
-/*var gamePlayers[i].streak = [];
-var killcount = [];
-var healthpack = [];
-var healthpackx = [];
-var healthpacky = [];*/
-
-//kills/after game stats
-/*var kills = [];
-var deaths = [];
-var shotsFired = [];
-var shotsHit = [];*/
 
 //kill limit/survival
 var killLimit = 10;
 var teamkills = [];
 
-//shooting
-/*var shooting = [];
-var shootCount = [];
-
-//reload
-var reload = [];
-var reloadCount = [];*/
-
-//bullets
-/*var b = []; //(25 ,  100)
-var bx = [];
-var by = [];
-var bxdir = [];
-var shotType = [];
-var bydir = [];
-for (i = 0; i < 25; i++) {
-    gamePlayers[i].b = [];
-    gamePlayers[i].bx = [];
-    gamePlayers[i].by = [];
-    gamePlayers[i].bxdir = [];
-    gamePlayers[i].shotType = [];
-    gamePlayers[i].bydir = [];
-}*/
 
 //falling guns
 var gunx = [];
 var guny = [];
 
-/*var down = [];
-var downCount = [];*/
-
-//weapons
-/*var flameDis = [];
-var gun = []; //(25 ,  2); // double 25 2
-for (i = 0; i < 25; i++) {
-    gamePlayers[i].flameDis = [];
-    gun[i] = [];
-}
-var equip = [];*/
-
-/*//ammo
-var ammo = []; //(25 ,  2)
-var clips = [];
-for (i = 0; i < 25; i++) {
-    ammo[i] = [];
-    gamePlayers[i].clips = [];
-}*/
 var maxAmmo = []; // 10
 
 //blocks
@@ -147,7 +81,7 @@ var startTime = Date.now();
 var mapSelected = false;
 
 //add setting gameover to true
-var gameOver = false
+var gameOver = false;
 
 var game_player = function (game_instance, player_instance, playerNum) {
     this.lastInput = null;
@@ -706,7 +640,7 @@ function loadMap() {
 server_instance.prototype.onMapSelected = function (mapNum) {
     
     if (mapSelected == false && mapNum != 5) {
-        console.log("Map chosen map selected!!! Level #: " + mapNum);
+        console.log("Map chosen map selected! on  map selected!! Level #: " + mapNum);
         mapSelected = true;
         mapNumber = mapNum;
         level = mapNum;
@@ -1049,6 +983,19 @@ server_instance.prototype.update = function () {
             players.self.instance.send('s.m.' + mapNumber);
             players.other.instance.send('s.m.' + mapNumber);
         }
+
+        //creating new guns
+        for (k = 0; k <= 7; k++) {
+            gunx[k] = (Math.random() * 1380) + 2;
+            guny[k] = -20 - ((Math.random() * 1500));
+            var newGun = {//function (x, y, gunType) 
+                newGunX: gunx[k],
+                newGunY: guny[k],
+                newGunType: k
+            };
+            newGuns.push(newGun);
+            //newGuns.push(newGun(gunx[k],guny[k],k));
+        }
     }
     counter++;
     if (counter > 10000)
@@ -1119,6 +1066,7 @@ server_instance.prototype.update = function () {
                 //player healthpack collision
                 if (gamePlayers[i].xpos + 20 >= gamePlayers[k].healthpackx && gamePlayers[i].xpos <= gamePlayers[k].healthpackx + 20 && gamePlayers[i].ypos + 20 >= gamePlayers[k].healthpacky && gamePlayers[i].ypos <= gamePlayers[k].healthpacky + 20 && gamePlayers[k].healthpack == true && gamePlayers[i].ypos > 0) {
                     serverHasUpdate = true;
+                    fullUpdate = true;
                     gamePlayers[i].health = 20;
                     gamePlayers[k].healthpack = false;
                 }
@@ -1169,6 +1117,8 @@ server_instance.prototype.update = function () {
                     gamePlayers[i].ground = 430;
                 }
             }
+
+            gamePlayers[i].fuelCount = gamePlayers[i].fuelCount + fps * modifier;//2?!?!?!
 
             //y movement
             if (gamePlayers[i].ypos + 20 + (gamePlayers[i].ydir * modifier) >= gamePlayers[i].ground && gamePlayers[i].ydir > 0) {
@@ -1377,6 +1327,9 @@ function sendUserUpdates() {
         this.laststate.hstreak = gamePlayers[0].streak;
         this.laststate.cstreak = gamePlayers[1].streak;
 
+        this.laststate.hhppack = gamePlayers[0].healthpack;
+        this.laststate.chppack = gamePlayers[1].healthpack;
+
         this.laststate.hjpack = gamePlayers[0].jetpack;
         this.laststate.cjpack = gamePlayers[1].jetpack;
 
@@ -1463,16 +1416,16 @@ function bulletCollisions(i, modifier) {
                     //blood would be here
 
                     //Hello whoever is reading this! - Rhys porting to javascript
-                    if (gamePlayers[i].shotType[k] != 5) {
+                    //if (gamePlayers[i].shotType[k] != 5) {
                         var deadBullet = {
                             owner: i,
                             ID: k
                         };
                         killBullets.push(deadBullet);
                         gamePlayers[i].b[k] = false;
-                    }/* else if (gamePlayers[i].shotType[k] == 5) {
-                                    gamePlayers[i].shotsFired++;
-                                }*/
+                    //}/* else if (gamePlayers[i].shotType[k] == 5) {
+                                   // gamePlayers[i].shotsFired++;
+                               // }*/
                     if (gamePlayers[i].shotType[k] == 1) {
                         gamePlayers[t].health = gamePlayers[t].health - 5;
                     }
@@ -1486,7 +1439,7 @@ function bulletCollisions(i, modifier) {
                         gamePlayers[t].health = gamePlayers[t].health - 12;
                     }
                     if (gamePlayers[i].shotType[k] == 5) {
-                        if (k % 2 == 0) gamePlayers[t].health = gamePlayers[t].health - 0.5;
+                        gamePlayers[t].health = gamePlayers[t].health - 0.25;
                     }
                     if (gamePlayers[i].shotType[k] == 6) {
                         gamePlayers[t].health = gamePlayers[t].health - 4;
