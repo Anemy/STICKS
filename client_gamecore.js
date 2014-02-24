@@ -607,11 +607,20 @@ onserverupdate_recieved = function (data) {
         xdir[1] = data.cpxdir;
         ydir[1] = data.cpydir;
 
-        //set dir face
-        if (data.cpxdir > 0.1)
+        if (data.cpxdir > 0.1) {
             directionFacing[1] = 1;
-        else if (data.cpxdir < -0.1)
+            right[1] = true;
+            left[1] = false;
+        }
+        else if (data.cpxdir < -0.1) {
             directionFacing[1] = 0;
+            right[1] = false;
+            left[1] = true;
+        }
+        else {
+            right[1] = false;
+            left[1] = false;
+        }
 
         //calculating local player with relation to server
         //don't want to override server
@@ -649,10 +658,20 @@ onserverupdate_recieved = function (data) {
         ydir[1] = data.hpydir;
 
         //set other dir facing
-        if (data.hpxdir > 0.1)
+        if (data.hpxdir > 0.1) {
             directionFacing[1] = 1;
-        else if (data.hpxdir < -0.1)
+            right[1] = true;
+            left[1] = false;
+        }
+        else if (data.hpxdir < -0.1) {
             directionFacing[1] = 0;
+            right[1] = false;
+            left[1] = true;
+        }
+        else {
+            right[1] = false;
+            left[1] = false;
+        }
 
         //auto position if player hasn't moved in a while
         if (Date.now() - lastPlayerMovement > 250) { // hasn't moved in quarter second
@@ -681,19 +700,6 @@ onserverupdate_recieved = function (data) {
         }
     }
 
-    //see if new clip amount exists
-    if (!(typeof data.newHClipsAmount === 'undefined')) {
-        //console.log("New clips!");
-        if (playerHost) {
-            clips[0][equip[0]] = data.newHClipsAmount;
-            clips[1][equip[1]] = data.newCClipsAmount;
-        }
-        else {
-            clips[1][equip[1]] = data.newHClipsAmount;
-            clips[0][equip[0]] = data.newCClipsAmount;
-        }
-    }
-
     //there are bullets to kill
     if (data.amountOfDeadBullets > 0) {
         bulletsToKill = JSON.parse(data.newDeadBullet);
@@ -719,40 +725,99 @@ onserverupdate_recieved = function (data) {
             equip[0] = data.newHEquip;
             equip[1] = data.newCEquip;
 
+            //stop reload if happening
+            if (gun[0][equip[0]] != data.newHGunEquip && reload[0])
+                reload[0] = false;
+            if (gun[1][equip[1]] != data.newCGunEquip && reload[1])
+                reload[1] = false;
+
             gun[0][equip[0]] = data.newHGunEquip;
             gun[1][equip[1]] = data.newCGunEquip;
+
         }
         else {
             equip[1] = data.newHEquip;
             equip[0] = data.newCEquip;
+
+            //stop reload if happening
+            if (gun[0][equip[0]] != data.newCGunEquip && reload[0])
+                reload[0] = false;
+            if (gun[1][equip[1]] != data.newHGunEquip && reload[1])
+                reload[1] = false;
 
             gun[1][equip[1]] = data.newHGunEquip;
             gun[0][equip[0]] = data.newCGunEquip;
         }
     }
 
+    //see if new clip amount exists
+    if (!(typeof data.newHClipsAmount === 'undefined')) {
+        //console.log("New clips!");
+        if (playerHost) {
+            clips[0][equip[0]] = data.newHClipsAmount;
+            clips[1][equip[1]] = data.newCClipsAmount;
+        }
+        else {
+            clips[1][equip[1]] = data.newHClipsAmount;
+            clips[0][equip[0]] = data.newCClipsAmount;
+        }
+    }
+
     //newHAmmoAmount
     //setting the new ammo counts
     if (!(typeof data.newHAmmoAmount === 'undefined')) {
+
         newAmmoCountH = data.newHAmmoAmount;
         newAmmoCountC = data.newCAmmoAmount;
         if (playerHost) {
             ammo[0][equip[0]] = newAmmoCountH;
             ammo[1][equip[1]] = newAmmoCountC;
+            if (data.newReloadH) {
+                reload[0] = true;
+                reloadCount[0] = 0;
+            }
+            if (data.newReloadC) {
+                reload[1] = true;
+                reloadCount[1] = 0;
+            }
         }
         else {
             ammo[0][equip[0]] = newAmmoCountC;
             ammo[1][equip[1]] = newAmmoCountH;
+            if (data.newReloadH) {
+                reload[1] = true;
+                reloadCount[1] = 0;
+            }
+            if (data.newReloadC) {
+                reload[0] = true;
+                reloadCount[0] = 0;
+            }
         }
     }
 
     if (data.jetpackActivated) {
         //console.log("Using jetpack");
+        if (netPing < 120) {
+            //lerp between the two positions based on ping
+            if (playerHost) {
+                fuel[0] = lerp(100 * (netPing / 120), jetpack[0], data.hfuel);
+            }
+            else {
+                fuel[0] = lerp(100 * (netPing / 120), jetpack[0], data.cfuel);
+            }
+        }
+        else {
+            if (playerHost) {
+                fuel[0] = data.hfuel;
+            }
+            else {
+                fuel[0] = data.cfuel;
+            }
+        }
         if (playerHost) {
             jetpack[0] = data.hjpack;
             jetpack[1] = data.cjpack;
 
-            //fuel[0] = data.hfuel;
             fuel[1] = data.cfuel;
         }
         else {
@@ -760,7 +825,6 @@ onserverupdate_recieved = function (data) {
             jetpack[0] = data.cjpack;
 
             fuel[1] = data.hfuel;
-            //fuel[0] = data.cfuel;
         }
     }
 
@@ -824,7 +888,9 @@ onserverupdate_recieved = function (data) {
 
         if (data.gameIsOver == true) {
             //console.log("From server: game is over!!! : " + data.gameIsOver);
-            endGameCounter++;
+            //endGameCounter++;
+            menu = 5;
+            play = false;
         }
     }
 
@@ -835,10 +901,12 @@ onserverupdate_recieved = function (data) {
         if(m == 0)
             newGunsAdded = JSON.parse(data.newGun);
 
-        //console.log("Hit up another gun type: " + newGunsAdded[m].newGunType + " homies at this x POS: " + newGunsAdded[m].newGunX);
+        //console.log("Hit up another gun type: " + newGunsAdded[m].newGunType + " homies at this x POS: " + newGunsAdded[m].newGunX + " and y: " + newGunsAdded[m].newGunY);
 
-        gunx[newGunsAdded[m].newGunType] = newGunsAdded[m].newGunX;
-        guny[newGunsAdded[m].newGunType] = newGunsAdded[m].newGunY;
+        if (m < 7) {
+            gunx[newGunsAdded[m].newGunType] = newGunsAdded[m].newGunX;
+            guny[newGunsAdded[m].newGunType] = newGunsAdded[m].newGunY;
+        }
     }
     
     var newBulletsAdded = [];
@@ -2452,11 +2520,11 @@ function render() {//ctx
                         if (directionFacing[i] == 1) ctx.drawImage(gunUp[gun[i][1] - 1][1], (xpos[i] + 4) * scale, (ypos[i] - 5) * scale, 3 * scale, 17 * scale);
                         else ctx.drawImage(gunUp[gun[i][1] - 1][0], (xpos[i] + 13) * scale, (ypos[i] - 5) * scale, 3 * scale, 17 * scale);
                     }
-                    if (gun[i][1] == 7) {
+                    if (gun[i][1] == 7 && (onlineState != CONNECTED)) {
                         if (directionFacing[i] == 1) ctx.drawImage(gunDown[gun[i][1] - 1][0], (xpos[i] - 2) * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
                         else ctx.drawImage(gunDown[gun[i][1] - 1][1], (xpos[i] + 2) * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
                     }
-                    if (gun[i][1] == 8) {
+                    if (gun[i][1] == 8 && (onlineState != CONNECTED)) {
                         if (directionFacing[i] == 1) ctx.drawImage(gunDown[gun[i][1] - 1][0], xpos[i] * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
                         else ctx.drawImage(gunDown[gun[i][1] - 1][1], xpos[i] * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
                     }
@@ -2486,11 +2554,11 @@ function render() {//ctx
                         if (directionFacing[i] == 1) ctx.drawImage(gunUp[gun[i][0] - 1][1], (xpos[i] + 4) * scale, (ypos[i] - 5) * scale, 3 * scale, 17 * scale);
                         else ctx.drawImage(gunUp[gun[i][0] - 1][0], (xpos[i] + 13) * scale, (ypos[i] - 5) * scale, 3 * scale, 17 * scale);
                     }
-                    if (gun[i][0] == 7) {
+                    if (gun[i][0] == 7 && (onlineState != CONNECTED)) {
                         if (directionFacing[i] == 1) ctx.drawImage(gunDown[gun[i][0] - 1][0], (xpos[i] - 2) * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
                         else ctx.drawImage(gunDown[gun[i][0] - 1][1], (xpos[i] + 2) * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
                     }
-                    if (gun[i][0] == 8) {
+                    if (gun[i][0] == 8 && (onlineState != CONNECTED)) {
                         if (directionFacing[i] == 1) ctx.drawImage(gunDown[gun[i][0] - 1][0], (xpos[i]) * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
                         else ctx.drawImage(gunDown[gun[i][0] - 1][1], (xpos[i]) * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
                     }
@@ -2521,7 +2589,7 @@ function render() {//ctx
                     if (directionFacing[i] == 1) ctx.drawImage(gunRight[gun[i][equip[i]] - 1], (xpos[i] + 4) * scale, (ypos[i] + 4) * scale, 17 * scale, 3 * scale);
                     else ctx.drawImage(gunLeft[gun[i][equip[i]] - 1], (xpos[i] - 1) * scale, (ypos[i] + 4) * scale, 17 * scale, 3 * scale);
                 }
-                if (gun[i][equip[i]] == 7) {
+                if (gun[i][equip[i]] == 7 && (onlineState != CONNECTED)) {
                     if ([i] != 0 && lunge[i] == false) {
                         if (directionFacing[i] == 1) ctx.drawImage(gunRight[gun[i][equip[i]] - 1], (xpos[i] - 6) * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
                         else ctx.drawImage(gunLeft[gun[i][equip[i]] - 1], (xpos[i] + 6) * scale, (ypos[i] + 2) * scale, 20 * scale, 20 * scale);
@@ -2530,7 +2598,7 @@ function render() {//ctx
                     else if (lunge[i] == true && directionFacing[i] == 1) ctx.drawImage(swordSlash[1], (xpos[i] + 10) * scale, (ypos[i] - 2) * scale, 20 * scale, 20 * scale);
                     else if (lunge[i] == true && directionFacing[i] == 0) ctx.drawImage(swordSlash[0], (xpos[i] - 10) * scale, (ypos[i] - 2) * scale, 20 * scale, 20 * scale);
                 }
-                if (gun[i][equip[i]] == 8) {
+                if (gun[i][equip[i]] == 8 && (onlineState != CONNECTED)) {
                     if (xdir[i] != 0 && lunge[i] == false) {
                         if (directionFacing[i] == 1) ctx.drawImage(gunRight[gun[i][equip[i]] - 1], (xpos[i]) * scale, (ypos[i] - 2) * scale, 20 * scale, 20 * scale);
                         else ctx.drawImage(gunLeft[gun[i][equip[i]] - 1], (xpos[i]) * scale, (ypos[i] - 2) * scale, 20 * scale, 20 * scale);
@@ -2550,8 +2618,8 @@ function render() {//ctx
         ctx.drawImage(gunRight[4], gunx[4] * scale, guny[4] * scale, 28 * scale, 7 * scale);
         ctx.drawImage(gunRight[5], gunx[5] * scale, guny[5] * scale, 17 * scale, 3 * scale);
         ctx.drawImage(gunRight[6], gunx[6] * scale, guny[6] * scale, 20 * scale, 20 * scale);
-        ctx.drawImage(redSwordStill[1], gunx[7] * scale, guny[7] * scale, 20 * scale, 20 * scale);
-
+        if (onlineState != CONNECTED)
+            ctx.drawImage(redSwordStill[1], gunx[7] * scale, guny[7] * scale, 20 * scale, 20 * scale);
 
         //health packs
         for (i = 0; i < players; i++) {
@@ -2749,11 +2817,11 @@ function render() {//ctx
             ctx.fillStyle = "rgb(211, 211, 211)"; //light gray
             if (onlineState == CONNECTED) {
                 if (kills[0] >= kills[1]) {
-                    winner = "You"
+                    winner = "You Win!!!!"
                 } else {
-                    winner = "They"
+                    winner = "You Lose!"
                 }
-                ctx.fillText(winner + " win!", 280 * scale, 60 * scale);
+                ctx.fillText(winner, 280 * scale, 60 * scale);
             }
             else {
                 if (teams == false) ctx.fillText(winner + " wins!", 280 * scale, 60 * scale);
@@ -2814,6 +2882,10 @@ function render() {//ctx
         //ctx.font = ("60px Arial");
         //ctx.fillStyle = "rgb(0, 0, 0)"; 
         //ctx.fillText("Searching for match...", 100 * scale, 260 * scale);
+        //bg
+        ctx.drawImage(menuBackgroundImage, 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(cloudsImage, cloudsX[0], 0, gameWidth, 100 * scale);
+        ctx.drawImage(cloudsImage, cloudsX[1], 0, gameWidth, 100 * scale);
 
         ctx.drawImage(searchingScreen, 0, 0, gameWidth, gameHeight);
     }//end if menu 10
@@ -2821,12 +2893,22 @@ function render() {//ctx
         /*ctx.font = ("60px Arial");
         ctx.fillStyle = "rgb(0, 0, 0)"; 
         ctx.fillText("Found game, connecting...", 100 * scale, 260 * scale);*/
+        //bg
+        ctx.drawImage(menuBackgroundImage, 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(cloudsImage, cloudsX[0], 0, gameWidth, 100 * scale);
+        ctx.drawImage(cloudsImage, cloudsX[1], 0, gameWidth, 100 * scale);
+
         ctx.drawImage(connectingScreen, 0, 0, gameWidth, gameHeight);
     }//end if menu 11
     else if (menu == 12) { // searching for game
         /*ctx.font = ("60px Arial");
         ctx.fillStyle = "rgb(0, 0, 0)"; 
         ctx.fillText("No matches found, hosting game...", 0, 260 * scale);*/
+        //bg
+        ctx.drawImage(menuBackgroundImage, 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(cloudsImage, cloudsX[0], 0, gameWidth, 100 * scale);
+        ctx.drawImage(cloudsImage, cloudsX[1], 0, gameWidth, 100 * scale);
+
         ctx.drawImage(hostingScreen, 0, 0, gameWidth, gameHeight);
     }//end if menu 12
 
@@ -3946,7 +4028,7 @@ function update(modifier) {
                                     health[t] = health[t] - 12;
                                 }
                                 if (shotType[i][k] == 5) {
-                                    health[t] = health[t] - 0.25;
+                                    health[t] = health[t] - 0.5;
                                 }
                                 if (shotType[i][k] == 6) {
                                     health[t] = health[t] - 4;

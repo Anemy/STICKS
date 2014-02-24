@@ -1,13 +1,3 @@
-/*  Copyright (c) 2012 Sven "FuzzYspo0N" Bergström
-    
-    written by : http://underscorediscovery.com
-    written for : http://buildnewgames.com/real-time-multiplayer/
-    
-    MIT Licensed.
-
-    Usage : node app.js
-*/
-
     var
         gameport = process.env.PORT || 4420,//4
         //gameport = 'stick-battle.com',
@@ -30,7 +20,7 @@
 //so keep this in mind - this is not a production script but a development teaching tool.
 
         //Tell the server to listen for incoming connections
-    server.listen(gameport);//, 'stick-battle.com');
+    server.listen(gameport);//gameport);//, 'stick-battle.com');
 
         //Log something so we know that it succeeded.
     console.log('\t :: Express :: Listening on port ' + gameport );

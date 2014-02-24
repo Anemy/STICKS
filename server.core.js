@@ -37,13 +37,6 @@ var blockh = [];
 //levels
 var level = 1;
 
-//IDK
-/*var lives = [];
-
-var swapCount = [];
-
-var deadCount = [];*/
-
 var play;
 
 local_time = 0;
@@ -114,6 +107,7 @@ var game_player = function (game_instance, player_instance, playerNum) {
 
     this.lives = -1;
 
+    this.swap = false;
     this.swapCount = 0;
 
     this.deadCount = 0;
@@ -156,6 +150,9 @@ var game_player = function (game_instance, player_instance, playerNum) {
     this.shotsFired = 0;
     this.shotsHit = 0;
 };
+
+//when new reload triggered = true
+var newReload = [];
 
 //ONLINE BULLET VARS
 var newBullets = [];
@@ -261,12 +258,13 @@ server_instance.prototype.initGame = function () {
         }
 
         //set dirs
-        gamePlayers[i].ydir = 0;
+        gamePlayers[i].xdir = 0;
         gamePlayers[i].ydir = 0;
 
         //set positions
         gamePlayers[i].ypos = 410;
 
+        newReload[i] = false;
 
         //set guns
         gamePlayers[i].equip = 0;
@@ -280,8 +278,10 @@ server_instance.prototype.initGame = function () {
         gamePlayers[i].down = false;
         gamePlayers[i].downCount = 0;
 
-        gamePlayers[i].ydir = 0;
+        gamePlayers[i].swap = false;
         gamePlayers[i].swapCount = 0;
+
+        gamePlayers[i].ydir = 0;
         gamePlayers[i].runCount = 0;
         gamePlayers[i].directionFacing = 1;
         gamePlayers[i].ground = 430;
@@ -324,8 +324,8 @@ server_instance.prototype.initGame = function () {
     }
 
     //creating new guns
-    for (k = 0; k <= 7; k++) {
-        gunx[k] = (Math.random() * 1380) + 2;
+    for (k = 0; k < 7; k++) {
+        gunx[k] = (Math.random() * 680) + 2;
         guny[k] = -20 - ((Math.random() * 1500));
         var newGun = {//function (x, y, gunType) 
             newGunX: gunx[k],
@@ -639,7 +639,7 @@ function loadMap() {
 
 server_instance.prototype.onMapSelected = function (mapNum) {
     
-    if (mapSelected == false && mapNum != 5) {
+    if (mapSelected == false && mapNum != 4) {
         console.log("Map chosen map selected! on  map selected!! Level #: " + mapNum);
         mapSelected = true;
         mapNumber = mapNum;
@@ -710,6 +710,7 @@ server_instance.prototype.process_input = function (player) {
         }
         if (key == 40) {
             gamePlayers[senderID].down = true;
+            gamePlayers[senderID].swap = true;
         }
     }
     if (input.time == 'u') {
@@ -720,7 +721,6 @@ server_instance.prototype.process_input = function (player) {
             gamePlayers[senderID].left = false;
         }
         if (key == 40) {
-            gamePlayers[senderID].down = false;
             if (gamePlayers[senderID].jetpack)
                 gamePlayers[senderID].jetpack = false;
 
@@ -730,10 +730,20 @@ server_instance.prototype.process_input = function (player) {
                     gamePlayers[senderID].reload = true;
                     gamePlayers[senderID].shooting = false;
                     gamePlayers[senderID].reloadCount = 0;
+                    gamePlayers[senderID].swap = false;
+                    gamePlayers[senderID].clips[gamePlayers[senderID].equip[1]]--;
+                    fullUpdate = true;
+                    newGunEquiped = true;
+                    newAmmoAmount = true;
+                    newClipAmount = true;
+                    newReload[senderID] = true;
                 }
             }
 
+            gamePlayers[senderID].down = false;
+
             gamePlayers[senderID].swapCount = 0;
+            gamePlayers[senderID].swap = false;
         }
         if (key == 222 || key == 96 || key == 32) {
             if (gamePlayers[senderID].shooting == true) {
@@ -973,7 +983,7 @@ server_instance.prototype.update = function () {
     var modifier = delta / 1000;
 
     if (counter == 0) {
-        if (mapSelected == true && mapNumber != 5) {
+        if (mapSelected == true && mapNumber != 4) {
             console.log("Reloading map!!! Level #: " + mapNumber);
             level = mapNumber;
             loadMap();
@@ -985,9 +995,9 @@ server_instance.prototype.update = function () {
         }
 
         //creating new guns
-        for (k = 0; k <= 7; k++) {
-            gunx[k] = (Math.random() * 1380) + 2;
-            guny[k] = -20 - ((Math.random() * 1500));
+        for (k = 0; k < 7; k++) {
+            //gunx[k] = (Math.random() * 680) + 2;
+            //guny[k] = -20 - ((Math.random() * 1500));
             var newGun = {//function (x, y, gunType) 
                 newGunX: gunx[k],
                 newGunY: guny[k],
@@ -1045,6 +1055,13 @@ server_instance.prototype.update = function () {
             }
         }
 
+        //holding down
+        for (i = 0; i < playerCount; i++) {
+            if (gamePlayers[i].down == true) {
+                gamePlayers[i].downCount = gamePlayers[i].downCount + fps * modifier;
+            }
+        }
+
         //update player - bullet collisions
         for (i = 0; i < playerCount; i++) {
             bulletCollisions(i, modifier);
@@ -1066,6 +1083,7 @@ server_instance.prototype.update = function () {
                 //player healthpack collision
                 if (gamePlayers[i].xpos + 20 >= gamePlayers[k].healthpackx && gamePlayers[i].xpos <= gamePlayers[k].healthpackx + 20 && gamePlayers[i].ypos + 20 >= gamePlayers[k].healthpacky && gamePlayers[i].ypos <= gamePlayers[k].healthpacky + 20 && gamePlayers[k].healthpack == true && gamePlayers[i].ypos > 0) {
                     serverHasUpdate = true;
+                    updateHealth = true;
                     fullUpdate = true;
                     gamePlayers[i].health = 20;
                     gamePlayers[k].healthpack = false;
@@ -1098,11 +1116,6 @@ server_instance.prototype.update = function () {
                     };
                     newBullets.push(newBullet);//newBullet(gamePlayers[i].xpos, gamePlayers[i].ypos + 4, gamePlayers[i].directionFacing, i, gamePlayers[i].gun[gamePlayers[i].equip]));
                 }
-            }
-
-            //holding down
-            if (gamePlayers[i].down == true) {
-                gamePlayers[i].downCount = gamePlayers[i].downCount + fps * modifier;
             }
 
             //set ydir
@@ -1275,6 +1288,15 @@ function sendUserUpdates() {
     if (newAmmoAmount) {
         this.laststate.newHAmmoAmount = gamePlayers[0].ammo[gamePlayers[0].equip];//add ammo
         this.laststate.newCAmmoAmount = gamePlayers[1].ammo[gamePlayers[1].equip];//add ammo
+
+        //when reload event triggered
+        this.laststate.newReloadH = newReload[0];
+        this.laststate.newReloadC = newReload[1];
+
+        for (i = 0; i < playerCount; i++) {
+            newReload[i] = false;
+        }
+
         newAmmoAmount = false;
     }
     
@@ -1286,7 +1308,7 @@ function sendUserUpdates() {
     }
 
     if (newGunEquiped) {
-        //console.log("New gun equiped!!!1");
+        //console.log("New gun equiped!!!1");.25
         this.laststate.newHEquip = gamePlayers[0].equip;
         this.laststate.newCEquip = gamePlayers[1].equip;
 
@@ -1408,7 +1430,7 @@ function bulletCollisions(i, modifier) {
         if(i != t) {
             for (k = 0; k <= 99; k++) {
                 //console.log("Try the collide!!!! with bullet x: " + gamePlayers[i].b[k] + " and player x: " + gamePlayers[t].xpos);
-                if (gamePlayers[i].b[k] == true && gamePlayers[i].bx[k] >= gamePlayers[t].xpos - 5 && gamePlayers[i].bx[k] <= gamePlayers[t].xpos + 25 && gamePlayers[i].by[k] >= gamePlayers[t].ypos && gamePlayers[i].by[k] <= gamePlayers[t].ypos + 20 && gamePlayers[t].xpos > 0) {
+                if (gamePlayers[i].b[k] == true && gamePlayers[i].bx[k] >= gamePlayers[t].xpos - 5 && gamePlayers[i].bx[k] <= gamePlayers[t].xpos + 25 && gamePlayers[i].by[k] >= gamePlayers[t].ypos && gamePlayers[i].by[k] <= gamePlayers[t].ypos + 20 && gamePlayers[t].xpos > 0 && gamePlayers[t].ypos > -10) {
                     //console.log("He's hit!!!!");
                     gamePlayers[i].shotsHit++;
                     updateHealth = true;
@@ -1424,8 +1446,8 @@ function bulletCollisions(i, modifier) {
                         killBullets.push(deadBullet);
                         gamePlayers[i].b[k] = false;
                     //}/* else if (gamePlayers[i].shotType[k] == 5) {
-                                   // gamePlayers[i].shotsFired++;
-                               // }*/
+                        // gamePlayers[i].shotsFired++;
+                    // }*/
                     if (gamePlayers[i].shotType[k] == 1) {
                         gamePlayers[t].health = gamePlayers[t].health - 5;
                     }
@@ -1439,7 +1461,7 @@ function bulletCollisions(i, modifier) {
                         gamePlayers[t].health = gamePlayers[t].health - 12;
                     }
                     if (gamePlayers[i].shotType[k] == 5) {
-                        gamePlayers[t].health = gamePlayers[t].health - 0.25;
+                        gamePlayers[t].health = gamePlayers[t].health - 0.5;
                     }
                     if (gamePlayers[i].shotType[k] == 6) {
                         gamePlayers[t].health = gamePlayers[t].health - 4;
@@ -1536,83 +1558,95 @@ function bulletCollisions(i, modifier) {
 function updateGuns(i , modifier) {
     //falling weapons yah
     for (k = 0; k < playerCount; k++) {
-        for (i = 0; i <= 7; i++) {
+        for (i = 0; i < 7; i++) {
             //hit falling gun player gun pickup
-            if (((gamePlayers[k].down == false && gamePlayers[k].downCount > 0 && gamePlayers[k].downCount <= 15) || (i == 0) || (gamePlayers[k].gun[0] - 1 == i) || (gamePlayers[k].gun[1] - 1 == i)) && gamePlayers[k].xpos + 20 >= gunx[i] && gamePlayers[k].xpos <= gunx[i] + 20 && gamePlayers[k].ypos + 30 >= guny[i] && gamePlayers[k].ypos - 30 <= guny[i] && gamePlayers[k].ypos > 0 && i <= 7) {
-                //update clients
-                serverHasUpdate = true;
-                newClipAmount = true;
-                newGunEquiped = true;
-                newAmmoAmount = true;
+            if (((gamePlayers[k].down == false && gamePlayers[k].downCount > 0 && gamePlayers[k].downCount <= 15) || (i == 0) || (gamePlayers[k].gun[0] - 1 == i) || (gamePlayers[k].gun[1] - 1 == i))) {
+                //console.log("Is player y: " + gamePlayers[k].ypos + " == " + guny[i]);
+                if (gamePlayers[k].xpos + 20 >= gunx[i] && gamePlayers[k].xpos <= gunx[i] + 20 && gamePlayers[k].ypos + 30 >= guny[i] && gamePlayers[k].ypos - 30 <= guny[i] && gamePlayers[k].ypos > 0) {
+                    //update clients
+                    serverHasUpdate = true;
+                    fullUpdate = true;
+                    newGunEquiped = true;
+                    newAmmoAmount = true;
+                    newClipAmount = true;
 
-                gamePlayers[k].down = false;
-                gamePlayers[k].downCount = 0;
-                if (gamePlayers[k].reload == true) {
-                    gamePlayers[k].reload = false;
-                    gamePlayers[k].clips[gamePlayers[k].equip]++;
-                }
-                if (i == 0) {
-                    if (gamePlayers[k].gun[0] > 0) gamePlayers[k].clips[0] = gamePlayers[k].clips[0] + 4;
-                    if (gamePlayers[k].gun[1] > 0) gamePlayers[k].clips[1] = gamePlayers[k].clips[1] + 4;
-                    gunx[i] = (Math.random() * 680) + 2;
-                    guny[i] = -500 - ((Math.random() * 1500));
-                    var newGun = {//function (x, y, gunType) 
-                        newGunX: gunx[i],
-                        newGunY: guny[i],
-                        newGunType: i
-                    };
-                    newGuns.push(newGun);
-                    if (gamePlayers[k].gun[0] > 0) {
-                        gamePlayers[k].ammo[0] = maxAmmo[gamePlayers[k].gun[0] - 1];
+                    gamePlayers[k].swapCount = 0;
+                    gamePlayers[k].down = false;
+                    gamePlayers[k].downCount = 0;
+                    if (gamePlayers[k].reload == true) {
+                        gamePlayers[k].reload = false;
+                        gamePlayers[k].clips[gamePlayers[k].equip]++;
                     }
-                    if (gamePlayers[k].gun[1] > 0) {
-                        gamePlayers[k].ammo[1] = maxAmmo[gamePlayers[k].gun[1] - 1];
-                    }
-                } else {
-                    //update the clients on the change
-                    //add ammo if have gun
-                    if (gamePlayers[k].gun[0] - 1 == i) {
-                        gamePlayers[k].clips[0] = gamePlayers[k].clips[0] + 4;
-                        gamePlayers[k].ammo[0] = maxAmmo[i];
-                    }
+                    if (i == 0) {
+                        if (gamePlayers[k].gun[0] > 0) gamePlayers[k].clips[0] = gamePlayers[k].clips[0] + 4;
+                        if (gamePlayers[k].gun[1] > 0) gamePlayers[k].clips[1] = gamePlayers[k].clips[1] + 4;
+                        gunx[i] = (Math.random() * 680) + 2;
+                        guny[i] = -500 - ((Math.random() * 1500));
+                        var newGun = {//function (x, y, gunType) 
+                            newGunX: gunx[i],
+                            newGunY: guny[i],
+                            newGunType: i
+                        };
+                        newGuns.push(newGun);
+                        if (gamePlayers[k].gun[0] > 0) {
+                            gamePlayers[k].ammo[0] = maxAmmo[gamePlayers[k].gun[0] - 1];
+                        }
+                        if (gamePlayers[k].gun[1] > 0) {
+                            gamePlayers[k].ammo[1] = maxAmmo[gamePlayers[k].gun[1] - 1];
+                        }
+                    } else {
+                        //update the clients on the change
                         //add ammo if have gun
-                    else if (gamePlayers[k].gun[1] - 1 == i) {
-                        gamePlayers[k].clips[1] = gamePlayers[k].clips[1] + 4;
-                        gamePlayers[k].ammo[1] = maxAmmo[i];
-                    }
-                        //add gun if open spot
-                    else if (gamePlayers[k].gun[0] == 0) {
-                        gamePlayers[k].gun[0] = i + 1;
-                        gamePlayers[k].clips[0] = 3;
+                        if (gamePlayers[k].gun[0] - 1 == i) {
+                            gamePlayers[k].clips[0] = gamePlayers[k].clips[0] + 4;
+                            gamePlayers[k].ammo[0] = maxAmmo[i];
+                        }
+                            //add ammo if have gun
+                        else if (gamePlayers[k].gun[1] - 1 == i) {
+                            gamePlayers[k].clips[1] = gamePlayers[k].clips[1] + 4;
+                            gamePlayers[k].ammo[1] = maxAmmo[i];
+                        }
+                            //add gun if open spot
+                        else if (gamePlayers[k].gun[0] == 0) {
+                            gamePlayers[k].gun[0] = i + 1;
+                            gamePlayers[k].clips[0] = 3;
 
-                        gamePlayers[k].equip = 0;
-                        gamePlayers[k].ammo[0] = maxAmmo[i];
-                    }
-                        //add gun if open spot
-                    else if (gamePlayers[k].gun[1] == 0) {
-                        gamePlayers[k].gun[1] = i + 1;
-                        gamePlayers[k].clips[1] = 3;
-                        gamePlayers[k].equip = 1;
-                        gamePlayers[k].ammo[1] = maxAmmo[i];
-                    }
-                        //remove gun and add new gun if spots are full
-                    else if (gamePlayers[k].gun[0] > 0 && gamePlayers[k].gun[1] > 0) {
-                        gamePlayers[k].gun[gamePlayers[k].equip] = i + 1;
-                        gamePlayers[k].equip = 1;
-                        gamePlayers[k].clips[gamePlayers[k].equip] = 3;
-                        gamePlayers[k].ammo[gamePlayers[k].equip] = maxAmmo[i];
-                    }
-                     gunx[i] = (Math.random() * 680) + 2;
+                            gamePlayers[k].equip = 0;
+                            gamePlayers[k].ammo[0] = maxAmmo[i];
+                        }
+                            //add gun if open spot
+                        else if (gamePlayers[k].gun[1] == 0) {
+                            gamePlayers[k].gun[1] = i + 1;
+                            gamePlayers[k].clips[1] = 3;
+                            gamePlayers[k].equip = 1;
+                            gamePlayers[k].ammo[1] = maxAmmo[i];
+                        }
+                            //remove gun and add new gun if spots are full
+                        else if (gamePlayers[k].gun[0] > 0 && gamePlayers[k].gun[1] > 0) {
+                            if (gamePlayers[k].equip == 1) {
+                                gamePlayers[k].gun[1] = i + 1;
+                                gamePlayers[k].equip = 1;
+                                gamePlayers[k].clips[1] = 3;
+                                gamePlayers[k].ammo[1] = maxAmmo[i];
+                            } else if (gamePlayers[k].equip == 0) {
+                                gamePlayers[k].gun[0] = i + 1;
+                                gamePlayers[k].equip = 0;
+                                gamePlayers[k].clips[0] = 3;
+                                gamePlayers[k].ammo[0] = maxAmmo[i];
+                            }
+                        }
 
-                    guny[i] = -500 - ((Math.random() * 1500));
-                    var newGun = {//function (x, y, gunType) 
-                        newGunX: gunx[i],
-                        newGunY: guny[i],
-                        newGunType: i
-                    };
-                    newGuns.push(newGun);
+                        gunx[i] = (Math.random() * 680) + 2;
+                        guny[i] = -500 - ((Math.random() * 1500));
+                        var newGun = {//function (x, y, gunType) 
+                            newGunX: gunx[i],
+                            newGunY: guny[i],
+                            newGunType: i
+                        };
+                        newGuns.push(newGun);
 
-                    //console.log("New gun picked up with clip size: " + gamePlayers[k].clips[gamePlayers[k].equip] + " and ammo " + gamePlayers[k].ammo[gamePlayers[k].equip]);
+                        //console.log("New gun picked up with clip size: " + gamePlayers[k].clips[gamePlayers[k].equip] + " and ammo " + gamePlayers[k].ammo[gamePlayers[k].equip]);
+                    }
                 }
             }
         }
@@ -1623,8 +1657,8 @@ function updateGuns(i , modifier) {
             gamePlayers[k].downCount = 0;
         }
     }
-        //falling weapons
-    for (i = 0; i <= 7; i++) {
+    //falling weapons
+    for (i = 0; i < 7; i++) {
         //guns falling + collide
         for (q = 0; q <= 14; q++) {
             if ((block[q] == true && gunx[i] + 10 >= blockx[q] && gunx[i] <= blockx[q] + blockw[q] && guny[i] + 20 <= blocky[q] + blockh[q] && guny[i] + 20 >= blocky[q]) || guny[i] >= 410) {
@@ -1645,12 +1679,13 @@ function updateReload(i, modifier) {
     //end autoreload
 
     //swap the guns! USED TO BE IN IT'S OWN FOR LOOP
-    if (gamePlayers[i].down == true) {
+    if (gamePlayers[i].swap == true) {
         gamePlayers[i].swapCount = gamePlayers[i].swapCount + fps * modifier;
         if (gamePlayers[i].swapCount > 15) {
             //update the clients on the change
-            newAmmoAmount = true;
+            fullUpdate = true;
             newGunEquiped = true;
+            newAmmoAmount = true;
             newClipAmount = true;
             if (gamePlayers[i].reload == true) {
                 gamePlayers[i].reload = false;
@@ -1662,7 +1697,8 @@ function updateReload(i, modifier) {
             } else if (gamePlayers[i].equip == 1) {
                 gamePlayers[i].equip = 0;
             }
-            gamePlayers[i].down = false;
+            gamePlayers[i].swap = false;
+            //gamePlayers[i].downCount = 0;
             gamePlayers[i].swapCount = 0;
         }
     }//end gun swap

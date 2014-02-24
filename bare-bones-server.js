@@ -160,7 +160,7 @@ game_server.endGame = function(gameid, userid) {
                         //tell them the game is over
                     thegame.player_client.send('s.e');
                         //now look for/create a new game.
-                    this.findGame(thegame.player_client);
+                    //this.findGame(thegame.player_client);
                 }
                     
             } else {
@@ -171,7 +171,7 @@ game_server.endGame = function(gameid, userid) {
                         //i am no longer hosting, this game is going down
                     thegame.player_host.hosting = false;
                         //now look for/create a new game.
-                    this.findGame(thegame.player_host);
+                    //this.findGame(thegame.player_host);
                 }
             }
         }
@@ -182,7 +182,7 @@ game_server.endGame = function(gameid, userid) {
         this.log('Game removed. there are now ' + this.game_count + ' games' );
 
     } else {
-        this.log('That game was not found!');
+        this.log('That game was not found! (already destroyed)');
     }
 
 }; //game_server.endGame
