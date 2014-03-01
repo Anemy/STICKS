@@ -59,7 +59,7 @@ game_server.onMessage = function (client, message) {
         this.onInput(client, message_parts);
     } else if (message_type == 'm') { ///MAP SELECTED
         //console.log("Map chosen!!!!! onMessage server");
-        this.onMapSelect(client, message_parts[1]);
+        //this.onMapSelect(client, message_parts[1]);
     } else if (message_type == 'p') {
         client.send('s.p.' + message_parts[1]);
     } else if (message_type == 'c') {    //Client changed their color!
@@ -73,9 +73,9 @@ game_server.onMapSelect = function (client, newMap) {
     //console.log("Big server map chosen");
     //the client should be in a game, so
     //we can tell that game to handle the input
-    if (client && client.game && client.game.gamecore) {
+    /*if (client && client.game && client.game.gamecore) {
         client.game.gamecore.onMapSelected(newMap);
-    }
+    }*/
 }
 
 game_server.onInput = function(client, parts) {
@@ -159,6 +159,7 @@ game_server.endGame = function(gameid, userid) {
                 if(thegame.player_client) {
                         //tell them the game is over
                     thegame.player_client.send('s.e');
+                    //thegame.player_client.emit('disconnect');
                         //now look for/create a new game.
                     //this.findGame(thegame.player_client);
                 }
@@ -168,10 +169,11 @@ game_server.endGame = function(gameid, userid) {
                 if(thegame.player_host) {
                         //tell the client the game is ended
                     thegame.player_host.send('s.e');
+                    //thegame.player_host.emit('disconnect');
                         //i am no longer hosting, this game is going down
                     thegame.player_host.hosting = false;
                         //now look for/create a new game.
-                    //this.findGame(thegame.player_host);
+                    this.findGame(thegame.player_host);
                 }
             }
         }

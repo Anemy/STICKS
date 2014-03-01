@@ -412,7 +412,7 @@ var onlineState = "Offline";
 * "Disconnected"
 */
 //constants for states
-const OFFLINE = 'Offline', CONNECTING = 'Connecting', SEARCHING = 'Searching for game', HOSTING = 'Hosting game, waiting', CONNECTED = 'Connected', DISCONNECTED = 'Disconnected', CONNECTEDWAIT = 'Connected please wait';
+const OFFLINE = 'Offline', CONNECTING = 'Connecting', SEARCHING = 'Searching for game', HOSTING = 'Hosting game, waiting', CONNECTED = 'Connected', DISCONNECTED = 'Disconnected', CONNECTEDWAIT = 'Connected please wait', OTHERDISCONNECTED = 'Other player disconnected';
 
 var playerPosition = function(x,y,xd,yd) {
     this.xPos = x;
@@ -447,6 +447,8 @@ function onColorChange(newColor) {
     onlinePlayerColor = newColor;
     this.socket.send('c.' + newColor);
 }
+
+var alreadyConnected = false;
 
 var local_time,
     net_latency,
@@ -554,6 +556,7 @@ onserverupdate_recieved = function (data) {
     //Update our local offset time from the last server update
     this.time = this.server_time - (this.net_offset / 1000);
 
+    //console.log("Server update recieved");
 
     //console.log('New server data recieved!');
 
@@ -838,7 +841,7 @@ onserverupdate_recieved = function (data) {
             jetpack[0] = data.hjpack;
             jetpack[1] = data.cjpack;
 
-            fuel[0] = data.hfuel;
+            //fuel[0] = data.hfuel;
             fuel[1] = data.cfuel;
 
             deadCount[0] = data.hdeadcount;
@@ -866,7 +869,7 @@ onserverupdate_recieved = function (data) {
             jetpack[0] = data.cjpack;
 
             fuel[1] = data.hfuel;
-            fuel[0] = data.cfuel;
+            //fuel[0] = data.cfuel;
 
             deadCount[1] = data.hdeadcount;
             deadCount[0] = data.cdeadcount;
@@ -903,7 +906,7 @@ onserverupdate_recieved = function (data) {
 
         //console.log("Hit up another gun type: " + newGunsAdded[m].newGunType + " homies at this x POS: " + newGunsAdded[m].newGunX + " and y: " + newGunsAdded[m].newGunY);
 
-        if (m < 7) {
+        if (m < 6) {
             gunx[newGunsAdded[m].newGunType] = newGunsAdded[m].newGunX;
             guny[newGunsAdded[m].newGunType] = newGunsAdded[m].newGunY;
         }
@@ -1126,7 +1129,7 @@ onreadygame = function (data) {
     if (connectedGame) {
         connectedGame = false;
 
-        if (mapChosen && playerHost) {
+        /*if (mapChosen && playerHost) {
             console.log("Sending message to server");
             //Send the packet of information to the server.
             //The input packets are labelled with an 'm' in front.
@@ -1138,9 +1141,12 @@ onreadygame = function (data) {
             //menu = 12;
 
             mapChosen = false;
-        }
+        }*/
 
         createOnlineGame();
+    }
+    else {
+        console.log("connectedGame false");
     }
 
 }; //onreadygame
@@ -1158,8 +1164,9 @@ onjoingame = function (data) {
 }; //onjoingame
 
 onhostgame = function (data) {
-    this.menu = 2;
-    loadingPActivated = false;
+    //this.menu = 2; //for host map select
+    menu = 12;
+    loadingPActivated = true;
     //window.onmousemove = null;
 
     //The server sends the time when asking us to host, but it should be a new game.
@@ -1187,13 +1194,16 @@ onconnected = function (data) {
     onlinePlayerColor = '#cc0000';
     onlineState = "Connected";
 
-    console.log("Connected!!!!!!!!!");
+    console.log("On connected");
 
     this.connectedGame = true;
 
     if (readyGame) {
         readyGame = false;
         createOnlineGame();
+    }
+    else {
+        console.log("Ready game false");
     }
 }; //onconnected
 
@@ -1254,7 +1264,21 @@ onnetmessage = function (data) {
 
 ondisconnect = function (data) {
     socket.disconnect();
-    reset = true;
+    console.log("Disconnected.");
+    resetGame();
+
+    alreadyConnected = true;
+
+    //onlineState = DISCONNECTED;
+
+    //return to game select screen
+    menu = 8;
+
+    custom = true;
+    zombie = false;
+    checked[0] = false;
+    checkedx[0] = -50;
+    optionY = 0;
 
     /*//When we disconnect, we don't know if the other player is
     //connected or not, and since we aren't, everything goes to offline
@@ -1271,24 +1295,31 @@ ondisconnect = function (data) {
 connect_to_server = function () {
 
     //Store a local reference to our connection to the server
-    this.socket = io.connect();
+    //was this. everywhere
+    if (alreadyConnected == false)
+        socket = io.connect();
+    else {
+        console.log("Already connected firing");
+        socket.socket.connect();
+    }
 
     //When we connect, we are not 'connected' until we have a server id
     //and are placed in a game by the server. The server sends us a message for that.
-    this.socket.on('connect', function () {
+    socket.on('connect', function () {
+        console.log("Connected to something...");
         onlineState = 'Searching for game';
     }.bind(this));
 
     //Sent when we are disconnected (network, server down, etc)
-    this.socket.on('disconnect', this.ondisconnect.bind(this));
+    socket.on('disconnect', this.ondisconnect.bind(this));
     //Sent each tick of the server simulation. This is our authoritive update
-    this.socket.on('onserverupdate', this.onserverupdate_recieved.bind(this));
+    socket.on('onserverupdate', this.onserverupdate_recieved.bind(this));
     //Handle when we connect to the server, showing state and storing id's.
-    this.socket.on('onconnected', this.onconnected.bind(this));
+    socket.on('onconnected', this.onconnected.bind(this));
     //On error we just show that we are not connected for now. Can print the data.
-    this.socket.on('error', this.ondisconnect.bind(this));
+    socket.on('error', this.ondisconnect.bind(this));
     //On message from the server, we parse the commands and send it to the handlers
-    this.socket.on('message', this.onnetmessage.bind(this));
+    socket.on('message', this.onnetmessage.bind(this));
 
     //A list of recent server updates we interpolate across
     //This is the buffer that is the driving factor for our networking
@@ -2253,8 +2284,10 @@ function render() {//ctx
     if ((menu == 3 || play == true || menu == 5)) {
         //if (level == 1) ctx.drawImage(map[0], 0, 0, gameWidth, gameHeight);
         //if (level == 4) ctx.drawImage(map[1], 0, 0, gameWidth, gameHeight);
+        //if (onlineState == CONNECTED)
+        //    console.log("Level: " + level);
         ctx.drawImage(background[level - 1], 0, 0, gameWidth, gameHeight);
-
+        //ctx.drawImage(background[level - 1], 0, 0, gameWidth, gameHeight);
 
         //blocks
         for (i = 0; i <= 14; i++) {
@@ -2887,6 +2920,7 @@ function render() {//ctx
         ctx.drawImage(cloudsImage, cloudsX[0], 0, gameWidth, 100 * scale);
         ctx.drawImage(cloudsImage, cloudsX[1], 0, gameWidth, 100 * scale);
 
+        //console.log("Online state currently: " + onlineState);
         ctx.drawImage(searchingScreen, 0, 0, gameWidth, gameHeight);
     }//end if menu 10
     else if (menu == 11) { // searching for game
@@ -5218,7 +5252,10 @@ function keyPressed(e) {
                 boxx = 255;
                 boxy = 70;
             } 
-	        else if (optionY == 1) {
+            else if (optionY == 1) {
+                //disconnecting from server for safety
+                //ondisconnect();
+
                 players = 2;
                 level = 1;
 
@@ -5254,11 +5291,13 @@ function keyPressed(e) {
 
                 menu = 10;
 
-                onlineState = "Searching for game";
+                //onlineState = "Searching for game";
+
                 loadingPActivated = true;
                 //window.onmousemove = mouseMove;
-
+                console.log("Online state is before: " + onlineState);
                 connect_to_server();
+                console.log("Online state is after: " + onlineState);
                 checked[0] = false;
                 //menu = 1;
 
@@ -5627,12 +5666,12 @@ function keyPressed(e) {
                     startThatMap(6);
                 }
             }
-            if (onlineState == 'Hosting game, waiting') {
+            /*if (onlineState == 'Hosting game, waiting') {
                 console.log("Map chosen by host (me)!!");
                 loadingPActivated = true;
                 mapChosen = true;
                 menu = 12;
-            }
+            }*/
 
 
         }

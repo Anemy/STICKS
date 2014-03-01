@@ -174,7 +174,7 @@ var newGuns = [];
     var newGunType = gunType;  //true = right // false = left
 };*/
 
-var mapNumber = 1;
+var mapNumber = -1;
 
 var server_instance = function () {
     console.log("Creating new server instance.");
@@ -211,6 +211,26 @@ create_timer = function () {
         this._dte = Date.now();
         this.local_time += this._dt / 1000.0;
     }.bind(this), 4);
+}
+
+function randomMap() {
+    //randomly choose map
+    var randomNum = Math.random() * 100;
+    if (randomNum < 25)
+        mapNumber = 1;
+    else if (randomNum < 50)
+        mapNumber = 2;
+    else if (randomNum < 75)
+        mapNumber = 3;
+    else
+        mapNumber = 5;
+
+    level = mapNumber;
+    //sending the chosen map to clients
+    players.self.instance.send('s.m.' + mapNumber);
+    players.other.instance.send('s.m.' + mapNumber);
+
+    loadMap();
 }
 
 //start the game + set vars
@@ -340,6 +360,11 @@ server_instance.prototype.initGame = function () {
     gamePlayers[1].xpos = 10;
 
     lastFullUpdate = 0;
+
+
+    if (mapNumber == -1)
+        randomMap();
+
     console.log("Successfully init game");
 
     play = true;
@@ -639,7 +664,8 @@ function loadMap() {
 
 server_instance.prototype.onMapSelected = function (mapNum) {
     
-    if (mapSelected == false && mapNum != 4) {
+    //map chose disabled atm
+    /*if (mapSelected == false && mapNum != 4) {
         console.log("Map chosen map selected! on  map selected!! Level #: " + mapNum);
         mapSelected = true;
         mapNumber = mapNum;
@@ -650,28 +676,10 @@ server_instance.prototype.onMapSelected = function (mapNum) {
         //send map to both players
         players.self.instance.send('s.m.' + mapNum);
         players.other.instance.send('s.m.' + mapNum);
-    }
+    }*/
 }
 
 server_instance.prototype.process_input = function (player) {
-    //console.log("Processing input!");
-
-    /* Example input:
-    if (onlineState == 'Connected') {
-        //Send the packet of information to the server.
-        //The input packets are labelled with an 'i' in front.
-        var server_packet = 'i.';
-        server_packet += this.local_time.toFixed(3) + '.';
-        //identify key up or down
-        server_packet += 'd.';
-        server_packet += key;
-
-        //Go
-        this.socket.send(server_packet);
-    }*/
-
-            //don't process ones we already have simulated locally
-            //if (player.inputs[j].seq <= player.last_input_seq) continue;
 
     var input = player.lastInput;
     var sender = input.playerSent;
@@ -983,7 +991,11 @@ server_instance.prototype.update = function () {
     var modifier = delta / 1000;
 
     if (counter == 0) {
-        if (mapSelected == true && mapNumber != 4) {
+        if (mapNumber == -1)
+            randomMap();
+
+
+       /* if (mapSelected == true && mapNumber != 4) {
             console.log("Reloading map!!! Level #: " + mapNumber);
             level = mapNumber;
             loadMap();
@@ -992,7 +1004,7 @@ server_instance.prototype.update = function () {
             //send map to both players
             players.self.instance.send('s.m.' + mapNumber);
             players.other.instance.send('s.m.' + mapNumber);
-        }
+        }*/
 
         //creating new guns
         for (k = 0; k < 7; k++) {
