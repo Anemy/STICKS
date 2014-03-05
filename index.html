@@ -8,38 +8,41 @@
 
 	</head>
 
-    <body style="text-align: center; margin: 0; padding: 0; border: 0; display: block; ">
-        <script src="/socket.io/socket.io.js"></script>
-        <!--<script src="http://localhost:4004/socket.io/socket.io.js"></script>-->
+<body style="text-align: center; margin: 0; padding: 0; border: 0; display: block; "> <!--style="display: table;">-->
+    <!--<script src="http://localhost:4004/socket.io/socket.io.js"></script>-->
+    <!--<p id="p1">Hello! No resize yet</p>-->
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="client_gamecore.js"></script>
+    <script>init();</script>
 
-        <!--<p id="p1">Hello! No resize yet</p>-->
-        <script type="text/javascript" src="client_gamecore.js"></script>
-        <script>init();</script>
 
-        <!--<a style="text-align: center;" href="https://docs.google.com/forms/d/1-D6TnZRJk0RSYa8LJTHVN56AZ_DRwbOK0Q7heU2qQf8/viewform">Bugs, Comments, and or Questions?</a>-->
+    <!--<iframe src="http://webchat.freenode.net?channels=%23Stick-Battle" width="647" height="630"></iframe>-->
+    <!--<h1 style="text-align: center;">
+        Created by Paul Henninger and Rhys Howell
+    </h1>-->
 
-        <!--<h1 style="text-align: center;">
-            Created by Paul Henninger and Rhys Howell
-        </h1>-->
+
+    <!--<p id="p3">V Advertisement V</p>-->
+
+    <div id="fb-root"></div>
+    <script>
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=202052943324855";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    </script>
+
+    <div style="text-align: center; margin: 0; padding: 0; border: 0; display: block; ">
         <p id="p1"></p>
         <a href="https://docs.google.com/forms/d/1-D6TnZRJk0RSYa8LJTHVN56AZ_DRwbOK0Q7heU2qQf8/viewform" style="text-align:center">Bugs, Comments, and or Questions?</a>
 
         <p id="p2"></p>
-
-        <!--<p id="p3">V Advertisement V</p>-->
-
-        <div id="fb-root"></div>
-        <script>
-            (function (d, s, id) {
-                var js, fjs = d.getElementsByTagName(s)[0];
-                if (d.getElementById(id)) return;
-                js = d.createElement(s); js.id = id;
-                js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=202052943324855";
-                fjs.parentNode.insertBefore(js, fjs);
-            }(document, 'script', 'facebook-jssdk'));
-        </script>
-
         <div class="fb-like" data-href="https://www.facebook.com/StickBattleGame" data-width="80" data-layout="standard" data-action="like" data-show-faces="true" data-share="true"></div>
+    </div>
+
 
         <!--<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         <ins class="adsbygoogle"
@@ -62,8 +65,8 @@
             ga('send', 'pageview');
 
         </script>
+</body>
 
-        <!--<p id="p1">Hello! No click yet</p>-->
-    </body>
+
 
 </html>

@@ -532,13 +532,15 @@ function createOnlineGame() {
 
     lastPlayerMovement = Date.now();
 
-    onlineState = 'Connected';
+    onlineState = CONNECTED;
 
     /*this.players = {
         self: new game_player(this),
         other: new game_player(this)
     };*/
 }
+
+//var recieveCounter = 0;
 
 onserverupdate_recieved = function (data) {
 
@@ -555,6 +557,10 @@ onserverupdate_recieved = function (data) {
     this.server_time = data.t;
     //Update our local offset time from the last server update
     this.time = this.server_time - (this.net_offset / 1000);
+
+    //recieveCounter++;
+    //if (recieveCounter % 1000 == 0)
+        //printf("updating from server");
 
     //console.log("Server update recieved");
 
@@ -1126,22 +1132,24 @@ onreadygame = function (data) {
 
     this.readyGame = true;
 
+    /*
+    THIS WAS INSIDE IF CONNECTEDGAME
+    if (mapChosen && playerHost) {
+    console.log("Sending message to server");
+    //Send the packet of information to the server.
+    //The input packets are labelled with an 'm' in front.
+    var server_packet = 'm.';
+    server_packet += level;//send the chosen level to the server
+
+    //Go
+    this.socket.send(server_packet);
+    //menu = 12;
+
+    mapChosen = false;
+}*/
+
     if (connectedGame) {
         connectedGame = false;
-
-        /*if (mapChosen && playerHost) {
-            console.log("Sending message to server");
-            //Send the packet of information to the server.
-            //The input packets are labelled with an 'm' in front.
-            var server_packet = 'm.';
-            server_packet += level;//send the chosen level to the server
-
-            //Go
-            this.socket.send(server_packet);
-            //menu = 12;
-
-            mapChosen = false;
-        }*/
 
         createOnlineGame();
     }
@@ -1186,24 +1194,27 @@ onhostgame = function (data) {
 }; //onhostgame
 
 onconnected = function (data) {
+    if (onlineState != CONNECTED) {
+        console.log("On connected called, with the online State: " + onlineState);
 
-    //The server responded that we are now in a game,
-    //this lets us store the information about ourselves and set the colors
-    //to show we are now ready to be playing.
-    playerID = data.id;
-    onlinePlayerColor = '#cc0000';
-    onlineState = "Connected";
+        //The server responded that we are now in a game,
+        //this lets us store the information about ourselves and set the colors
+        //to show we are now ready to be playing.
+        playerID = data.id;
+        onlinePlayerColor = '#cc0000';
+        onlineState = CONNECTED;
 
-    console.log("On connected");
+        console.log("On connected.");
 
-    this.connectedGame = true;
+        this.connectedGame = true;
 
-    if (readyGame) {
-        readyGame = false;
-        createOnlineGame();
-    }
-    else {
-        console.log("Ready game false");
+        /*if (readyGame) {
+            readyGame = false;
+            createOnlineGame();
+        }
+        else {
+            console.log("Ready game false");
+        }*/
     }
 }; //onconnected
 
@@ -1263,22 +1274,25 @@ onnetmessage = function (data) {
 }; //onnetmessage
 
 ondisconnect = function (data) {
-    socket.disconnect();
-    console.log("Disconnected.");
-    resetGame();
+    console.log("On disconnect called, with online State: " + onlineState);
+    if (onlineState == CONNECTED) {
+        socket.disconnect();
+        console.log("Disconnected.");
+        resetGame();
 
-    alreadyConnected = true;
+        alreadyConnected = true;
 
-    //onlineState = DISCONNECTED;
+        //onlineState = DISCONNECTED;
 
-    //return to game select screen
-    menu = 8;
+        //return to game select screen
+        menu = 8;
 
-    custom = true;
-    zombie = false;
-    checked[0] = false;
-    checkedx[0] = -50;
-    optionY = 0;
+        custom = true;
+        zombie = false;
+        checked[0] = false;
+        checkedx[0] = -50;
+        optionY = 0;
+    }
 
     /*//When we disconnect, we don't know if the other player is
     //connected or not, and since we aren't, everything goes to offline
@@ -1296,11 +1310,19 @@ connect_to_server = function () {
 
     //Store a local reference to our connection to the server
     //was this. everywhere
-    if (alreadyConnected == false)
+    if (alreadyConnected == false) {
         socket = io.connect();
+        alreadyConnected = true;
+    }
     else {
         console.log("Already connected firing");
         socket.socket.connect();
+        var server_packet = 'f.';
+        server_packet += 'Hellozdfwefscx';//tell the server to find a game for this client
+
+        //Go
+        this.socket.send(server_packet);
+        console.log("Sent reconnect packet.");
     }
 
     //When we connect, we are not 'connected' until we have a server id

@@ -90,7 +90,7 @@
         //Now we want to handle some of the messages that clients will send.
         //They send messages here, and we send them to the game_server to handle.
         client.on('message', function (m) {
-            //console.log("Message recieved!! Is it map?!");
+            //console.log("Message recieved!! Is it reconnect?!");
             game_server.onMessage(client, m);
 
         }); //client.on message
@@ -118,14 +118,28 @@
             console.log("A client disconnected");
             //console.log('\t socket.io:: client disconnected ' + client.userid + ' ' + client.game_id);
             
+            //console.log("Disconnecting client from app: ");
+            //socket.clients[thegame.player_client.userid].connection.end();
+            //sio.sockets.clients[thegame.player_client.userid].connection.end();
+            //console.log("Disconnected both clients?! from app: ");
+
                 //If the client was in a game, set by game_server.findGame,
                 //we can tell the game server to update that game state.
             if(client.game && client.game.id) {
+
+                //console.log("Disconnecting client from app: ");
+                //socket.clients[thegame.player_client.userid].connection.end();
+                //sio.sockets.clients[thegame.player_client.userid].connection.end();
+                //console.log("Disconnected both clients?! from app: ");
 
                 //player leaving a game should destroy that game
                 game_server.endGame(client.game.id, client.userid);
 
             } //client.game_id
+
+            //I AM TRYING THIS!!!
+            console.log("Destroying their instance:");
+            delete client;
 
         }); //client.on disconnect
      

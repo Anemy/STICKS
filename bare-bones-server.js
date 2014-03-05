@@ -50,8 +50,8 @@ game_server.onMessage = function (client, message) {
         (client.game.player_host.userid == client.userid) ?
             client.game.player_client : client.game.player_host;
 
-    //if (message_type != 'p')
-       // console.log("Message recieved!");
+    if (message_type != 'p')
+        console.log("Message recieved!");
 
     if (message_type == 'i') {
         //game_server.log('input recieved');
@@ -65,6 +65,12 @@ game_server.onMessage = function (client, message) {
     } else if (message_type == 'c') {    //Client changed their color!
         if (other_client)
             other_client.send('s.c.' + message_parts[1]);
+    } else if (message_type == 'f') {
+        console.log("Reconnected client. Try to find match. @@@@");
+        if (other_client) { }
+        else { //when there isn't another player
+            this.findGame(client);
+        }
     }
 
 }; //game_server.onMessage
@@ -172,10 +178,14 @@ game_server.endGame = function(gameid, userid) {
                     //thegame.player_host.emit('disconnect');
                         //i am no longer hosting, this game is going down
                     thegame.player_host.hosting = false;
-                        //now look for/create a new game.
-                    this.findGame(thegame.player_host);
+                    
+                    //now look for/create a new game.
+                    //this.findGame(thegame.player_host);
                 }
             }
+            //socket.clienaaaaaats[thegame.player_host.userid].connection.end();
+            //socket.clients[thegame.player_client.userid].connection.end();
+
         }
 
         delete this.games[gameid];
