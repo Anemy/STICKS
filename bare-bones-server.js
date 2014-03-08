@@ -50,8 +50,8 @@ game_server.onMessage = function (client, message) {
         (client.game.player_host.userid == client.userid) ?
             client.game.player_client : client.game.player_host;
 
-    if (message_type != 'p')
-        console.log("Message recieved!");
+   // if (message_type != 'p')
+       // console.log("Message recieved!");
 
     if (message_type == 'i') {
         //game_server.log('input recieved');
