@@ -1449,6 +1449,9 @@ function resetGame() {
     //optionPlayerX[4] = 1;
     cloudsX[0] = 0;
     cloudsX[1] = gameWidth;
+
+
+    
     optionXacc = 0;
     for (i = 0; i <= 3; i++) {
         checked[i] = false;
@@ -1466,6 +1469,7 @@ function resetGame() {
                 b[i][k] = false;
             blood[i][k] = false;
         }
+        stunCount[i] = 0;
         ydir[i] = 0;
         swapCount[i] = 0;
         runCount[i] = 0;
@@ -1587,6 +1591,7 @@ function resetGame() {
 
             for (i = 0; i <= 24; i++) {
                 hold[i] = false;
+                stunCount[i] = 0;
             }
             score[0] = 0;
             score[1] = 0;
@@ -3790,9 +3795,9 @@ function update(modifier) {
                     }
                 }
                 if (lunge[i] == true && gun[i][equip[i]] == 8) {
-                    if (directionFacing[i] == 1 && lungeCount[i] == 1) {
+                    if (directionFacing[i] == 1 && lungeCount[i] == fps * modifier) {
                         xpos[i] = xpos[i] + 50;
-                    } else if (directionFacing[i] == 0 && lungeCount[i] == 1) {
+                    } else if (directionFacing[i] == 0 && lungeCount[i] == fps * modifier) {
                         xpos[i] = xpos[i] - 50;
                     }
 
@@ -3835,19 +3840,19 @@ function update(modifier) {
                             if ((directionFacing[i] == 1 && directionFacing[t] == 1) || (directionFacing[i] == 0 && directionFacing[t] == 0)) {
                                 if (gun[i][equip[i]] == 7)
                                     health[t] = health[t] - 10;
-                                else if (gun[i][equip[i]] == 8 && jump[i] == false && stun[t] == false)
+                                else if (gun[i][equip[i]] == 8 && stun[t] == false){
                                     health[t] = health[t] - 10;
+                                    stun[t] = true;
+                                }
                             } else {
                                 if (gun[i][equip[i]] == 7)
                                     health[t] = health[t] - 7;
-                                else if (gun[i][equip[i]] == 8 && jump[i] == false && stun[t] == false)
+                                else if (gun[i][equip[i]] == 8 && stun[t] == false){
                                     health[t] = health[t] - 7;
+                                    stun[t] = true;
+                                }
                             }
-                            if (gun[i][equip[i]] == 8 && jump[i] == false && stun[t] == false) {
-                                jump[i] = true; //was commented out?
-                                stun[t] = true;
-                                xpos[i] = xpos[t];
-                            }
+
                         } else {
                             lunge[t] = false;
                             lungeCount[t] = 0;
