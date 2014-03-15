@@ -304,9 +304,14 @@ var playerR = []; //stand still right 4
 var playerL = []; //stand still left
 var playerLm = []; //move left 4 2
 var playerRm = []; //move right
+var playerFall = []; //falling
+var playerJump = []; //jumping
+
 for (i = 0; i < 4; i++) {
     playerLm[i] = [];
     playerRm[i] = [];
+    playerFall[i] = [];
+    playerJump[i] = [];
 }
 
 var zombieR;
@@ -1849,36 +1854,78 @@ function loadImages() {
     playerL[2].src = (("images/Player2Left.png"));
     playerL[3] = new Image();
     playerL[3].src = (("images/Player3Left.png"));
-    //move right
+    
+    ////////////////////////////////jump
+    //p0
+    //p1
+    playerJump[1][0] = new Image();
+    playerJump[1][0].src = (("images/Player1LeftJump.png"));   
+    playerJump[1][1] = new Image();
+    playerJump[1][1].src = (("images/Player1RightJump.png"));
+    //p2
+    //p3
+    ////////////////////////////////fall
+    //p0
+    //p1
+    playerFall[1][0] = new Image();
+    playerFall[1][0].src = (("images/Player1LeftFall.png"));   
+    playerFall[1][1] = new Image();
+    playerFall[1][1].src = (("images/Player1RightFall.png"));    
+    //p2
+    //p3
+    ////////////////////////////////move right
+    //p0    
     playerRm[0][0] = new Image();
     playerRm[0][0].src = (("images/Player0RightRun1.png"));
     playerRm[0][1] = new Image();
     playerRm[0][1].src = (("images/Player0RightRun2.png"));
+    
+    //p1
     playerRm[1][0] = new Image();
     playerRm[1][0].src = (("images/Player1RightRun1.png"));
     playerRm[1][1] = new Image();
     playerRm[1][1].src = (("images/Player1RightRun2.png"));
+    playerRm[1][2] = new Image();
+    playerRm[1][2].src = (("images/Player1RightRun3.png"));
+    playerRm[1][3] = new Image();
+    playerRm[1][3].src = (("images/Player1RightRun4.png"));
+    
+    //p2
     playerRm[2][0] = new Image();
     playerRm[2][0].src = (("images/Player2RightRun1.png"));
     playerRm[2][1] = new Image();
     playerRm[2][1].src = (("images/Player2RightRun2.png"));
+    
+    //p3
     playerRm[3][0] = new Image();
     playerRm[3][0].src = (("images/Player3RightRun1.png"));
     playerRm[3][1] = new Image();
     playerRm[3][1].src = (("images/Player3RightRun2.png"));
-    //move left
+    
+    /////////////////////////////////move left
+    //p0    
     playerLm[0][0] = new Image();
     playerLm[0][0].src = (("images/Player0LeftRun1.png"));
     playerLm[0][1] = new Image();
     playerLm[0][1].src = (("images/Player0LeftRun2.png"));
+   
+    //p1
     playerLm[1][0] = new Image();
     playerLm[1][0].src = (("images/Player1LeftRun1.png"));
     playerLm[1][1] = new Image();
     playerLm[1][1].src = (("images/Player1LeftRun2.png"));
+    playerLm[1][2] = new Image();
+    playerLm[1][2].src = (("images/Player1LeftRun3.png"));
+    playerLm[1][3] = new Image();
+    playerLm[1][3].src = (("images/Player1LeftRun4.png"));
+    
+    //p2
     playerLm[2][0] = new Image();
     playerLm[2][0].src = (("images/Player2LeftRun1.png"));
     playerLm[2][1] = new Image();
     playerLm[2][1].src = (("images/Player2LeftRun2.png"));
+    
+    //p3
     playerLm[3][0] = new Image();
     playerLm[3][0].src = (("images/Player3LeftRun1.png"));
     playerLm[3][1] = new Image();
@@ -2373,23 +2420,64 @@ function render() {//ctx
                 }
             }
             if (custom == true || split == true) {
-                if (left[i] == true && ydir[i] == 0) {
-                    if (runCount[i] <= 10) {
-                        ctx.drawImage(playerLm[i][0], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                if(i!=1){                
+                    if (left[i] == true && ydir[i] == 0) {
+                        if (runCount[i] <= 10) {
+                            ctx.drawImage(playerLm[i][0], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
+                        if (runCount[i] > 10) {
+                            ctx.drawImage(playerLm[i][1], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
+                    } else if (right[i] == true && ydir[i] == 0) {
+                        if (runCount[i] <= 10) {
+                            ctx.drawImage(playerRm[i][0], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
+                        if (runCount[i] > 10) {
+                            ctx.drawImage(playerRm[i][1], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
+                    } else {
+                        if (directionFacing[i] == 0) ctx.drawImage(playerL[i], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        else if (directionFacing[i] == 1) ctx.drawImage(playerR[i], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
                     }
-                    if (runCount[i] > 10) {
-                        ctx.drawImage(playerLm[i][1], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                }
+                else if(i==1)
+                {
+                    if (left[i] == true && ydir[i] == 0) {
+                        if (runCount[i] <= 4) {
+                            ctx.drawImage(playerLm[i][0], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
+                        else if (runCount[i] > 4 && runCount[i] <= 8) {
+                            ctx.drawImage(playerLm[i][1], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
+                        else if (runCount[i] > 8 && runCount[i] <= 14) {
+                            ctx.drawImage(playerLm[i][2], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
+                        else if (runCount[i] > 14 && runCount[i] <= 18) {
+                            ctx.drawImage(playerLm[i][3], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
+                       
+                    } else if (right[i] == true && ydir[i] == 0) {
+                        if (runCount[i] <= 4) {
+                            ctx.drawImage(playerRm[i][0], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
+                        else if (runCount[i] > 4 && runCount[i] <= 8) {
+                            ctx.drawImage(playerRm[i][1], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
+                        else if (runCount[i] > 8 && runCount[i] <= 14) {
+                            ctx.drawImage(playerRm[i][2], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
+                        else if (runCount[i] > 14 && runCount[i] <= 18) {
+                            ctx.drawImage(playerRm[i][3], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        }
                     }
-                } else if (right[i] == true && ydir[i] == 0) {
-                    if (runCount[i] <= 10) {
-                        ctx.drawImage(playerRm[i][0], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                    else if(ydir[i] < 0){
+                        ctx.drawImage(playerJump[i][directionFacing[i]], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                    } else if(ydir[i] > 0){
+                        ctx.drawImage(playerFall[i][directionFacing[i]], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                     } else {
+                        if (directionFacing[i] == 0) ctx.drawImage(playerL[i], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
+                        else if (directionFacing[i] == 1) ctx.drawImage(playerR[i], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
                     }
-                    if (runCount[i] > 10) {
-                        ctx.drawImage(playerRm[i][1], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
-                    }
-                } else {
-                    if (directionFacing[i] == 0) ctx.drawImage(playerL[i], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
-                    else if (directionFacing[i] == 1) ctx.drawImage(playerR[i], xpos[i] * scale, ypos[i] * scale, 20 * scale, 20 * scale);
                 }
             } else if (zombie == true) {
                 if (i == 0) {
@@ -4507,7 +4595,7 @@ function update(modifier) {
         //running counter
         for (i = 0; i < players; i++) {
             runCount[i] = runCount[i] + fps * modifier;
-            if (runCount[i] >= 20) {
+            if (runCount[i] >= 18) {
                 runCount[i] = 0;
             }
         }
@@ -5904,6 +5992,7 @@ function keyReleased(e) {
     if (upKey == 74) {
         if (play == true && cpu[3] == false) {
             down[3] = false;
+
             if (gun[3][equip[3]] > 0) {
                 if (ammo[3][equip[3]] < maxAmmo[gun[3][equip[3]] - 1] && swap[3] == true && clips[3][equip[3]] > 0 && gun[3][equip[3]] > 0 && reload[3] == false && swapCount[3] < 15 && streak[3] < 10) {
                     reload[3] = true;
