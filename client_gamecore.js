@@ -1858,9 +1858,9 @@ function loadImages() {
     ////////////////////////////////jump
     //p0
     playerJump[0][0] = new Image();
-    playerJump[0][0].src = (("images/Player0LeftJump.png"));   
+    playerJump[0][0].src = (("images/Player0LeftJump.PNG"));   
     playerJump[0][1] = new Image();
-    playerJump[0][1].src = (("images/Player0RightJump.png"));
+    playerJump[0][1].src = (("images/Player0RightJump.PNG"));
     //p1
     playerJump[1][0] = new Image();
     playerJump[1][0].src = (("images/Player1LeftJump.PNG"));   
@@ -1868,20 +1868,20 @@ function loadImages() {
     playerJump[1][1].src = (("images/Player1RightJump.PNG"));
     //p2
     playerJump[2][0] = new Image();
-    playerJump[2][0].src = (("images/Player2LeftJump.png"));   
+    playerJump[2][0].src = (("images/Player2LeftJump.PNG"));
     playerJump[2][1] = new Image();
-    playerJump[2][1].src = (("images/Player2RightJump.png"));
+    playerJump[2][1].src = (("images/Player2RightJump.PNG"));
     //p3
     playerJump[3][0] = new Image();
-    playerJump[3][0].src = (("images/Player3LeftJump.png"));   
+    playerJump[3][0].src = (("images/Player3LeftJump.PNG"));
     playerJump[3][1] = new Image();
-    playerJump[3][1].src = (("images/Player3RightJump.png"));
+    playerJump[3][1].src = (("images/Player3RightJump.PNG"));
     ////////////////////////////////fall
     //p0
     playerFall[0][0] = new Image();
-    playerFall[0][0].src = (("images/Player0LeftFall.png"));   
+    playerFall[0][0].src = (("images/Player0LeftFall.PNG"));
     playerFall[0][1] = new Image();
-    playerFall[0][1].src = (("images/Player0RightFall.png"));    
+    playerFall[0][1].src = (("images/Player0RightFall.PNG"));
     //p1
     playerFall[1][0] = new Image();
     playerFall[1][0].src = (("images/Player1LeftFall.PNG"));   
@@ -1889,14 +1889,14 @@ function loadImages() {
     playerFall[1][1].src = (("images/Player1RightFall.PNG"));    
     //p2
     playerFall[2][0] = new Image();
-    playerFall[2][0].src = (("images/Player2LeftFall.png"));   
+    playerFall[2][0].src = (("images/Player2LeftFall.PNG"));
     playerFall[2][1] = new Image();
-    playerFall[2][1].src = (("images/Player2RightFall.png"));  
+    playerFall[2][1].src = (("images/Player2RightFall.PNG"));
     //p3
     playerFall[3][0] = new Image();
-    playerFall[3][0].src = (("images/Player3LeftFall.png"));   
+    playerFall[3][0].src = (("images/Player3LeftFall.PNG"));
     playerFall[3][1] = new Image();
-    playerFall[3][1].src = (("images/Player3RightFall.png"));  
+    playerFall[3][1].src = (("images/Player3RightFall.PNG"));
     ////////////////////////////////move right
     //p0    
     playerRm[0][0] = new Image();
