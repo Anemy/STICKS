@@ -306,6 +306,7 @@ var playerLm = []; //move left 4 2
 var playerRm = []; //move right
 var playerFall = []; //falling
 var playerJump = []; //jumping
+var playerIcon = []; //select screen icons
 
 for (i = 0; i < 4; i++) {
     playerLm[i] = [];
@@ -1835,7 +1836,17 @@ function loadImages() {
     //explosion
     ex2 = new Image();
     ex2.src = (("images/ex2.png"));
+    
 
+    //player icons
+    playerIcon[0] = new Image();
+    playerIcon[0].src = (("images/Player0Icon.png"));
+    playerIcon[1] = new Image();
+    playerIcon[1].src = (("images/Player1Icon.png"));
+    playerIcon[2] = new Image();
+    playerIcon[2].src = (("images/Player2Icon.png"));
+    playerIcon[3] = new Image();
+    playerIcon[3].src = (("images/Player3Icon.png"));
     //stand right
     playerR[0] = new Image();
     playerR[0].src = (("images/Player0Right.png"));
@@ -2877,10 +2888,10 @@ function render() {//ctx
         
         if(optionY <= 3) ctx.drawImage(optionArrow, (35 + optionX + optionPlayerX[optionY]*100) * scale, (55 + optionY*85) * scale, 32 * scale, 52 * scale); 
         if(optionY == 4) ctx.drawImage(optionArrow, (95 + optionX + optionPlayerX[optionY]*300) * scale, (65 + optionY*83) * scale, 32 * scale, 52 * scale);         
-        ctx.drawImage(playerR[0], (65 + optionPlayerX[0]*100) * scale, (60 + 0*85) * scale, 40 * scale, 40 * scale); 
-        ctx.drawImage(playerR[1], (65 + optionPlayerX[1]*100) * scale, (60 + 1*85) * scale, 40 * scale, 40 * scale); 
-        ctx.drawImage(playerR[2], (65 + optionPlayerX[2]*100) * scale, (60 + 2*85) * scale, 40 * scale, 40 * scale); 
-        ctx.drawImage(playerR[3], (65 + optionPlayerX[3]*100) * scale, (60 + 3*85) * scale, 40 * scale, 40 * scale);
+        ctx.drawImage(playerIcon[0], (65 + optionPlayerX[0]*100) * scale, (60 + 0*85) * scale, 40 * scale, 40 * scale); 
+        ctx.drawImage(playerIcon[1], (65 + optionPlayerX[1]*100) * scale, (60 + 1*85) * scale, 40 * scale, 40 * scale); 
+        ctx.drawImage(playerIcon[2], (65 + optionPlayerX[2]*100) * scale, (60 + 2*85) * scale, 40 * scale, 40 * scale); 
+        ctx.drawImage(playerIcon[3], (65 + optionPlayerX[3]*100) * scale, (60 + 3*85) * scale, 40 * scale, 40 * scale);
         ctx.fillStyle = "rgb(0, 0, 0)";
         ctx.font = ("Bold 24px Arial");   
         ctx.fontStyle = ("Bold");     
@@ -2909,7 +2920,7 @@ function render() {//ctx
         ctx.drawImage(menuImage[7], 0, 0, gameWidth, gameHeight);
         
         if(optionY <= 3) ctx.drawImage(optionArrow, (50 + optionX) * scale, (106 + optionY*67) * scale, 32 * scale, 52 * scale); 
-        if(optionY == 4) ctx.drawImage(optionArrow, (270 + optionX) * scale, (50 + optionY*83) * scale, 32 * scale, 52 * scale);         
+        if(optionY == 4) ctx.drawImage(optionArrow, (275 + optionX) * scale, (53 + optionY*83) * scale, 32 * scale, 52 * scale);         
         ctx.drawImage(check[1], (265 + optionSettingsX[0]*215) * scale, (110 + 0*85) * scale, 30 * scale, 30 * scale); 
         ctx.drawImage(check[1], (265 + optionSettingsX[1]*240) * scale, (90 + 1*85) * scale, 30 * scale, 30 * scale); 
         ctx.drawImage(check[1], (375 + optionSettingsX[2]*72) * scale, (75 + 2*85) * scale, 30 * scale, 30 * scale); 
