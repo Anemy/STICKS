@@ -6,7 +6,7 @@
     * Client game core
 */
 
-const version = 1.01;
+var version = 1.01;
 
 var canvas;
 var gameWidth;
@@ -101,8 +101,8 @@ var dogtargety = [];
 var dogupPath = [];
 
 //CONSTANTS
-const RIGHT = 1;
-const LEFT = 0;
+var RIGHT = 1;
+var LEFT = 0;
 
 var mouseX = 0;
 var mouseY = 0;
@@ -390,6 +390,11 @@ var leader = [];
 var playerID;
 var playerHost; //true/f was player_instance
 
+//the game types people can be in:
+//Also saved in the gamecore
+var KILLLIMIT = 1, SURVIVAL = 2;
+var QUICK1V1 = 1, FFA = 2, TDM = 3;
+
 var lastPlayerMovement = 0;
 
 var searchingScreen;
@@ -417,7 +422,7 @@ var onlineState = "Offline";
 * "Disconnected"
 */
 //constants for states
-const OFFLINE = 'Offline', CONNECTING = 'Connecting', SEARCHING = 'Searching for game', HOSTING = 'Hosting game, waiting', CONNECTED = 'Connected', DISCONNECTED = 'Disconnected', CONNECTEDWAIT = 'Connected please wait', OTHERDISCONNECTED = 'Other player disconnected';
+var OFFLINE = 'Offline', CONNECTING = 'Connecting', SEARCHING = 'Searching for game', HOSTING = 'Hosting game, waiting', CONNECTED = 'Connected', DISCONNECTED = 'Disconnected', CONNECTEDWAIT = 'Connected please wait', OTHERDISCONNECTED = 'Other player disconnected';
 
 var playerPosition = function(x,y,xd,yd) {
     this.xPos = x;
@@ -545,37 +550,17 @@ function createOnlineGame() {
     };*/
 }
 
-//var recieveCounter = 0;
+var recieveCounter = 0;
 
 onserverupdate_recieved = function (data) {
-
-    //Lets clarify the information we have locally. One of the players is 'hosting' and
-    //the other is a joined in client, so we name these host and client for making sure
-    //the positions we get from the server are mapped onto the correct local sprites
-    //var player_host = this.players.self.host ? this.players.self : this.players.other;
-    //var player_client = this.players.self.host ? this.players.other : this.players.self;
-    //var this_player = this.players.self;
-
-    //console.log("Data recieved from server: " + data);
     //MAKE THE NOT COMMENTED
-    //Store the server time (this is offset by the latency in the network, by the time we get it)
     this.server_time = data.t;
     //Update our local offset time from the last server update
     this.time = this.server_time - (this.net_offset / 1000);
+    recieveCounter++;
 
-    //recieveCounter++;
     //if (recieveCounter % 1000 == 0)
-        //printf("updating from server");
-
-    //console.log("Server update recieved");
-
-    //console.log('New server data recieved!');
-
-    //Cache the data from the server,
-    //and then play the timeline
-    //back to the player with a small delay (net_offset), allowing
-    //interpolation between the points.
-    //this.server_updates.push(data);
+    //    console.log("Server update recieved at server time: " + this.server_time + " Server's host x: " + data.hpx + " Local 0:" + xpos[0]);
     
     //newHHP
     //new HEALTH update (first so the positions arn't reset
@@ -1153,14 +1138,14 @@ onreadygame = function (data) {
     mapChosen = false;
 }*/
 
-    if (connectedGame) {
-        connectedGame = false;
+    //if (connectedGame) {
+       // connectedGame = false;
 
         createOnlineGame();
-    }
-    else {
-        console.log("connectedGame false");
-    }
+    //}
+    //else {
+    //    console.log("connectedGame false");
+    //}
 
 }; //onreadygame
 
@@ -1281,7 +1266,10 @@ onnetmessage = function (data) {
 ondisconnect = function (data) {
     console.log("On disconnect called, with online State: " + onlineState);
     if (onlineState == CONNECTED) {
-        socket.disconnect();
+        //send to disconnect from game
+        this.socket.send('d.disconnect');
+        //socket.disconnect();
+
         console.log("Disconnected.");
         resetGame();
 
@@ -1311,53 +1299,65 @@ ondisconnect = function (data) {
 
 }; //ondisconnect
 
-connect_to_server = function () {
+find_a_game = function (gameType) {
+    if (alreadyConnected) {
+        var server_packet = 'f.';
+        server_packet += gameType;//tell the server to find a game for this client
+
+        //Go
+        this.socket.send(server_packet);
+    }
+}
+
+connect_to_server = function (gameTypeToFind) {
 
     //Store a local reference to our connection to the server
     //was this. everywhere
     if (alreadyConnected == false) {
         socket = io.connect();
         alreadyConnected = true;
+
+        //Sent when we are disconnected (network, server down, etc)
+        socket.on('disconnect', this.ondisconnect.bind(this));
+        //Sent each tick of the server simulation. This is our authoritive update
+        socket.on('onserverupdate', this.onserverupdate_recieved.bind(this));
+        //Handle when we connect to the server, showing state and storing id's.
+        socket.on('onconnected', this.onconnected.bind(this));
+        //On error we just show that we are not connected for now. Can print the data.
+        socket.on('error', this.ondisconnect.bind(this));
+        //On message from the server, we parse the commands and send it to the handlers
+        socket.on('message', this.onnetmessage.bind(this));
+
+        //A list of recent server updates we interpolate across
+        //This is the buffer that is the driving factor for our networking
+        this.server_updates = [];
+
+        //Connect to the socket.io server!
+        //this.connect_to_server();
+
+        //We start pinging the server to determine latency
+        this.create_ping_timer();
+
+        //When we connect, we are not 'connected' until we have a server id
+        //and are placed in a game by the server. The server sends us a message for that.
+        socket.on('connect', function () {
+            console.log("Connected to something...");
+            onlineState = 'Searching for game';
+            find_a_game(gameTypeToFind);
+        }.bind(this));
     }
     else {
-        console.log("Already connected firing");
-        socket.socket.connect();
+        console.log("Already connected firing (doing nothing)");
+        onlineState = 'Searching for game';
+        find_a_game(gameTypeToFind);
+        /*socket.socket.connect();
         var server_packet = 'f.';
         server_packet += 'Hellozdfwefscx';//tell the server to find a game for this client
 
         //Go
         this.socket.send(server_packet);
-        console.log("Sent reconnect packet.");
+        console.log("Sent reconnect packet.");*/
     }
-
-    //When we connect, we are not 'connected' until we have a server id
-    //and are placed in a game by the server. The server sends us a message for that.
-    socket.on('connect', function () {
-        console.log("Connected to something...");
-        onlineState = 'Searching for game';
-    }.bind(this));
-
-    //Sent when we are disconnected (network, server down, etc)
-    socket.on('disconnect', this.ondisconnect.bind(this));
-    //Sent each tick of the server simulation. This is our authoritive update
-    socket.on('onserverupdate', this.onserverupdate_recieved.bind(this));
-    //Handle when we connect to the server, showing state and storing id's.
-    socket.on('onconnected', this.onconnected.bind(this));
-    //On error we just show that we are not connected for now. Can print the data.
-    socket.on('error', this.ondisconnect.bind(this));
-    //On message from the server, we parse the commands and send it to the handlers
-    socket.on('message', this.onnetmessage.bind(this));
-
-    //A list of recent server updates we interpolate across
-    //This is the buffer that is the driving factor for our networking
-    this.server_updates = [];
-
-    //Connect to the socket.io server!
-    //this.connect_to_server();
-
-    //We start pinging the server to determine latency
-    this.create_ping_timer();
-
 }; //connect_to_server
 
 
@@ -1859,18 +1859,18 @@ function loadImages() {
     //p0
     //p1
     playerJump[1][0] = new Image();
-    playerJump[1][0].src = (("images/Player1LeftJump.png"));   
+    playerJump[1][0].src = (("images/Player1LeftJump.PNG"));   
     playerJump[1][1] = new Image();
-    playerJump[1][1].src = (("images/Player1RightJump.png"));
+    playerJump[1][1].src = (("images/Player1RightJump.PNG"));
     //p2
     //p3
     ////////////////////////////////fall
     //p0
     //p1
     playerFall[1][0] = new Image();
-    playerFall[1][0].src = (("images/Player1LeftFall.png"));   
+    playerFall[1][0].src = (("images/Player1LeftFall.PNG"));   
     playerFall[1][1] = new Image();
-    playerFall[1][1].src = (("images/Player1RightFall.png"));    
+    playerFall[1][1].src = (("images/Player1RightFall.PNG"));    
     //p2
     //p3
     ////////////////////////////////move right
@@ -4177,7 +4177,7 @@ function update(modifier) {
                                     health[t] = health[t] - 12;
                                 }
                                 if (shotType[i][k] == 5) {
-                                    health[t] = health[t] - 0.5;
+                                    health[t] = health[t] - 0.75;
                                 }
                                 if (shotType[i][k] == 6) {
                                     health[t] = health[t] - 4;
@@ -5411,7 +5411,7 @@ function keyPressed(e) {
                 loadingPActivated = true;
                 //window.onmousemove = mouseMove;
                 console.log("Online state is before: " + onlineState);
-                connect_to_server();
+                connect_to_server(1);
                 console.log("Online state is after: " + onlineState);
                 checked[0] = false;
                 //menu = 1;
@@ -5817,6 +5817,8 @@ function keyReleased(e) {
 
     //send input to server if online
     if (onlineState == "Connected" && menu != 3) {
+        //console.log("Sending message to server!! : " + upKey);
+
         //Send the packet of information to the server.
         //The input packets are labelled with an 'i' in front.
         var server_packet = 'i.';
@@ -6303,7 +6305,7 @@ function mouseMove(event) {
 
                         onlineState = "Searching for game";
 
-                        connect_to_server();
+                        connect_to_server(1);
                     }
                     if (checkedy[0] == 283) {//tdm
                         menu = 1;

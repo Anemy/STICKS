@@ -20,6 +20,8 @@ var playerLungeSpeed = 15 * fps; // was 15
 var killLimit = 10;
 var teamkills = [];
 
+var inputCounter = 0;
+
 
 //falling guns
 var gunx = [];
@@ -76,6 +78,7 @@ var mapSelected = false;
 //add setting gameover to true
 var gameOver = false;
 
+//a player data type
 var game_player = function (game_instance, player_instance, playerNum) {
     this.lastInput = null;
     //Store the instance, if any
@@ -156,23 +159,11 @@ var newReload = [];
 
 //ONLINE BULLET VARS
 var newBullets = [];
-/*var newBullet = function (x, y, dir, send, type) {
-    var newBulletType = type;
-    var newBulletX = x;
-    var newBulletY = y;
-    var newBulletDir = dir;  //true = right // false = left
-    var newBulletSender = send;
-};*/
 
 //guns that have been picked up already
 var deadGuns = [];
 //ONLINE NEW GUN VARS
 var newGuns = [];
-/*var newGun = function (x, y, gunType) {
-    var newGunX = x;
-    var newGunY = y;
-    var newGunType = gunType;  //true = right // false = left
-};*/
 
 var mapNumber = -1;
 
@@ -200,6 +191,9 @@ server_instance.prototype.saySomething = function (game_instance) {
         self: new game_player(this, ph, 0),
         other: new game_player(this, pc, 1),
     };
+
+    console.log("The hosts userID: " + ph.userid);
+    console.log("The hosts userID: " + pc.userid);
 
     gamePlayers[0] = new game_player(this, ph, 0);
     gamePlayers[1] = new game_player(this, pc, 0);
@@ -689,12 +683,20 @@ server_instance.prototype.process_input = function (player) {
     if(sender == 'client')
         senderID = 1;
 
-    //console.log("Input recieved, type: " + input.time + " key: " + key + " and sender: " + sender);
+    inputCounter++;
+    //if (inputCounter % 50 == 0)
+    //    console.log("Input recieved, type: " + input.time + " key: " + key + " and sender: " + sender);
     serverHasUpdate = true;
 
+    //fix for when reconnected clients... shifts all inputs over one.
+    if (input.time != 'd' && input.time != 'u') {
+        input.time = key;
+        key = input.seq;
+    }
+
     if (input.time == 'd') {
-        //player 0-Red
         if (key == 39) {
+            //console.log("Setting right true for: " + sender);
             gamePlayers[senderID].right = true;
             gamePlayers[senderID].left = false;
         }
@@ -761,12 +763,15 @@ server_instance.prototype.process_input = function (player) {
         }
     }
 
+    //if (inputCounter % 50 == 0)
+        //console.log("Input successfully excecuted?");
+
     player.lastInput = null;
 }; //process_input
 
 //(client, input_commands, input_time, input_type, input_seq);
 server_instance.prototype.handle_server_input = function (client, input, input_time, input_type, input_seq) {
-
+    //console.log("Server input instance.");
     //Fetch which client this refers ito out of the two
     var player_client =
         (client.userid == players.self.instance.userid) ?
@@ -1273,15 +1278,19 @@ function sendUserUpdates() {
 
     //Make a snapshot of the current state, for updating the clients
     this.laststate = {};
-    this.laststate.hpx = hostX;//this.gamePlayers[0].xpos;              //'host position', the game creators position
-    this.laststate.hpy = hostY;                //'host position', the game creators position
-    this.laststate.hpxdir = hostxdir;             //'host direction'
-    this.laststate.hpydir = hostydir;             //'host direction'
-    this.laststate.cpx = otherX;               //'client position', the person that joined, their position
-    this.laststate.cpy = otherY;               //'client position', the person that joined, their position
-    this.laststate.cpxdir = otherxdir;             //'client direction'
-    this.laststate.cpydir = otherydir;             //'client direction'
+    this.laststate.hpx = hostX;              //'host position', the game creators position
+    this.laststate.hpy = hostY;              //'host position', the game creators position
+    this.laststate.hpxdir = hostxdir;        //'host direction'
+    this.laststate.hpydir = hostydir;        //'host direction'
+    this.laststate.cpx = otherX;             //'client position', the person that joined, their position
+    this.laststate.cpy = otherY;             //'client position', the person that joined, their position
+    this.laststate.cpxdir = otherxdir;       //'client direction'
+    this.laststate.cpydir = otherydir;       //'client direction'
 
+    this.laststate.t = Date.now();
+
+    //console.log("Sending update at: " + Date.now() + " Server's host x: " + gamePlayers[0].xpos + "Total inputs recieved: "+inputCounter);
+    
     this.laststate.newBulletNum = newBullets.length; //amount of new bullets
     if (newBullets.length > 0) {//create the bullets!!!
         //newBullets.push(gamePlayers[i].xpos, gamePlayers[i].ypos + 4, gamePlayers[i].directionFacing, i, gamePlayers[i].gun[gamePlayers[i].equip]);
@@ -1473,7 +1482,7 @@ function bulletCollisions(i, modifier) {
                         gamePlayers[t].health = gamePlayers[t].health - 12;
                     }
                     if (gamePlayers[i].shotType[k] == 5) {
-                        gamePlayers[t].health = gamePlayers[t].health - 0.5;
+                        gamePlayers[t].health = gamePlayers[t].health - 0.75;
                     }
                     if (gamePlayers[i].shotType[k] == 6) {
                         gamePlayers[t].health = gamePlayers[t].health - 4;
