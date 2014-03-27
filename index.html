@@ -5,12 +5,20 @@
 
         <link rel="icon" type="image/png"
               href="tabIcon.png" />
-
+        <script type="text/javascript">
+            document.write('<style type="text/css">#no-js { display: none; }</style>');
+        </script>
 	</head>
+
+
+</head>
 
 <body style="text-align: center; margin: 0; padding: 0; border: 0; display: block; "> <!--style="display: table;">-->
     <!--<script src="http://localhost:4004/socket.io/socket.io.js"></script>-->
     <!--<p id="p1">Hello! No resize yet</p>-->
+
+    <div id="no-js">Please enable javascript to run this game. Or consider downloading the newest version of Google Chrome.</div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="client_gamecore.js"></script>
     <script>init();</script>

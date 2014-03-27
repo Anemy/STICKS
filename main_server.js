@@ -6,7 +6,7 @@ var play;
 var gameInterval;
 
 var
-    game_server = module.exports = { games : {}, game_count:0 },
+    game_server = module.exports = { games: {}, game_count: 0, dormantCount: 0, dormantClients: {} },
     UUID        = require('node-uuid'),
     verbose     = true;
 
@@ -14,14 +14,10 @@ var
     //are going to include some values to handle that.
 global.window = global.document = global;
 
-    //Import shared game library code.
-//require('./server_coregame.js');
-
-    //A simple wrapper for logging so we can toggle it,
-    //and augment it for clarity.
-game_server.log = function() {
-    if(verbose) console.log.apply(this,arguments);
-};
+//the game types people can be in:
+//Also saved in the gamecore
+var KILLLIMIT = 1, SURVIVAL = 2;
+var QUICK1V1 = 1, FFA = 2, TDM = 3;
 
 game_server.local_time = 0;
 game_server._dt = new Date().getTime();
@@ -46,12 +42,8 @@ game_server.onMessage = function (client, message) {
         //The first is always the type of message
     var message_type = message_parts[0];
 
-    var other_client =
-        (client.game.player_host.userid == client.userid) ?
-            client.game.player_client : client.game.player_host;
-
    // if (message_type != 'p')
-       // console.log("Message recieved!");
+        //console.log("Message recieved!");
 
     if (message_type == 'i') {
         //game_server.log('input recieved');
@@ -63,13 +55,35 @@ game_server.onMessage = function (client, message) {
     } else if (message_type == 'p') {
         client.send('s.p.' + message_parts[1]);
     } else if (message_type == 'c') {    //Client changed their color!
-        if (other_client)
-            other_client.send('s.c.' + message_parts[1]);
+        //if (other_client)
+            //other_client.send('s.c.' + message_parts[1]);
     } else if (message_type == 'f') {
-        console.log("Reconnected client. Try to find match. @@@@");
-        if (other_client) { }
-        else { //when there isn't another player
-            this.findGame(client);
+        //console.log("F message type");
+        if (client.inGame == false) {
+            console.log("Dormant state message recieved. (F)");
+            //find/create a game for a client
+            var message_game = message_parts[1];
+            var message_game_type = message_parts[2];
+            if (message_game == 1) { //1v1 game
+                this.findGame(client);
+            } else if (message_game == 2) { //FFA
+                this.findGame(client);
+            } else if (message_game == 3) { //TDM game
+                this.findGame(client);
+            }
+            else {
+                console.log("Command not recognized, finding game anyway");
+                this.findGame(client);
+            }
+        }
+    }
+    else if (message_type == 'd') {
+        console.log("Client wants a disconnect");
+        if (client && client.game) {
+            console.log("Ending game.");
+            this.endGame(client.game.id, client.userid);
+            //add the user to the dormants
+            this.addDormant(client);
         }
     }
 
@@ -101,7 +115,8 @@ game_server.onInput = function(client, parts) {
 
     //the client should be in a game, so
     //we can tell that game to handle the input
-    if (client && client.game && client.game.gamecore) {
+    if (client && client.game && client.game.gamecore && client.game.play == true) {
+        //console.log("On Successful input.");
         client.game.gamecore.handle_server_input(client, input_commands, input_time, input_type, input_seq);
     }
 
@@ -115,7 +130,8 @@ game_server.createGame = function(player) {
         id : UUID(),                //generate a new id for the game
         player_host:player,         //so we know who initiated the game
         player_client:null,         //nobody else joined yet, since its new
-        player_count: 1//,              //for simple checking of state
+        player_count: 1,//,              //for simple checking of state
+        gameType: 0
         //gamecore:{}
     };
     
@@ -134,16 +150,17 @@ game_server.createGame = function(player) {
     //console.log('server host at  ' + Date.now());
     player.game = thegame;
     player.hosting = true;
+    player.inGame = true;
         
-    this.log("Creating new game.");
-    //this.log('player ' + player.userid + ' created a game with id ' + player.game.id);
+    console.log("Creating new game.");
+    //console.log('player ' + player.userid + ' created a game with id ' + player.game.id);
 
         //return it
     return thegame;
 
 }; //game_server.createGame
 
-    //we are requesting to kill a game in progress.
+//we are requesting to kill a game in progress.
 game_server.endGame = function(gameid, userid) {
 
     var thegame = this.games[gameid];
@@ -158,26 +175,26 @@ game_server.endGame = function(gameid, userid) {
             //if the game has two players, the one is leaving
         if(thegame.player_count > 1) {
 
-                //send the players the message the game is ending
+            //send the players the message the game is ending
             if(userid == thegame.player_host.userid) {
 
-                    //the host left, oh snap. Lets try join another game
                 if(thegame.player_client) {
                         //tell them the game is over
                     thegame.player_client.send('s.e');
+                    this.addDormant(thegame.player_client);
                     //thegame.player_client.emit('disconnect');
                         //now look for/create a new game.
                     //this.findGame(thegame.player_client);
                 }
                     
             } else {
-                    //the other player left, we were hosting
                 if(thegame.player_host) {
                         //tell the client the game is ended
                     thegame.player_host.send('s.e');
                     //thegame.player_host.emit('disconnect');
                         //i am no longer hosting, this game is going down
                     thegame.player_host.hosting = false;
+                    this.addDormant(thegame.player_host);
                     
                     //now look for/create a new game.
                     //this.findGame(thegame.player_host);
@@ -191,10 +208,10 @@ game_server.endGame = function(gameid, userid) {
         delete this.games[gameid];
         this.game_count--;
 
-        this.log('Game removed. there are now ' + this.game_count + ' games' );
+        console.log('Game removed. there are now ' + this.game_count + ' games' );
 
     } else {
-        this.log('That game was not found! (already destroyed)');
+        console.log('That game was not found! (already destroyed)');
     }
 
 }; //game_server.endGame
@@ -207,6 +224,7 @@ game_server.startGame = function (game) {
         //s=server message, j=you are joining, send them the host id
     game.player_client.send('s.j.' + game.player_host.userid);
     game.player_client.game = game;
+    game.player_client.inGame = true;
 
         //now we tell both that the game is ready to start
         //clients will reset their positions in this case.
@@ -224,9 +242,36 @@ game_server.startGame = function (game) {
 
 }; //game_server.startGame
 
+game_server.addDormant = function (player) {
+    if (typeof this.dormantClients[player.userid] === 'undefined') {
+        //add to a dormant array, to await a message from client for game find
+        //then remove from array on disconnect/game search
+        this.dormantCount++;
+        console.log('Adding a dormant. #' + this.dormantCount);
+
+        player.inGame = false;
+
+        this.dormantClients[player.userid] = player;
+    }
+}
+
+game_server.removeDormant = function (player_ID) {
+    console.log("Removing a dormant");
+    delete this.dormantClients[player_ID];
+}
+
+//dormant methods to add:
+//remove dormant
+//search dormant?
+
 game_server.findGame = function(player) {
 
-    this.log('Looking for a game. We have : ' + this.game_count + ' games.');
+    console.log('Looking for a game. We have : ' + this.game_count + ' games.');
+
+    //console.log('About to remove player with id:' + player.userid);
+    delete this.dormantClients[player.userid];
+    this.dormantCount--;
+    //console.log('Successful deletion player with id:' + player.userid);
 
         //so there are games active,
         //lets see if one needs another player
@@ -267,9 +312,7 @@ game_server.findGame = function(player) {
 
         } //if no join already
 
-    } else { //if there are any games at all
-
-            //no games? create one!
+    } else { //no games, create
         this.createGame(player);
     }
 
