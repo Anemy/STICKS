@@ -2956,8 +2956,13 @@ function render() {//ctx
         else if(optionPlayerX[3] == 0) 
             ctx.drawImage(selectPlayerImage[3], (55) * scale, (50 + 3*75) * scale, 230 * scale, 100 * scale); 
 
-        //ctx.drawImage(toggle[0], (10) * scale, (40 + 0*75) * scale, 500 * scale, 100 * scale); 
-        //ctx.drawImage(toggle[1], (10) * scale, (40 + 1*75) * scale, 500 * scale, 100 * scale); 
+        //ctx.drawImage(toggle[0], (2) * scale, (40 + 0*75) * scale, 500 * scale, 100 * scale); 
+        //ctx.drawImage(toggle[1], (2) * scale, (40 + 1*75) * scale, 500 * scale, 100 * scale); 
+        if(optionPlayerX[2]!=2)
+            ctx.drawImage(toggle[2], (5) * scale, (58 + 2*75) * scale, 500 * scale, 100 * scale); 
+        if(optionPlayerX[3]!=2)
+            ctx.drawImage(toggle[3], (5) * scale, (58 + 3*75) * scale, 500 * scale, 100 * scale); 
+
         
         ctx.fillStyle = "rgb(0, 0, 0)";
         ctx.font = ("Bold 24px Arial");   
