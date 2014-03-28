@@ -308,6 +308,9 @@ var playerFall = []; //falling
 var playerJump = []; //jumping
 var playerIcon = []; //select screen icons
 
+var joinImage = [];
+var selectPlayerImage = [];
+
 for (i = 0; i < 4; i++) {
     playerLm[i] = [];
     playerRm[i] = [];
@@ -350,6 +353,7 @@ var mapSelectBackgroundImage;
 var menuBackgroundImage;
 var cloudsImage;
 var menuPlayerImage;
+var botIcon = [];
 
 var controls = [];
 var option = [];
@@ -361,7 +365,7 @@ var optionXacc = 0;
 var cloudsX = [];
 var optionPlayerX = [];
 var optionSettingsX = [];
-
+var toggle = [];
 //dogs
 var dogRm = [];
 var dogLm = [];
@@ -1409,7 +1413,7 @@ function init() {//instance\
     optionPlayerX[1] = 0;
     optionPlayerX[2] = 2;
     optionPlayerX[3] = 2;
-    optionPlayerX[4] = 1;
+    optionPlayerX[4] = 2;
 
     optionSettingsX[0] = 0;
     optionSettingsX[1] = 0;
@@ -1837,6 +1841,24 @@ function loadImages() {
     ex2 = new Image();
     ex2.src = (("images/ex2.png"));
     
+    //selectPlayer images
+    selectPlayerImage[0] = new Image();
+    selectPlayerImage[0].src = (("images/player0Icon1.png"));
+    selectPlayerImage[1] = new Image();
+    selectPlayerImage[1].src = (("images/player1Icon1.png"));
+    selectPlayerImage[2] = new Image();
+    selectPlayerImage[2].src = (("images/player2Icon1.png"));
+    selectPlayerImage[3] = new Image();
+    selectPlayerImage[3].src = (("images/player3Icon1.png"));
+
+    joinImage[0] = new Image();
+    joinImage[0].src = (("images/join0.png"));
+    joinImage[1] = new Image();
+    joinImage[1].src = (("images/join1.png"));
+    joinImage[2] = new Image();
+    joinImage[2].src = (("images/join2.png"));
+    joinImage[3] = new Image();
+    joinImage[3].src = (("images/join3.png"));
 
     //player icons
     playerIcon[0] = new Image();
@@ -2019,7 +2041,7 @@ function loadImages() {
     menuImage[0] = new Image();
     menuImage[0].src = (("images/Title.png"));
     menuImage[1] = new Image();
-    menuImage[1].src = (("images/SelectPlayers.png"));
+    menuImage[1].src = (("images/SelectPlayers1.png"));
     menuImage[2] = new Image();
     menuImage[2].src = (("images/SelectMap.png"));
     menuImage[6] = new Image();
@@ -2039,6 +2061,15 @@ function loadImages() {
     menuPlayerImage = new Image();
     menuPlayerImage.src = (("images/menuPlayerImage.png"));
 
+    botIcon[0] = new Image();
+    botIcon[0].src = (("images/Bot0Icon.png"));
+    botIcon[1] = new Image();
+    botIcon[1].src = (("images/Bot1Icon.png"));
+    botIcon[2] = new Image();
+    botIcon[2].src = (("images/Bot2Icon.png"));
+    botIcon[3] = new Image();
+    botIcon[3].src = (("images/Bot3Icon.png"));
+
     option[0] = new Image();
     option[0].src = (("images/option0.png"));
     option[1] = new Image();
@@ -2048,6 +2079,15 @@ function loadImages() {
     optionArrow.src = (("images/optionArrow1.png"));
     optionArrowLeft = new Image();
     optionArrowLeft.src = (("images/optionArrowLeft1.png"));
+    
+    toggle[0] = new Image();
+    toggle[0].src = (("images/toggle0.png"));
+    toggle[1] = new Image();
+    toggle[1].src = (("images/toggle1.png"));
+    toggle[2] = new Image();
+    toggle[2].src = (("images/toggle2.png"));
+    toggle[3] = new Image();
+    toggle[3].src = (("images/toggle3.png"));
     
     check[0] = new Image();
     check[0].src = (("images/Check.png"));
@@ -2609,6 +2649,7 @@ function render() {//ctx
             //jetpack
             if (jetpack[i] == true) {
                 ctx.drawImage(jet, xpos[i] * scale, (ypos[i] + 20) * scale, 20 * scale, 20 * scale);
+
             }
             if (streak[i] >= 3 && streak[i] < 6) {
                 ctx.fillStyle = "rgb(250, 0, 0)";
@@ -2886,12 +2927,38 @@ function render() {//ctx
         ctx.drawImage(cloudsImage,cloudsX[1],0,gameWidth,100 * scale);         
         ctx.drawImage(menuImage[1], 0, 0, 700 * scale, 450 * scale);
         
-        if(optionY <= 3) ctx.drawImage(optionArrow, (35 + optionX + optionPlayerX[optionY]*100) * scale, (55 + optionY*85) * scale, 32 * scale, 52 * scale); 
-        if(optionY == 4) ctx.drawImage(optionArrow, (95 + optionX + optionPlayerX[optionY]*300) * scale, (65 + optionY*83) * scale, 32 * scale, 52 * scale);         
-        ctx.drawImage(playerIcon[0], (65 + optionPlayerX[0]*100) * scale, (60 + 0*85) * scale, 40 * scale, 40 * scale); 
-        ctx.drawImage(playerIcon[1], (65 + optionPlayerX[1]*100) * scale, (60 + 1*85) * scale, 40 * scale, 40 * scale); 
-        ctx.drawImage(playerIcon[2], (65 + optionPlayerX[2]*100) * scale, (60 + 2*85) * scale, 40 * scale, 40 * scale); 
-        ctx.drawImage(playerIcon[3], (65 + optionPlayerX[3]*100) * scale, (60 + 3*85) * scale, 40 * scale, 40 * scale);
+        //if(optionY <= 3) ctx.drawImage(optionArrow, (35 + optionX + optionPlayerX[optionY]*100) * scale, (55 + optionY*85) * scale, 32 * scale, 52 * scale); 
+        if(optionPlayerX[4] == 0)        
+            ctx.drawImage(optionArrow, (100 + optionX) * scale, (65 + 4*83) * scale, 32 * scale, 52 * scale);     
+        else if(optionPlayerX[4] == 1) 
+            ctx.drawImage(optionArrow, (255 + optionX) * scale, (65 + 4*83) * scale, 32 * scale, 52 * scale);
+        else
+            ctx.drawImage(optionArrow, (520 + optionX) * scale, (65 + 4*83) * scale, 32 * scale, 52 * scale);   
+        //ctx.drawImage(playerIcon[0], (65 + optionPlayerX[0]*100) * scale, (60 + 0*85) * scale, 40 * scale, 40 * scale); 
+        //ctx.drawImage(playerIcon[1], (65 + optionPlayerX[1]*100) * scale, (60 + 1*85) * scale, 40 * scale, 40 * scale); 
+        //ctx.drawImage(playerIcon[2], (65 + optionPlayerX[2]*100) * scale, (60 + 2*85) * scale, 40 * scale, 40 * scale); 
+        //ctx.drawImage(playerIcon[3], (65 + optionPlayerX[3]*100) * scale, (60 + 3*85) * scale, 40 * scale, 40 * scale);
+
+       
+        ctx.drawImage(selectPlayerImage[0], (55) * scale, (40 + 0*75) * scale, 230 * scale, 100 * scale); 
+        ctx.drawImage(selectPlayerImage[1], (55) * scale, (40 + 1*75) * scale, 230 * scale, 100 * scale); 
+        if(optionPlayerX[2] == 2)        
+            ctx.drawImage(joinImage[2], (35) * scale, (50 + 2*75) * scale, 500 * scale, 100 * scale); 
+        else if(optionPlayerX[2] == 1) 
+            ctx.drawImage(botIcon[2], (55) * scale, (50 + 2*75) * scale, 230 * scale, 100 * scale); 
+        else if(optionPlayerX[2] == 0) 
+            ctx.drawImage(selectPlayerImage[2], (55) * scale, (50 + 2*75) * scale, 230 * scale, 100 * scale); 
+       
+        if(optionPlayerX[3] == 2)        
+            ctx.drawImage(joinImage[3], (35) * scale, (50 + 3*75) * scale, 500 * scale, 100 * scale); 
+        else if(optionPlayerX[3] == 1) 
+            ctx.drawImage(botIcon[3], (55) * scale, (50 + 3*75) * scale, 230 * scale, 100 * scale); 
+        else if(optionPlayerX[3] == 0) 
+            ctx.drawImage(selectPlayerImage[3], (55) * scale, (50 + 3*75) * scale, 230 * scale, 100 * scale); 
+
+        //ctx.drawImage(toggle[0], (10) * scale, (40 + 0*75) * scale, 500 * scale, 100 * scale); 
+        //ctx.drawImage(toggle[1], (10) * scale, (40 + 1*75) * scale, 500 * scale, 100 * scale); 
+        
         ctx.fillStyle = "rgb(0, 0, 0)";
         ctx.font = ("Bold 24px Arial");   
         ctx.fontStyle = ("Bold");     
@@ -4177,6 +4244,7 @@ function update(modifier) {
                                                 bloodx[t][r] = xpos[t] + (Math.random() * 20);
                                                 bloody[t][r] = ypos[t] + (Math.random() * 10);
                                                 if (bxdir[i][k] > 0) bloodxdir[t][r] = (-1 + (Math.random() * 7)) * fps;
+
                                                 else bloodxdir[t][r] = (-5 + (Math.random() * 7)) * fps;
                                                 bloodydir[t][r] = (2 - (Math.random() * 5)) * fps;
                                                 bloodCount[t][r] = 0;
@@ -5113,12 +5181,14 @@ function keyPressed(e) {
     //right
     if (key == 39) {
         if (menu == 1) {
-            if(optionY == 0 && optionPlayerX[0] < 1) optionPlayerX[0]++; 
+            /*if(optionY == 0 && optionPlayerX[0] < 1) optionPlayerX[0]++; 
             if(optionY == 1 && optionPlayerX[1] < 1) optionPlayerX[1]++;
             if(optionY == 2 && optionPlayerX[2] < 2 && (optionSettingsX[0] == 0 || optionPlayerX[2] == 0)) optionPlayerX[2]++; 
             if(optionY == 3 && optionPlayerX[3] < 2 && (optionSettingsX[0] == 0 || optionPlayerX[3] == 0)) optionPlayerX[3]++;
             if(optionY == 4 && optionPlayerX[4] < 1) optionPlayerX[4]++;
-                
+                */
+            if(optionPlayerX[4] < 2)optionPlayerX[4]++;
+            
              
         }
         if (menu == 2) {
@@ -5152,11 +5222,13 @@ function keyPressed(e) {
     //left
     if (key == 37) {
         if (menu == 1) {
-            if(optionY == 0 && optionPlayerX[0] > 0) optionPlayerX[0]--; 
+            /*if(optionY == 0 && optionPlayerX[0] > 0) optionPlayerX[0]--; 
             if(optionY == 1 && optionPlayerX[1] > 0) optionPlayerX[1]--;
             if(optionY == 2 && optionPlayerX[2] > 0) optionPlayerX[2]--; 
             if(optionY == 3 && optionPlayerX[3] > 0) optionPlayerX[3]--;
             if(optionY == 4 && optionPlayerX[4] > 0) optionPlayerX[4]--;
+            */
+            if(optionPlayerX[4] > 0) optionPlayerX[4]--;
         }
         if (menu == 2) {
             if(mapSelect == 0 && mapSelectSpeed == 0) { mapSelect = 8; mapSelectSpeed = -1*gameWidth; mapSelectAcc = 40;}
@@ -5182,7 +5254,7 @@ function keyPressed(e) {
     if (key == 38) {
         //menu
         if (menu == 1) {
-            if(optionY > 0) optionY--;
+            //if(optionY > 0) optionY--;
         } else if (menu == 2) {
             if (boxy == 313) boxy = 195;
             else if (boxy == 195) boxy = 78;
@@ -5211,7 +5283,7 @@ function keyPressed(e) {
     if (key == 40) {
         //menu
         if (menu == 1) {
-            if(optionY < 4) optionY++;
+            //if(optionY < 4) optionY++;
         } else if (menu == 2) {
             if (boxy == 78) boxy = 195;
             else if (boxy == 195) boxy = 313;
@@ -5320,6 +5392,10 @@ function keyPressed(e) {
             swap[2] = true;
             //}
         }
+        if(menu == 1 && (optionPlayerX[2] == 1 || optionPlayerX[2] == 2))
+            optionPlayerX[2] = 0;
+        else if(optionPlayerX[2] == 0)
+            optionPlayerX[2] = 2;
     }
     //shoot
     if (key == 107) {
@@ -5363,6 +5439,11 @@ function keyPressed(e) {
             swap[3] = true;
             //}
         }
+         if(menu == 1 && (optionPlayerX[3] == 1 || optionPlayerX[3] == 2))
+            optionPlayerX[3] = 0;
+        else if(optionPlayerX[3] == 0)
+            optionPlayerX[3] = 2;
+        
     }
     //shoot
     if (key == 76) {
@@ -5546,8 +5627,8 @@ function keyPressed(e) {
         } 
         else if (menu == 1) //player select screen
         {
-            if(optionY < 4) optionY++;            
-            else if(optionY == 4 && optionPlayerX[4] == 1){            
+            //if(optionY < 4) optionY++;            
+            if(optionPlayerX[4] == 2){            
                 for (i = 0; i <= 3; i++) {
                     if (optionPlayerX[i] == 0) {
                         checkCount++;
@@ -5602,9 +5683,17 @@ function keyPressed(e) {
                     //cpu[0] = false;
                 }  
             }
-            else if(optionY == 4 && optionPlayerX[4] == 0){
+            else if(optionPlayerX[4] == 1){
                 optionY = 0;
                 menu = 7;
+            }
+            else if(optionPlayerX[4] == 0){
+                if(optionPlayerX[2] == 2){
+                    optionPlayerX[2] = 1;
+                }
+                else if(optionPlayerX[3] == 2){
+                    optionPlayerX[3] = 1;
+                }            
             }
         } else if (menu == 7) //multiplayer settings screen
         {
@@ -5695,7 +5784,7 @@ function keyPressed(e) {
                     ypos[3] = 410;
                 }
                 
-                optionPlayerX[4] = 1;
+                optionPlayerX[4] = 2;
                 menu = 1;
             } 
             /*if (boxy == 85) {
