@@ -4,6 +4,7 @@
 
 var play;
 var gameInterval;
+var i;
 
 var
     game_server = module.exports = { games: {}, game_count: 0, dormantCount: 0, dormantClients: {} },
@@ -60,21 +61,16 @@ game_server.onMessage = function (client, message) {
     } else if (message_type == 'f') {
         //console.log("F message type");
         if (client.inGame == false) {
-            console.log("Dormant state message recieved. (F)");
+            //console.log("Dormant state message recieved. (F)");
             //find/create a game for a client
             var message_game = message_parts[1];
             var message_game_type = message_parts[2];
-            if (message_game == 1) { //1v1 game
-                this.findGame(client);
-            } else if (message_game == 2) { //FFA
-                this.findGame(client);
-            } else if (message_game == 3) { //TDM game
-                this.findGame(client);
-            }
-            else {
-                console.log("Command not recognized, finding game anyway");
-                this.findGame(client);
-            }
+            //1 = Kill lim   |  2 = Surv    game
+            //1 = 1v1  |  2 = FFA  |  3 = TDM     type
+
+            //console.log("Message game: " + message_game + " game type: " + message_game_type);
+            if (message_game_type > 0 && message_game_type < 4)
+                this.findGame(client, message_game, message_game_type);
         }
     }
     else if (message_type == 'd') {
@@ -104,7 +100,6 @@ game_server.onInput = function(client, parts) {
     //and then update the players
 
 
-
     var input_commands = parts[1];
     var input_time = parts[2];
     var input_type = parts[3];
@@ -123,20 +118,26 @@ game_server.onInput = function(client, parts) {
 }; //game_server.onInput
 
     //Define some required functions
-game_server.createGame = function(player) {
+game_server.createGame = function (player, gameKorS, gameGameType) {
 
     //Create a new game instance
     var thegame = {
         id : UUID(),                //generate a new id for the game
-        player_host:player,         //so we know who initiated the game
-        player_client:null,         //nobody else joined yet, since its new
+        players: {},
+        //player_host:player,         //so we know who initiated the game
+        //player_client:null,         //nobody else joined yet, since its new
         player_count: 1,//,              //for simple checking of state
-        gameType: 0
+        KorS: 0,//k is 1 S is 2
+        gameType: 0,//1 is 1v1, 2 is FFA, 3 is TDM
+        isFull: 0 //full is 1
         //gamecore:{}
     };
-    
+    thegame.KorS = gameKorS;
+    thegame.gameType = gameGameType;
+
+    thegame.players[0] = player;
+
     thegame.gamecore = new server_instance();
-    //server_instance.saySomething();
 
         //Store it in the list of game
     this.games[ thegame.id ] = thegame;
@@ -144,18 +145,11 @@ game_server.createGame = function(player) {
         //Keep track
     this.game_count++;
 
-        //tell the player that they are now the host
-        //s=server message, h=you are hosting
-    player.send('s.h.' + String(Date.now()).replace('.', '-'));// was in string thegame.gamecore.local_time
-    //console.log('server host at  ' + Date.now());
     player.game = thegame;
-    player.hosting = true;
     player.inGame = true;
         
-    console.log("Creating new game.");
-    //console.log('player ' + player.userid + ' created a game with id ' + player.game.id);
+    console.log("No games of mode: " + gameKorS + " type: " + gameGameType + " found. Creating new game.");
 
-        //return it
     return thegame;
 
 }; //game_server.createGame
@@ -173,36 +167,14 @@ game_server.endGame = function(gameid, userid) {
         clearInterval(thegame.timer);
 
             //if the game has two players, the one is leaving
-        if(thegame.player_count > 1) {
-
-            //send the players the message the game is ending
-            if(userid == thegame.player_host.userid) {
-
-                if(thegame.player_client) {
-                        //tell them the game is over
-                    thegame.player_client.send('s.e');
-                    this.addDormant(thegame.player_client);
-                    //thegame.player_client.emit('disconnect');
-                        //now look for/create a new game.
-                    //this.findGame(thegame.player_client);
-                }
-                    
-            } else {
-                if(thegame.player_host) {
-                        //tell the client the game is ended
-                    thegame.player_host.send('s.e');
-                    //thegame.player_host.emit('disconnect');
-                        //i am no longer hosting, this game is going down
-                    thegame.player_host.hosting = false;
-                    this.addDormant(thegame.player_host);
-                    
-                    //now look for/create a new game.
-                    //this.findGame(thegame.player_host);
+        if (thegame.player_count > 1) {
+            for(i = 0; i < thegame.player_count; i++) {
+            //for (var stillConnectedPlayer in thegame.players) {
+                if (userid != thegame.players[i].userid) {
+                    thegame.players[i].send('s.e');
+                    this.addDormant(thegame.players[i]);
                 }
             }
-            //socket.clienaaaaaats[thegame.player_host.userid].connection.end();
-            //socket.clients[thegame.player_client.userid].connection.end();
-
         }
 
         delete this.games[gameid];
@@ -210,29 +182,28 @@ game_server.endGame = function(gameid, userid) {
 
         console.log('Game removed. there are now ' + this.game_count + ' games' );
 
-    } else {
-        console.log('That game was not found! (already destroyed)');
     }
 
 }; //game_server.endGame
 
 game_server.startGame = function (game) {
+    //console.log("Start the game!");
+
     game.gamecore.saySomething(game);
         //right so a game has 2 players and wants to begin
         //the host already knows they are hosting,
         //tell the other client they are joining a game
-        //s=server message, j=you are joining, send them the host id
-    game.player_client.send('s.j.' + game.player_host.userid);
-    game.player_client.game = game;
-    game.player_client.inGame = true;
+    //s=server message, j=you are joining, send them the host id
 
-        //now we tell both that the game is ready to start
-        //clients will reset their positions in this case.
-    game.player_client.send('s.r.'+ String(Date.now()).replace('.','-'));
-    game.player_host.send('s.r.' + String(Date.now()).replace('.', '-'));
+    for (i = 0; i < game.player_count; i++) {
+        game.players[i].inGame = true;
+        game.players[i].game = game;
+
+        game.players[i].send('s.r.' + String(Date.now()).replace('.', '-'));
+    }
  
     //set this flag, so that the update loop can run it.
-    console.log("Starting a game!");
+    console.log("Game started.");
 
     game.active = true;
 
@@ -247,7 +218,7 @@ game_server.addDormant = function (player) {
         //add to a dormant array, to await a message from client for game find
         //then remove from array on disconnect/game search
         this.dormantCount++;
-        console.log('Adding a dormant. #' + this.dormantCount);
+        //console.log('Adding a dormant. #' + this.dormantCount);
 
         player.inGame = false;
 
@@ -256,7 +227,7 @@ game_server.addDormant = function (player) {
 }
 
 game_server.removeDormant = function (player_ID) {
-    console.log("Removing a dormant");
+    //console.log("Removing a dormant");
     delete this.dormantClients[player_ID];
 }
 
@@ -264,9 +235,10 @@ game_server.removeDormant = function (player_ID) {
 //remove dormant
 //search dormant?
 
-game_server.findGame = function(player) {
+game_server.findGame = function(player, gameKorS, gameType) {
 
-    console.log('Looking for a game. We have : ' + this.game_count + ' games.');
+    //console.log('Look for game: type: ' + gameType + ' KS: ' + gameKorS + '.');
+    console.log( 'Searching for game. Currently : ' + this.game_count + ' games total.');
 
     //console.log('About to remove player with id:' + player.userid);
     delete this.dormantClients[player.userid];
@@ -280,40 +252,76 @@ game_server.findGame = function(player) {
         var joined_a_game = false;
 
             //Check the list of games for an open game
-        for(var gameid in this.games) {
+        for (var gameid in this.games) {
+            //console.log("Seeing if this game is a match");
                 //only care about our own properties.
             if(!this.games.hasOwnProperty(gameid)) continue;
                 //get the game we are checking against
             var game_instance = this.games[gameid];
 
+            //console.log(" Is full :" + game_instance.isFull);
                 //If the game is a player short
-            if(game_instance.player_count < 2) {
+            if (game_instance.isFull == 0) {
+                //console.log("Not full! Does: " + game_instance.KorS + " == " + gameKorS);
+                //console.log("and does: " + game_instance.gameType + " == " + gameType);
 
-                    //someone wants us to join!
-                joined_a_game = true;
-                    //increase the player count and store
-                    //the player as the client of this game
-                game_instance.player_client = player;
-                //game_instance.gamecore.players.other.instance = player;
-                game_instance.player_count++;
+                if (game_instance.KorS == gameKorS && gameType == game_instance.gameType) {
+                    //console.log("BINGO!");
+                    //add player to game.
+                    game_instance.players[game_instance.player_count] = player;
+                    game_instance.player_count = game_instance.player_count + 1;
+
+                    player.game = game_instance;
+
+                    joined_a_game = true;
+                    if (gameType == 1 && game_instance.player_count == 2) {
+                        //console.log("Full game!!!");
+                        game_instance.isFull = 1;
+                    } else if (gameType == 2 && game_instance.player_count == 4) {
+                        //console.log("Full game!!!");
+                        game_instance.isFull = 1;
+                    } else if (gameType == 3 && game_instance.player_count == 4) {
+                        //console.log("Full game!!!");
+                        game_instance.isFull = 1;
+                    }
+
+                    player.send('s.i.' + (game_instance.player_count-1));
+                    player.send('s.j.' + player.userid);
+                    //tell the players how many people have connected
+                    for (i = 0; i < game_instance.player_count; i++) {
+                        game_instance.players[i].send('s.n.' + game_instance.player_count);
+                    }
+
+                    console.log("User found a game match. Player added.");
 
                     //start running the game on the server,
                     //which will tell them to respawn/start
-                this.startGame(game_instance);
+                    if (game_instance.isFull == 1) {
+                        //console.log("Game is now full.")
+                        this.startGame(game_instance);
+                    }
 
-            } //if less than 2 players
+                }
+
+            } //full game
         } //for all games
 
             //now if we didn't join a game,
             //we must create one
         if(!joined_a_game) {
 
-            this.createGame(player);
+            this.createGame(player, gameKorS, gameType);
+            player.send('s.n.1');
+            player.send('s.i.0');
+            player.send('s.j.' + player.userid);
 
         } //if no join already
 
     } else { //no games, create
-        this.createGame(player);
+        this.createGame(player, gameKorS, gameType);
+        player.send('s.n.1');
+        player.send('s.i.0');
+        player.send('s.j.' + player.userid);
     }
 
 }; //game_server.findGame

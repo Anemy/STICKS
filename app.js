@@ -1,5 +1,5 @@
 var
-    gameport = process.env.PORT || 4420,//4
+    gameport = process.env.PORT || 6333,//4
     //gameport = 'stick-battle.com',
 
     io              = require('socket.io'),

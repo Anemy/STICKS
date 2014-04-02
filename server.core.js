@@ -15,10 +15,8 @@ var playerSpeed = 8 * fps; //it was 8 at fps = 25(40)
 var playerFallSpeed = 40 * fps; // was 1
 var playerLungeSpeed = 15 * fps; // was 15
 
-
-//kill limit/survival
-var killLimit = 10;
-var teamkills = [];
+//iterater... silly javascript
+var i = 0;
 
 var inputCounter = 0;
 
@@ -50,6 +48,7 @@ messages = [];
 //var players;
 
 var then;
+var randomNum;
 
 var playerCount = 2;
 
@@ -77,6 +76,14 @@ var mapSelected = false;
 
 //add setting gameover to true
 var gameOver = false;
+var KorS = 0; //1 is kill limit 2 is survival
+var gameType = 0; //1 is 1v1, 2 FFA, 3 TDM
+
+var winner = 0;
+
+//kill limit/survival
+var killLimit = 10;
+var teamkills = [];
 
 //a player data type
 var game_player = function (game_instance, player_instance, playerNum) {
@@ -108,7 +115,8 @@ var game_player = function (game_instance, player_instance, playerNum) {
 
     this.equip = [];
 
-    this.lives = -1;
+    this.lives = 10;
+    this.alive = true;
 
     this.swap = false;
     this.swapCount = 0;
@@ -129,6 +137,8 @@ var game_player = function (game_instance, player_instance, playerNum) {
     //shooting
     this.shooting = false;
     this.shootCount = 0;
+
+    this.team = -1;
 
     //reload
     this.reload = false;
@@ -168,7 +178,7 @@ var newGuns = [];
 var mapNumber = -1;
 
 var server_instance = function () {
-    console.log("Creating new server instance.");
+    //console.log("Creating new server instance.");
     this.server_time = 0;
     //this.laststate = {};
 };
@@ -181,22 +191,25 @@ if ('undefined' != typeof global) {
 server_instance.prototype.saySomething = function (game_instance) {
     //Store the instance, if any
     this.instance = game_instance;
+    KorS = game_instance.KorS;
+    gameType = game_instance.gameType;
+    playerCount = this.instance.player_count;
+   
+    for (var client = 0; client < this.instance.player_count; client++) {
+        //console.log("Creating new player in say something userID: " + this.instance.players[client].userid);
+        gamePlayers[client] = new game_player(this, this.instance.players[client], client);
+        gamePlayers[client].team = -client;
+    }
+    
+    //setting player teams
+    if (gameType == 3) {
+        gamePlayers[0].team = 1;
+        gamePlayers[1].team = 1;
+        gamePlayers[2].team = 2;
+        gamePlayers[3].team = 2;
 
-    var ph = this.instance.player_host;
-    var pc = this.instance.player_client;
-
-    //We create a player set, passing them
-    //the game that is running them, as well
-    players = {
-        self: new game_player(this, ph, 0),
-        other: new game_player(this, pc, 1),
-    };
-
-    console.log("The hosts userID: " + ph.userid);
-    console.log("The hosts userID: " + pc.userid);
-
-    gamePlayers[0] = new game_player(this, ph, 0);
-    gamePlayers[1] = new game_player(this, pc, 0);
+        killLimit = 20;
+    }
 }
 
 create_timer = function () {
@@ -209,20 +222,23 @@ create_timer = function () {
 
 function randomMap() {
     //randomly choose map
-    var randomNum = Math.random() * 100;
-    if (randomNum < 25)
+    randomNum = Math.random() * 100;
+    if (randomNum < 15)
         mapNumber = 1;
-    else if (randomNum < 50)
+    else if (randomNum < 45)
         mapNumber = 2;
-    else if (randomNum < 75)
+    else if (randomNum < 70)
         mapNumber = 3;
     else
         mapNumber = 5;
 
     level = mapNumber;
     //sending the chosen map to clients
-    players.self.instance.send('s.m.' + mapNumber);
-    players.other.instance.send('s.m.' + mapNumber);
+    //players.self.instance.send('s.m.' + mapNumber);
+    //players.other.instance.send('s.m.' + mapNumber);
+    for(i = 0; i < playerCount; i++) {
+        gamePlayers[i].instance.send('s.m.' + mapNumber);
+    }
 
     loadMap();
 }
@@ -236,16 +252,17 @@ server_instance.prototype.initGame = function () {
     level = 1;
     loadMap();
 
-    if (mapSelected == true && mapNumber != 5) {
-        console.log("Reloading map!!! Level #: " + mapNumber);
-        level = mapNumber;
-        loadMap();
+    //if (mapSelected == true && mapNumber != 5) {
+        //console.log("Reloading map!!! Level #: " + mapNumber);
+        //level = mapNumber;
+        //loadMap();
 
         //console.log("Sending message to clients!!!");
         //send map to both players
-        players.self.instance.send('s.m.' + mapNumber);
-        players.other.instance.send('s.m.' + mapNumber);
-    }
+        //for (i = 0; i < playerCount; i++) {
+        //    gamePlayers[i].instance.send('s.m.' + mapNumber);
+        //}
+    //}
 
     //max ammo
     maxAmmo[0] = 10;
@@ -257,7 +274,7 @@ server_instance.prototype.initGame = function () {
     maxAmmo[6] = 4;
     maxAmmo[7] = 6;
 
-    for(var i = 0; i < playerCount; i++) {
+    for(i = 0; i < playerCount; i++) {
         //set sides
         gamePlayers[i].right = false;
         gamePlayers[i].left = false;
@@ -315,7 +332,8 @@ server_instance.prototype.initGame = function () {
         gamePlayers[i].healthpacky = -20;
 
         gamePlayers[i].health = 20;
-        //lives[i] = 5;
+        gamePlayers[i].lives = 10;
+        gamePlayers[i].alive = true;
 
         gamePlayers[i].kills = 0;
         gamePlayers[i].deaths = 0;
@@ -352,6 +370,15 @@ server_instance.prototype.initGame = function () {
 
     gamePlayers[0].xpos = 670;
     gamePlayers[1].xpos = 10;
+    if(playerCount > 2) {
+        if (gameType == 3) { //teams
+            gamePlayers[2].xpos = 680;
+            gamePlayers[3].xpos = 640;
+        } else {//FFA
+            gamePlayers[2].xpos = 230;
+            gamePlayers[3].xpos = 450;
+        }
+    }
 
     lastFullUpdate = 0;
 
@@ -359,7 +386,7 @@ server_instance.prototype.initGame = function () {
     if (mapNumber == -1)
         randomMap();
 
-    console.log("Successfully init game");
+    //console.log("Successfully init game");
 
     play = true;
 
@@ -675,13 +702,14 @@ server_instance.prototype.onMapSelected = function (mapNum) {
 
 server_instance.prototype.process_input = function (player) {
 
+    //x reload
+    //z swap
+
     var input = player.lastInput;
     var sender = input.playerSent;
     var key = input.itype;
 
-    var senderID = 0;
-    if(sender == 'client')
-        senderID = 1;
+    var senderID = sender;
 
     inputCounter++;
     //if (inputCounter % 50 == 0)
@@ -724,6 +752,44 @@ server_instance.prototype.process_input = function (player) {
         }
     }
     if (input.time == 'u') {
+        if (key == 88) { //reload
+            //reload that gun!
+            if (gamePlayers[senderID].gun[gamePlayers[senderID].equip] > 0) {
+                if (gamePlayers[senderID].ammo[gamePlayers[senderID].equip] < maxAmmo[gamePlayers[senderID].gun[gamePlayers[senderID].equip] - 1] && gamePlayers[senderID].clips[gamePlayers[senderID].equip] > 0 && gamePlayers[senderID].gun[gamePlayers[senderID].equip] > 0 && gamePlayers[senderID].reload == false && gamePlayers[senderID].streak < 10) {
+                    gamePlayers[senderID].reload = true;
+                    gamePlayers[senderID].shooting = false;
+                    gamePlayers[senderID].reloadCount = 0;
+                    gamePlayers[senderID].swap = false;
+                    gamePlayers[senderID].swapCount = 0;
+                    gamePlayers[senderID].clips[gamePlayers[senderID].equip[1]]--;
+                    fullUpdate = true;
+                    newGunEquiped = true;
+                    newAmmoAmount = true;
+                    newClipAmount = true;
+                    newReload[senderID] = true;
+                }
+            }
+        }
+        if (key == 90) { //swap
+            //update the clients on the change
+            fullUpdate = true;
+            newGunEquiped = true;
+            newAmmoAmount = true;
+            newClipAmount = true;
+            if (gamePlayers[senderID].reload == true) {
+                gamePlayers[senderID].reload = false;
+                gamePlayers[senderID].clips[gamePlayers[senderID].equip]++;
+                gamePlayers[senderID].reloadCount = 0;
+            }
+            if (gamePlayers[senderID].equip == 0) {
+                gamePlayers[senderID].equip = 1;
+            } else if (gamePlayers[senderID].equip == 1) {
+                gamePlayers[senderID].equip = 0;
+            }
+            gamePlayers[senderID].swap = false;
+            gamePlayers[senderID].swapCount = 0;
+        }
+
         if (key == 39) {
             gamePlayers[senderID].right = false;
         }
@@ -771,18 +837,21 @@ server_instance.prototype.process_input = function (player) {
 
 //(client, input_commands, input_time, input_type, input_seq);
 server_instance.prototype.handle_server_input = function (client, input, input_time, input_type, input_seq) {
-    //console.log("Server input instance.");
-    //Fetch which client this refers ito out of the two
-    var player_client =
-        (client.userid == players.self.instance.userid) ?
-            players.self : players.other;
 
-    //Store the input on the player instance for processing in the physics loop
-    if (client.userid != players.self.instance.userid)
-        player_client.lastInput = { inputs: input, time: input_time, itype: input_type, seq: input_seq , playerSent:'client' };
-    else
-        player_client.lastInput = { inputs: input, time: input_time, itype: input_type, seq: input_seq, playerSent: 'host' };
-    //this.process_input(player_client);
+    //find which player sent it.
+    var senderNum = 0;
+    var player_client;
+    for (var ih = 0; ih < playerCount; ih++) {
+        if(client.userid == gamePlayers[ih].instance.userid) {
+            player_client = gamePlayers[ih];
+            senderNum = ih;
+            break;
+        }
+    }
+
+    // save the input (idk why I do this)
+    player_client.lastInput = { inputs: input, time: input_time, itype: input_type, seq: input_seq, playerSent: senderNum };
+
     server_instance.prototype.process_input(player_client);
 
 }; //handle_server_input
@@ -999,18 +1068,6 @@ server_instance.prototype.update = function () {
         if (mapNumber == -1)
             randomMap();
 
-
-       /* if (mapSelected == true && mapNumber != 4) {
-            console.log("Reloading map!!! Level #: " + mapNumber);
-            level = mapNumber;
-            loadMap();
-
-            //console.log("Sending message to clients!!!");
-            //send map to both players
-            players.self.instance.send('s.m.' + mapNumber);
-            players.other.instance.send('s.m.' + mapNumber);
-        }*/
-
         //creating new guns
         for (k = 0; k < 7; k++) {
             //gunx[k] = (Math.random() * 680) + 2;
@@ -1136,7 +1193,8 @@ server_instance.prototype.update = function () {
             }
 
             //set ydir
-            gamePlayers[i].ydir = gamePlayers[i].ydir + playerFallSpeed * modifier;// used to be 1
+            if (gamePlayers[i].alive == true)
+                gamePlayers[i].ydir = gamePlayers[i].ydir + playerFallSpeed * modifier;// used to be 1
             //global collision y platforms
             for (k = 0; k <= 14; k++) {
                 if (block[k] == true && gamePlayers[i].xpos + 20 >= blockx[k] && gamePlayers[i].xpos <= blockx[k] + blockw[k] && gamePlayers[i].ypos + 20 + (gamePlayers[i].ydir * modifier) <= blocky[k] + (gamePlayers[i].ydir * modifier) && gamePlayers[i].ypos + 20 + (gamePlayers[i].ydir * modifier) >= blocky[k]) {// + (gamePlayers[i].ydir) 5
@@ -1278,16 +1336,20 @@ function sendUserUpdates() {
 
     //Make a snapshot of the current state, for updating the clients
     this.laststate = {};
-    this.laststate.hpx = hostX;              //'host position', the game creators position
-    this.laststate.hpy = hostY;              //'host position', the game creators position
-    this.laststate.hpxdir = hostxdir;        //'host direction'
-    this.laststate.hpydir = hostydir;        //'host direction'
-    this.laststate.cpx = otherX;             //'client position', the person that joined, their position
-    this.laststate.cpy = otherY;             //'client position', the person that joined, their position
-    this.laststate.cpxdir = otherxdir;       //'client direction'
-    this.laststate.cpydir = otherydir;       //'client direction'
 
     this.laststate.t = Date.now();
+
+    //positions
+    var newPos = [];
+    for (i = 0; i < playerCount; i++) {
+        newPos[i] = {
+            xpos: gamePlayers[i].xpos,
+            ypos: gamePlayers[i].ypos,
+            xdir: gamePlayers[i].xdir,
+            ydir: gamePlayers[i].ydir
+        }
+    }
+    this.laststate.newSpots = JSON.stringify(newPos);
 
     //console.log("Sending update at: " + Date.now() + " Server's host x: " + gamePlayers[0].xpos + "Total inputs recieved: "+inputCounter);
     
@@ -1305,14 +1367,29 @@ function sendUserUpdates() {
         this.laststate.newDeadBullet = JSON.stringify(killBullets);
     }
 
+    //Example how to use json to pass array of data.
+    //var newBullets = [];
+    /*
+    var newBullet = {
+        newBulletType: gamePlayers[i].gun[gamePlayers[i].equip],
+        newBulletX: gamePlayers[i].xpos,
+        newBulletY: gamePlayers[i].ypos + 4,
+        newBulletDir: gamePlayers[i].directionFacing,  //true = right // false = left
+        newBulletSender: i
+    };
+    newBullets.push(newBullet);
+
+    newBullets = [];
+    newBullets.length
+    */
+
     //new ammos
     if (newAmmoAmount) {
-        this.laststate.newHAmmoAmount = gamePlayers[0].ammo[gamePlayers[0].equip];//add ammo
-        this.laststate.newCAmmoAmount = gamePlayers[1].ammo[gamePlayers[1].equip];//add ammo
-
-        //when reload event triggered
-        this.laststate.newReloadH = newReload[0];
-        this.laststate.newReloadC = newReload[1];
+        var newAmmoAmmounts = [];
+        for (i = 0; i < playerCount; i++) {
+            newAmmoAmmounts[i] = gamePlayers[i].ammo[gamePlayers[i].equip];
+        }
+        this.laststate.newAmmos = JSON.stringify(newAmmoAmmounts);
 
         for (i = 0; i < playerCount; i++) {
             newReload[i] = false;
@@ -1323,36 +1400,62 @@ function sendUserUpdates() {
     
     //send clips
     if (newClipAmount) {
-        this.laststate.newHClipsAmount = gamePlayers[0].clips[gamePlayers[0].equip];//add ammo
-        this.laststate.newCClipsAmount = gamePlayers[1].clips[gamePlayers[1].equip];//add ammo
+
+        var newClipsAmmounts = [];
+        for (i = 0; i < playerCount; i++) {
+            newClipsAmmounts[i] = gamePlayers[i].clips[gamePlayers[i].equip]
+        }
+        this.laststate.newClips = JSON.stringify(newClipsAmmounts);
+
+        //this.laststate.newHClipsAmount = gamePlayers[0].clips[gamePlayers[0].equip];//add ammo
+        //this.laststate.newCClipsAmount = gamePlayers[1].clips[gamePlayers[1].equip];//add ammo
         newClipAmount = false;
     }
 
     if (newGunEquiped) {
-        //console.log("New gun equiped!!!1");.25
-        this.laststate.newHEquip = gamePlayers[0].equip;
-        this.laststate.newCEquip = gamePlayers[1].equip;
 
-        this.laststate.newHGunEquip = gamePlayers[0].gun[gamePlayers[0].equip];
-        this.laststate.newCGunEquip = gamePlayers[1].gun[gamePlayers[1].equip];
+        var newEquipAmmounts = [];
+        for (i = 0; i < playerCount; i++) {
+            newEquipAmmounts[i] = {
+                equip: gamePlayers[i].equip,
+                gunEquip: gamePlayers[i].gun[gamePlayers[i].equip]
+            }
+        }
+        this.laststate.newEquips = JSON.stringify(newEquipAmmounts);
+
         newGunEquiped = false;
     }
 
     if (updateHealth) {
         //console.log("Update health!!!");
-        this.laststate.newHHP = gamePlayers[0].health;
-        this.laststate.newCHP = gamePlayers[1].health;
+        var newHealthAmounts = [];
+        for (i = 0; i < playerCount; i++) {
+            newHealthAmounts[i] = gamePlayers[i].health;
+        }
+        this.laststate.newHealths = JSON.stringify(newHealthAmounts);
+
         updateHealth = false;
     }
 
+    //jetpacks
     this.laststate.jetpackActivated = false;
-    if (gamePlayers[0].jetpack || gamePlayers[1].jetpack) {
-        this.laststate.jetpackActivated = true;
-        this.laststate.hjpack = gamePlayers[0].jetpack;
-        this.laststate.cjpack = gamePlayers[1].jetpack;
+    for (i = 0; i < playerCount; i++) {
+        if (gamePlayers[i].jetpack) {
+            this.laststate.jetpackActivated = true;
+            break;
+        }
+    }
 
-        this.laststate.hfuel = gamePlayers[0].fuel;
-        this.laststate.cfuel = gamePlayers[1].fuel;
+    if (this.laststate.jetpackActivated == true) {
+        //console.log("Update health!!!");
+        var newJetPackAmounts = [];
+        for (i = 0; i < playerCount; i++) {
+            newJetPackAmounts[i] = {
+                jetpack: gamePlayers[i].jetpack,
+                fuel: gamePlayers[i].fuel
+            }
+        }
+        this.laststate.newJetPacks = JSON.stringify(newJetPackAmounts);
     }
 
     if (fullUpdate) { //totally update clients!!!!
@@ -1360,34 +1463,20 @@ function sendUserUpdates() {
         this.laststate.updateFully = true;
 
         this.laststate.gameIsOver = gameOver;
-        //variables to think about:
-        //gamePlayers[i].streak
-        //jetpack
-        //fuel
-        //deadcount
-        //deaths
-        //kills //also health and pos ofc
-        this.laststate.hstreak = gamePlayers[0].streak;
-        this.laststate.cstreak = gamePlayers[1].streak;
+        this.laststate.winner = winner;
 
-        this.laststate.hhppack = gamePlayers[0].healthpack;
-        this.laststate.chppack = gamePlayers[1].healthpack;
+        var fullUpdateAmounts = [];
 
-        this.laststate.hjpack = gamePlayers[0].jetpack;
-        this.laststate.cjpack = gamePlayers[1].jetpack;
-
-        this.laststate.hfuel = gamePlayers[0].fuel;
-        this.laststate.cfuel = gamePlayers[1].fuel;
-
-        this.laststate.hdeadcount = gamePlayers[0].deadCount;
-        this.laststate.cdeadcount = gamePlayers[1].deadCount;
-
-        this.laststate.hdeaths = gamePlayers[0].deaths;
-        this.laststate.cdeaths = gamePlayers[1].deaths;
-
-        this.laststate.hkills = gamePlayers[0].kills;
-        this.laststate.ckills = gamePlayers[1].kills;
-
+        for (i = 0; i < playerCount; i++) {
+            fullUpdateAmounts[i] = {
+                streak: gamePlayers[i].streak,
+                healthpack: gamePlayers[i].healthpack,
+                deadCount: gamePlayers[i].deadCount,
+                deaths: gamePlayers[i].deaths,
+                kills: gamePlayers[i].kills
+            }
+        }
+        this.laststate.fullUpdates = JSON.stringify(fullUpdateAmounts);
 
         fullUpdate = false;
         lastFullUpdate = Date.now();
@@ -1416,13 +1505,12 @@ function sendUserUpdates() {
     //cis: this.players.other.last_input_seq,    //'client input sequence', the last input we processed for the client
 
     //Send the snapshot to the 'host' player
-    if (players.self.instance) {
+    /*if (players.self.instance) {
         players.self.instance.emit('onserverupdate', this.laststate);
-    }
+    }*/
 
-    //Send the snapshot to the 'client' player aaASASDFSGSRFGHS
-    if (players.other.instance) {
-        players.other.instance.emit('onserverupdate', this.laststate);
+    for (i = 0; i < playerCount; i++) {
+        gamePlayers[i].instance.emit('onserverupdate', this.laststate);
     }
 
     //reseting the bullets
@@ -1451,7 +1539,10 @@ function bulletCollisions(i, modifier) {
         if(i != t) {
             for (k = 0; k <= 99; k++) {
                 //console.log("Try the collide!!!! with bullet x: " + gamePlayers[i].b[k] + " and player x: " + gamePlayers[t].xpos);
-                if (gamePlayers[i].b[k] == true && gamePlayers[i].bx[k] >= gamePlayers[t].xpos - 5 && gamePlayers[i].bx[k] <= gamePlayers[t].xpos + 25 && gamePlayers[i].by[k] >= gamePlayers[t].ypos && gamePlayers[i].by[k] <= gamePlayers[t].ypos + 20 && gamePlayers[t].xpos > 0 && gamePlayers[t].ypos > -10) {
+                if (gamePlayers[i].b[k] == true &&
+                        gamePlayers[i].bx[k] >= gamePlayers[t].xpos - 5 && gamePlayers[i].bx[k] <= gamePlayers[t].xpos + 25 &&
+                        gamePlayers[i].by[k] >= gamePlayers[t].ypos && gamePlayers[i].by[k] <= gamePlayers[t].ypos + 20 && gamePlayers[t].xpos > 0 && gamePlayers[t].ypos > -10 &&
+                        gamePlayers[i].team != gamePlayers[t].team) {
                     //console.log("He's hit!!!!");
                     gamePlayers[i].shotsHit++;
                     updateHealth = true;
@@ -1498,7 +1589,7 @@ function bulletCollisions(i, modifier) {
                         fullUpdate = true;
 
                         gamePlayers[i].streak++;
-                        gamePlayers[t].streak = 0;
+                        
                         if (gamePlayers[i].streak == 2) {
                             gamePlayers[i].healthpack = true;
                             gamePlayers[i].healthpacky = -20;
@@ -1523,7 +1614,10 @@ function bulletCollisions(i, modifier) {
                         }
                         gamePlayers[i].killCount = 0;
                         gamePlayers[i].kills++;
+
+                        gamePlayers[t].streak = 0;
                         gamePlayers[t].deaths++;
+                        gamePlayers[t].lives--;
                         gamePlayers[t].health = 20;
                         gamePlayers[t].deadCount = 0;
                         gamePlayers[t].ypos = -30;
@@ -1535,10 +1629,44 @@ function bulletCollisions(i, modifier) {
                         gamePlayers[t].clips[0] = 3;
                         gamePlayers[t].ammo[1] = 0;
                         gamePlayers[t].clips[1] = 0;
+                        gamePlayers[t].streak = 0;
 
-                        if (gamePlayers[i].kills >= killLimit) {
-                            console.log("End game!!!");
-                            gameOver = true;
+                        if (gamePlayers[t].lives == -1 && KorS == 2) {
+                            gamePlayers[t].alive = false;
+                            gamePlayers[t].lives = 0;
+                            gamePlayers[t].ypos = -10000;
+                        }
+
+                        if (KorS == 1) {
+                            //checking if a team won!
+                            var teamKills = 0;
+                            if (gamePlayers[i].team > 0) { //teams
+                                for (var disNum = 0; disNum < playerCount; disNum++) {
+                                    if (gamePlayers[disNum].team == gamePlayers[i].team) {
+                                        teamKills = teamKills + gamePlayers[disNum].kills;
+                                    }
+                                }
+                            } else {
+                                teamKills = gamePlayers[i].kills;
+                            }
+
+                            if (teamKills >= killLimit) {
+                                //console.log("End game!!!");
+                                gameOver = true;
+                                winner = gamePlayers[i].team;
+                            }
+                        } else if (KorS == 2 && gamePlayers[t].alive == false) { //survival
+                            var amountStillAlive = 0;
+                            for (var disNumba = 0; disNumba < playerCount; disNumba++) {
+                                if (gamePlayers[disNumba].alive == true) {
+                                    amountStillAlive++;
+                                }
+                            }
+                            if (amountStillAlive <= 1) {
+                                //console.log("End game!!!");
+                                gameOver = true;
+                                winner = gamePlayers[i].team;
+                            }
                         }
                     }
                 }
@@ -1579,7 +1707,7 @@ function bulletCollisions(i, modifier) {
 function updateGuns(i , modifier) {
     //falling weapons yah
     for (k = 0; k < playerCount; k++) {
-        for (i = 0; i < 7; i++) {
+        for (i = 0; i < 6; i++) {
             //hit falling gun player gun pickup
             if (((gamePlayers[k].down == false && gamePlayers[k].downCount > 0 && gamePlayers[k].downCount <= 15) || (i == 0) || (gamePlayers[k].gun[0] - 1 == i) || (gamePlayers[k].gun[1] - 1 == i))) {
                 //console.log("Is player y: " + gamePlayers[k].ypos + " == " + guny[i]);

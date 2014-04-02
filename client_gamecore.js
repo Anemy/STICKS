@@ -354,9 +354,11 @@ var menuBackgroundImage;
 var cloudsImage;
 var menuPlayerImage;
 var botIcon = [];
+var onlinePlayerControlsImage;
 
 var controls = [];
 var option = [];
+var onlineOption = [];
 var optionArrow;
 var optionArrowLeft;
 var optionY = 0;
@@ -393,12 +395,18 @@ var leader = [];
 
 //ONLINE VARS
 var playerID;
-var playerHost; //true/f was player_instance
+var playerHost; //true/f was player_instance DEPRICATED
+var onlinePlayerNum = 0;
+
+var onlineWinner = -1;
 
 //the game types people can be in:
 //Also saved in the gamecore
 var KILLLIMIT = 1, SURVIVAL = 2;
 var QUICK1V1 = 1, FFA = 2, TDM = 3;
+
+var onlineGameMode = 0;//^^
+var onlineGameType = 0;
 
 var lastPlayerMovement = 0;
 
@@ -407,6 +415,8 @@ var hostingScreen;
 var connectingScreen;
 
 var endGameCounter = 0;
+
+var currentOnlinePlayers = 1;
 
 //ping vars
 var lastPingTime = 0.0001;
@@ -505,39 +515,44 @@ function createOnlineGame() {
     this.time = 0.01;            //Our local 'clock' based on server time - client interpolation(net_offset).
     this.server_time = 0.01;            //The time the server reported it was at, last we heard from it
 
-    //added from restet game in the /**/
-    /*var player_host = this.players.self.host ? this.players.self : this.players.other;
-    var player_client = this.players.self.host ? this.players.other : this.players.self;
-
-    //Host always spawns at the top left.
-    player_host.pos = { x: 20, y: 20 };
-    player_client.pos = { x: 500, y: 200 };*/
+    //set the random guns!
+    //we get no guns!
+    for (i = 0; i <= 9; i++) {
+        gunx[i] = -3000;
+        guny[i] = 3000;
+    }
+    swords = false;
+    zombie = false;
+    survival = false;
+    split = false;
+    custom = true;
 
     //We create a player set, passing them
     //the game that is running them, as well
-    ypos[0] = 410;
-    ypos[1] = 410;
+    for (i = 0; i < players; i++) {
+        ypos[i] = 410;
+        xdir[i] = 0;
+        ydir[i] = 0;
 
-    ydir[0] = 0;
-    xdir[0] = 0;
-    ydir[1] = 0;
-    xdir[1] = 0;
+        equip[1] = 0;
+        gun[1][0] = 1;
+        ammo[1][0] = 10;
+        clips[1][0] = 3;
+        gun[1][1] = 0;
+        clips[1][1] = 0;
+        ammo[1][1] = 0;
+    }
 
-    if (playerHost) {
+    if (teams) {
         xpos[0] = 670;
         xpos[1] = 10;
-
-        /*this.players = {
-            self: new game_player(this, this.instance.player_host),
-            other: new game_player(this, this.instance.player_client)
-        };*/
-
-        //this.players.self.pos = { x: 20, y: 20 };
-
+        xpos[2] = 680;
+        xpos[3] = 640;
     } else {
-
-        xpos[0] = 10;
-        xpos[1] = 670;
+        xpos[0] = 670;
+        xpos[1] = 10;
+        xpos[2] = 230;
+        xpos[3] = 450;
     }
 
     level = 1;
@@ -548,11 +563,6 @@ function createOnlineGame() {
     lastPlayerMovement = Date.now();
 
     onlineState = CONNECTED;
-
-    /*this.players = {
-        self: new game_player(this),
-        other: new game_player(this)
-    };*/
 }
 
 var recieveCounter = 0;
@@ -567,139 +577,83 @@ onserverupdate_recieved = function (data) {
     //if (recieveCounter % 1000 == 0)
     //    console.log("Server update recieved at server time: " + this.server_time + " Server's host x: " + data.hpx + " Local 0:" + xpos[0]);
     
-    //newHHP
+
+    //newHealths
     //new HEALTH update (first so the positions arn't reset
-    if (!(typeof data.newHHP === 'undefined')) {
-        if (playerHost) {
+    if (!(typeof data.newHealths === 'undefined')) {
+        newHealth = JSON.parse(data.newHealths);
 
-            if (health[0] != data.newHHP)
-                createNewBlood(0);
-            else if (health[1] != data.newCHP)
-                createNewBlood(1);
+        for (i = 0; i < players; i++) {
+            //player was shot
+            if(health[i] != newHealth[i])
+                createNewBlood(i);
 
-            health[0] = data.newHHP;
-            health[1] = data.newCHP;
-            if (health[0] == 0) {
-                xpos[0] = data.hpx;
-                ypos[0] = data.hpy;
-                xdir[0] = data.hpxdir;
-                ydir[0] = data.hpydir;
-            }
-        }
-        else {
-            if (health[1] != data.newHHP)
-                createNewBlood(1);
-            else if (health[0] != data.newCHP)
-                createNewBlood(0);
-
-            health[1] = data.newHHP;
-            health[0] = data.newCHP;
-
-            if (health[0] == 0) {
-                xpos[0] = data.cpx;
-                ypos[0] = data.cpy;
-                xdir[0] = data.cpxdir;
-                ydir[0] = data.cpydir;
+            health[i] = newHealth[i];
+            if (health[i] == 0) {
+                //WHY IS THIS HERE!!! USE TO CHANGE POS ABSOLUTE
             }
         }
     }
 
-    //xpos[1] = data.hpx;
-    if (playerHost) {
-        xpos[1] = data.cpx;
-        ypos[1] = data.cpy;
-        xdir[1] = data.cpxdir;
-        ydir[1] = data.cpydir;
+    //newSpots
+    //positions
+    if (!(typeof data.newSpots === 'undefined')) {
 
-        if (data.cpxdir > 0.1) {
-            directionFacing[1] = 1;
-            right[1] = true;
-            left[1] = false;
-        }
-        else if (data.cpxdir < -0.1) {
-            directionFacing[1] = 0;
-            right[1] = false;
-            left[1] = true;
-        }
-        else {
-            right[1] = false;
-            left[1] = false;
-        }
+        newPos = JSON.parse(data.newSpots);
 
-        //calculating local player with relation to server
-        //don't want to override server
-
-        //auto position if player hasn't moved in a while
-        if(Date.now() - lastPlayerMovement > 250) { // hasn't moved in quarter second
-            xpos[0] = lerp(75 , xpos[0] , data.hpx);
-            xdir[0] = data.hpxdir;
-            ypos[0] = lerp(75 , ypos[0] , data.hpy);//75 % to host y pos
-            ydir[0] = data.hpydir;
-        }
-        //otherwise make it lerp between the two
-        //after checking for large server/client differences
-        else {
-            if (netPing < 120) {
-                if(abs(data.hpx - xpos[0]) > 100) { //if there is big server/client dissagreement and ping is lowish then auto snap
-                    xpos[0] = data.hpx;
-                    xdir[0] = data.hpxdir;
-                }
-                if (abs(data.hpy - ypos[0]) > 100) { //if there is big server/client dissagreement and ping is lowish then auto snap
-                    ypos[0] = data.hpy;
-                    ydir[0] = data.hpydir;
+        for (i = 0; i < players; i++) {
+            if (i == onlinePlayerNum) {
+                //calculating local player with relation to server
+                //don't want to override server
+                if (recieveCounter % 1000 == 0) {
+                    //console.log('Client position updated. LocalX: ' + xpos[i] + ' Online x: ' + newPos[i].xpos);
                 }
 
-                //lerp between the two positions based on ping
-                xpos[0] = lerp(100 * (netPing / 120), xpos[0], data.hpx);
-                ypos[0] = lerp(100 * (netPing / 120), ypos[0], data.hpy);
-            }
-        }
-    }
-    if (!playerHost) {
-        xpos[1] = data.hpx;
-        ypos[1] = data.hpy;
-        xdir[1] = data.hpxdir;
-        ydir[1] = data.hpydir;
-
-        //set other dir facing
-        if (data.hpxdir > 0.1) {
-            directionFacing[1] = 1;
-            right[1] = true;
-            left[1] = false;
-        }
-        else if (data.hpxdir < -0.1) {
-            directionFacing[1] = 0;
-            right[1] = false;
-            left[1] = true;
-        }
-        else {
-            right[1] = false;
-            left[1] = false;
-        }
-
-        //auto position if player hasn't moved in a while
-        if (Date.now() - lastPlayerMovement > 250) { // hasn't moved in quarter second
-            xpos[0] = lerp(75, xpos[0], data.cpx);
-            xdir[0] = data.cpxdir;
-            ypos[0] = lerp(75, ypos[0], data.cpy);//75 % to host y pos
-            ydir[0] = data.cpydir;
-        }
-            //otherwise make it lerp between the two
-            //after checking for large server/client differences
-        else {
-            if (netPing < 120) {
-                if (abs(data.cpx - xpos[0]) > 100) { //if there is big server/client dissagreement and ping is lowish then auto snap
-                    xpos[0] = data.cpx;
-                    xdir[0] = data.cpxdir;
+                //auto position if player hasn't moved in a while
+                if (Date.now() - lastPlayerMovement > 250) { // hasn't moved in quarter second
+                    xpos[onlinePlayerNum] = lerp(75, xpos[onlinePlayerNum], newPos[i].xpos);
+                    xdir[onlinePlayerNum] = newPos[i].xdir;
+                    ypos[onlinePlayerNum] = lerp(75, ypos[onlinePlayerNum], newPos[i].ypos);//75 % to host y pos
+                    ydir[onlinePlayerNum] = newPos[i].ydir;
                 }
-                if (abs(data.cpy - ypos[0]) > 100) { //if there is big server/client dissagreement and ping is lowish then auto snap
-                    ypos[0] = data.cpy;
-                    ydir[0] = data.cpydir;
-                }
+                    //otherwise make it lerp between the two
+                    //after checking for large server/client differences
+                else {
+                    if (netPing < 120) {
+                        if (abs(newPos[i].xpos - xpos[onlinePlayerNum]) > 100) { //if there is big server/client dissagreement and ping is lowish then auto snap
+                            xpos[onlinePlayerNum] = newPos[i].xpos;
+                            xdir[onlinePlayerNum] = newPos[i].xdir;
+                        }
+                        if (abs(newPos[i].ypos - ypos[onlinePlayerNum]) > 100) { //if there is big server/client dissagreement and ping is lowish then auto snap
+                            ypos[onlinePlayerNum] = newPos[i].ypos;
+                            ydir[onlinePlayerNum] = newPos[i].ydir;
+                        }
 
-                //lerp between the two positions based on ping
-                xpos[0] = lerp(100 * (netPing / 120), xpos[0], data.cpx);
-                ypos[0] = lerp(100 * (netPing / 120), ypos[0], data.cpy);
+                        //lerp between the two positions based on ping
+                        xpos[onlinePlayerNum] = lerp(100 * (netPing / 120), xpos[onlinePlayerNum], newPos[i].xpos);
+                        ypos[onlinePlayerNum] = lerp(100 * (netPing / 120), ypos[onlinePlayerNum], newPos[i].ypos);
+                    }
+                }
+            } else {
+                xpos[i] = newPos[i].xpos;
+                ypos[i] = newPos[i].ypos;
+                xdir[i] = newPos[i].xdir;
+                ydir[i] = newPos[i].ydir;
+
+                if (xdir[i] > 0.1) {
+                    directionFacing[i] = 1;
+                    right[i] = true;
+                    left[i] = false;
+                }
+                else if (xdir[i] < -0.1) {
+                    directionFacing[i] = 0;
+                    right[i] = false;
+                    left[i] = true;
+                }
+                else {
+                    right[i] = false;
+                    left[i] = false;
+                }
             }
         }
     }
@@ -709,190 +663,82 @@ onserverupdate_recieved = function (data) {
         bulletsToKill = JSON.parse(data.newDeadBullet);
         //console.log("Thar be a bullet to kill!");
         for (i = 0; i < data.amountOfDeadBullets; i++) {
-            if (playerHost) {
-                b[bulletsToKill[i].owner][bulletsToKill[i].ID] = false;
-            }
-            else {// REMEMBER FOR MANY PLAYERS THERE IS THIS AND NEED TO IMPLEMENT AND STUFF EWSDHVFUOSDBV %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                //NOT JUST THE ! TO SHOW
-                if (bulletsToKill[i].owner == 0)
-                    b[1][bulletsToKill[i].ID] = false;
-                else
-                    b[0][bulletsToKill[i].ID] = false;
-            }
+            b[bulletsToKill[i].owner][bulletsToKill[i].ID] = false;
         }
     }
 
     //new equiped update
-    if (!(typeof data.newHEquip === 'undefined')) {
-        //console.log("New gun equiped! Host now has: " + data.newHGunEquip);
-        if (playerHost) {
-            equip[0] = data.newHEquip;
-            equip[1] = data.newCEquip;
+    if (!(typeof data.newEquips === 'undefined')) {
 
-            //stop reload if happening
-            if (gun[0][equip[0]] != data.newHGunEquip && reload[0])
-                reload[0] = false;
-            if (gun[1][equip[1]] != data.newCGunEquip && reload[1])
-                reload[1] = false;
+        newEquip = JSON.parse(data.newEquips);
 
-            gun[0][equip[0]] = data.newHGunEquip;
-            gun[1][equip[1]] = data.newCGunEquip;
+        for (i = 0; i < players; i++) {
+            if (gun[i][equip[i]] != newEquip[i].gunEquip && reload[i])
+                reload[i] = false;
 
-        }
-        else {
-            equip[1] = data.newHEquip;
-            equip[0] = data.newCEquip;
-
-            //stop reload if happening
-            if (gun[0][equip[0]] != data.newCGunEquip && reload[0])
-                reload[0] = false;
-            if (gun[1][equip[1]] != data.newHGunEquip && reload[1])
-                reload[1] = false;
-
-            gun[1][equip[1]] = data.newHGunEquip;
-            gun[0][equip[0]] = data.newCGunEquip;
+            equip[i] = newEquip[i].equip;
+            gun[i][equip[i]] = newEquip[i].gunEquip;
         }
     }
 
-    //see if new clip amount exists
-    if (!(typeof data.newHClipsAmount === 'undefined')) {
-        //console.log("New clips!");
-        if (playerHost) {
-            clips[0][equip[0]] = data.newHClipsAmount;
-            clips[1][equip[1]] = data.newCClipsAmount;
-        }
-        else {
-            clips[1][equip[1]] = data.newHClipsAmount;
-            clips[0][equip[0]] = data.newCClipsAmount;
+    //see if new clip amount exists newClips
+    if (!(typeof data.newClips === 'undefined')) {
+        newClip = JSON.parse(data.newClips);
+
+        for (i = 0; i < players; i++) {
+            clips[i][equip[i]] = newClip[i];
         }
     }
 
-    //newHAmmoAmount
     //setting the new ammo counts
-    if (!(typeof data.newHAmmoAmount === 'undefined')) {
+    if (!(typeof data.newAmmos === 'undefined')) {
+        newAmmoCounts = JSON.parse(data.newAmmos);
 
-        newAmmoCountH = data.newHAmmoAmount;
-        newAmmoCountC = data.newCAmmoAmount;
-        if (playerHost) {
-            ammo[0][equip[0]] = newAmmoCountH;
-            ammo[1][equip[1]] = newAmmoCountC;
-            if (data.newReloadH) {
-                reload[0] = true;
-                reloadCount[0] = 0;
-            }
-            if (data.newReloadC) {
-                reload[1] = true;
-                reloadCount[1] = 0;
-            }
-        }
-        else {
-            ammo[0][equip[0]] = newAmmoCountC;
-            ammo[1][equip[1]] = newAmmoCountH;
-            if (data.newReloadH) {
-                reload[1] = true;
-                reloadCount[1] = 0;
-            }
-            if (data.newReloadC) {
-                reload[0] = true;
-                reloadCount[0] = 0;
-            }
+        for (i = 0; i < players; i++) {
+            ammo[i][equip[i]] = newAmmoCounts[i];
         }
     }
 
+    //the newJetPacks !1
     if (data.jetpackActivated) {
+        newJets = JSON.parse(data.newJetPacks);
         //console.log("Using jetpack");
-        if (netPing < 120) {
-            //lerp between the two positions based on ping
-            if (playerHost) {
-                fuel[0] = lerp(100 * (netPing / 120), jetpack[0], data.hfuel);
-            }
-            else {
-                fuel[0] = lerp(100 * (netPing / 120), jetpack[0], data.cfuel);
-            }
-        }
-        else {
-            if (playerHost) {
-                fuel[0] = data.hfuel;
-            }
-            else {
-                fuel[0] = data.cfuel;
-            }
-        }
-        if (playerHost) {
-            jetpack[0] = data.hjpack;
-            jetpack[1] = data.cjpack;
+        for (i = 0; i < players; i++) {
+            if (i == onlinePlayerNum) {
+                if (jetpack[i] == false && newJets[i].jetpack == true) {
+                    jetpack[i] = true;
+                }
+                if (netPing < 120) {
+                    //lerp between the fuels based on ping
+                    fuel[onlinePlayerNum] = lerp(100 * (netPing / 120), fuel[onlinePlayerNum], newJets[i].fuel);
+                }
+                else {
+                    fuel[onlinePlayerNum] = newJets[i].fuel;
+                }
+            } else {
+                jetpack[i] = newJets[i].jetpack;
 
-            fuel[1] = data.cfuel;
-        }
-        else {
-            jetpack[1] = data.hjpack;
-            jetpack[0] = data.cjpack;
-
-            fuel[1] = data.hfuel;
+                fuel[i] = newJets[i].fuel;
+            }
         }
     }
 
     if (data.updateFully == true) { //do everything the server has to ensure integrity.
         //console.log("Fully update me!!!!");
 
-        if (playerHost) {
-            streak[0] = data.hstreak;
-            streak[1] = data.cstreak;
-
-            jetpack[0] = data.hjpack;
-            jetpack[1] = data.cjpack;
-
-            //fuel[0] = data.hfuel;
-            fuel[1] = data.cfuel;
-
-            deadCount[0] = data.hdeadcount;
-            deadCount[1] = data.cdeadcount;
-
-            deaths[0] = data.hdeaths;
-            deaths[1] = data.cdeaths;
-
-            kills[0] = data.hkills;
-            kills[1] = data.ckills;
-
-            healthpack[0] = data.hhppack;
-            healthpack[1] = data.chppack;
-
-            //if (Math.abs(xpos[0] - data.hpx) > 50)
-                xpos[0] = data.hpx;
-            //if (Math.abs(ypos[0] - data.hpy) > 50)
-                ypos[0] = data.hpy;
-        }
-        else {
-            streak[1] = data.hstreak;
-            streak[0] = data.cstreak;
-
-            jetpack[1] = data.hjpack;
-            jetpack[0] = data.cjpack;
-
-            fuel[1] = data.hfuel;
-            //fuel[0] = data.cfuel;
-
-            deadCount[1] = data.hdeadcount;
-            deadCount[0] = data.cdeadcount;
-
-            healthpack[1] = data.hhppack;
-            healthpack[0] = data.chppack;
-
-            deaths[1] = data.hdeaths;
-            deaths[0] = data.cdeaths;
-
-            kills[1] = data.hkills;
-            kills[0] = data.ckills;
-
-            //if (Math.abs(xpos[0] - data.cpx) > 50)
-                xpos[0] = data.cpx;
-            //if (Math.abs(ypos[0] - data.cpy) > 50)
-                ypos[0] = data.cpy;
+        fullUpdate = JSON.parse(data.fullUpdates);
+        for (i = 0; i < players; i++) {
+            streak[i] = fullUpdate[i].streak;
+            deadCount[i] = fullUpdate[i].deadCount;
+            deaths[i] = fullUpdate[i].deaths;
+            kills[i] = fullUpdate[i].kills;
+            healthpack[i] = fullUpdate[i].healthpack;
         }
 
         if (data.gameIsOver == true) {
             //console.log("From server: game is over!!! : " + data.gameIsOver);
             //endGameCounter++;
+            onlineWinner = data.winner;
             menu = 5;
             play = false;
         }
@@ -937,14 +783,6 @@ onserverupdate_recieved = function (data) {
 
         //set the shooter !!1
         i = newBulletsAdded[m].newBulletSender;
-        if (playerHost && newBulletsAdded[m].newBulletSender == 0) //host with host info
-            i = 0;
-        else if (!playerHost && newBulletsAdded[m].newBulletSender == 0) //client with host info
-            i = 1;
-        else if (playerHost && newBulletsAdded[m].newBulletSender == 1) //host with client
-            i = 1;
-        else if (!playerHost && newBulletsAdded[m].newBulletSender == 1)
-            i = 0;
 
         //create the new bullet!
         //pistol
@@ -1106,87 +944,24 @@ onreadygame = function (data) {
 
     console.log('server time is about ' + this.local_time);
 
-    if (playerHost) {
-        this.onlineState = 'Connected please wait';
-        menu = 11;
-        loadingPActivated = true;
-    }
-
-    //Store their info colors for clarity. server is always blue
-    //player_host.info_color = '#2288cc';
-    //player_client.info_color = '#cc8822';
-
-    //Update their information
-    //player_host.state = 'local_pos(hosting)';
-    //pl//ayer_client.state = 'local_pos(joined)';
-
-    //this.players.self.state = 'YOU ' + this.players.self.state;
-
-    //Make sure colors are synced up
-    this.socket.send('c.' + onlinePlayerColor);
+    this.onlineState = 'Connected please wait';
+    menu = 12;
+    loadingPActivated = true;
 
     this.readyGame = true;
 
-    /*
-    THIS WAS INSIDE IF CONNECTEDGAME
-    if (mapChosen && playerHost) {
-    console.log("Sending message to server");
-    //Send the packet of information to the server.
-    //The input packets are labelled with an 'm' in front.
-    var server_packet = 'm.';
-    server_packet += level;//send the chosen level to the server
-
-    //Go
-    this.socket.send(server_packet);
-    //menu = 12;
-
-    mapChosen = false;
-}*/
-
-    //if (connectedGame) {
-       // connectedGame = false;
-
-        createOnlineGame();
-    //}
-    //else {
-    //    console.log("connectedGame false");
-    //}
+    createOnlineGame();
 
 }; //onreadygame
 
 onjoingame = function (data) {
-
-    //We are not the host
-    this.playerHost = false;
     //Update the local state
-    this.menu = 11;
+    this.menu = 12;
     this.onlineState = 'Connected please wait';
     this.onlinePlayerColor = '#00bb00';
     loadingPActivated = true;
     //window.onmousemove = mouseMove;
 }; //onjoingame
-
-onhostgame = function (data) {
-    //this.menu = 2; //for host map select
-    menu = 12;
-    loadingPActivated = true;
-    //window.onmousemove = null;
-
-    //The server sends the time when asking us to host, but it should be a new game.
-    //so the value will be really small anyway (15 or 16ms)
-    var server_time = parseFloat(data.replace('-', '.'));
-
-    //Get an estimate of the current time on the server
-    this.local_time = server_time + this.net_latency;
-
-    //Set the flag that we are hosting, this helps us position respawns correctly
-    this.playerHost = true;
-
-    //Update debugging information to display state
-    onlineState = 'Hosting game, waiting';
-    onlinePlayerColor = '#cc0000';
-
-}; //onhostgame
 
 onconnected = function (data) {
     if (onlineState != CONNECTED) {
@@ -1202,14 +977,6 @@ onconnected = function (data) {
         console.log("On connected.");
 
         this.connectedGame = true;
-
-        /*if (readyGame) {
-            readyGame = false;
-            createOnlineGame();
-        }
-        else {
-            console.log("Ready game false");
-        }*/
     }
 }; //onconnected
 
@@ -1233,6 +1000,9 @@ onnetmessage = function (data) {
     var subcommand = commands[1] || null;
     var commanddata = commands[2] || null;
 
+    if (subcommand != 'p')
+        console.log("Message recieved from server with command: " + subcommand);
+
     switch (command) {
         case 's': //server message
 
@@ -1242,9 +1012,6 @@ onnetmessage = function (data) {
                     level = commanddata;
                     startThatMap(commanddata);
                     break;
-
-                case 'h': //host a game requested
-                    this.onhostgame(commanddata); break;
 
                 case 'j': //join a game requested
                     this.onjoingame(commanddata); break;
@@ -1260,6 +1027,14 @@ onnetmessage = function (data) {
 
                 case 'c': //other player changed colors
                     this.on_otherclientcolorchange(commanddata); break;
+
+                case 'n': //more players joined
+                    players = commanddata;
+                    currentOnlinePlayers = commanddata; break;
+
+                case 'i': //this players number
+                    console.log("This online player num: " + commanddata);
+                    onlinePlayerNum = commanddata; break;
 
             } //subcommand
 
@@ -1346,13 +1121,13 @@ connect_to_server = function (gameTypeToFind) {
         //When we connect, we are not 'connected' until we have a server id
         //and are placed in a game by the server. The server sends us a message for that.
         socket.on('connect', function () {
-            console.log("Connected to something...");
+            //console.log("Connected to something...");
             onlineState = 'Searching for game';
             find_a_game(gameTypeToFind);
         }.bind(this));
     }
     else {
-        console.log("Already connected firing (doing nothing)");
+        //console.log("Already connected firing (doing nothing)");
         onlineState = 'Searching for game';
         find_a_game(gameTypeToFind);
         /*socket.socket.connect();
@@ -1843,13 +1618,15 @@ function loadImages() {
     
     //selectPlayer images
     selectPlayerImage[0] = new Image();
-    selectPlayerImage[0].src = (("images/player0Icon1.png"));
+    selectPlayerImage[0].src = (("images/Player0Icon1.png"));
     selectPlayerImage[1] = new Image();
-    selectPlayerImage[1].src = (("images/player1Icon1.png"));
+    selectPlayerImage[1].src = (("images/Player1Icon1.png"));
     selectPlayerImage[2] = new Image();
-    selectPlayerImage[2].src = (("images/player2Icon1.png"));
+    selectPlayerImage[2].src = (("images/Player2Icon1.png"));
     selectPlayerImage[3] = new Image();
-    selectPlayerImage[3].src = (("images/player3Icon1.png"));
+    selectPlayerImage[3].src = (("images/Player3Icon1.png"));
+    onlinePlayerControlsImage = new Image();
+    onlinePlayerControlsImage.src = (("images/OnlinePlayerControls.png"));
 
     joinImage[0] = new Image();
     joinImage[0].src = (("images/join0.png"));
@@ -1862,13 +1639,13 @@ function loadImages() {
 
     //player icons
     playerIcon[0] = new Image();
-    playerIcon[0].src = (("images/Player0Icon.png"));
+    playerIcon[0].src = (("images/player0Icon.png"));
     playerIcon[1] = new Image();
-    playerIcon[1].src = (("images/Player1Icon.png"));
+    playerIcon[1].src = (("images/player1Icon.png"));
     playerIcon[2] = new Image();
-    playerIcon[2].src = (("images/Player2Icon.png"));
+    playerIcon[2].src = (("images/player2Icon.png"));
     playerIcon[3] = new Image();
-    playerIcon[3].src = (("images/Player3Icon.png"));
+    playerIcon[3].src = (("images/player3Icon.png"));
     //stand right
     playerR[0] = new Image();
     playerR[0].src = (("images/Player0Right.png"));
@@ -2074,6 +1851,11 @@ function loadImages() {
     option[0].src = (("images/option0.png"));
     option[1] = new Image();
     option[1].src = (("images/Option1.png"));
+
+    onlineOption[0] = new Image();
+    onlineOption[0].src = (("images/onlineOption1.png"));
+    onlineOption[1] = new Image();
+    onlineOption[1].src = (("images/onlineOption2.png"));
    
     optionArrow = new Image();
     optionArrow.src = (("images/optionArrow1.png"));
@@ -2894,7 +2676,11 @@ function render() {//ctx
                         if (players > 2) ctx.fillText("Black: " + kills[2], 620 * scale, 80 * scale);
                         if (players == 4) ctx.fillText("Yellow: " + kills[3], 620 * scale, 100 * scale);
                     } else if (teams == true) {
-                        ctx.fillText("Kills", 622, 20);
+                        ctx.fillText("Kills", 622 * scale, 20 * scale);
+                        if (onlineState == 'Connected') {
+                            teamkills[0] = kills[0] + kills[1];
+                            teamkills[1] = kills[2] + kills[3];
+                        }
                         ctx.fillText("Fire and Water: " + teamkills[0], 560 * scale, 40 * scale);
                         ctx.fillText("Lightning Slaves: " + teamkills[1], 560 * scale, 60 * scale);
                     }
@@ -2938,8 +2724,7 @@ function render() {//ctx
         //ctx.drawImage(playerIcon[1], (65 + optionPlayerX[1]*100) * scale, (60 + 1*85) * scale, 40 * scale, 40 * scale); 
         //ctx.drawImage(playerIcon[2], (65 + optionPlayerX[2]*100) * scale, (60 + 2*85) * scale, 40 * scale, 40 * scale); 
         //ctx.drawImage(playerIcon[3], (65 + optionPlayerX[3]*100) * scale, (60 + 3*85) * scale, 40 * scale, 40 * scale);
-
-       
+        
         ctx.drawImage(selectPlayerImage[0], (55) * scale, (40 + 0*75) * scale, 230 * scale, 100 * scale); 
         ctx.drawImage(selectPlayerImage[1], (55) * scale, (40 + 1*75) * scale, 230 * scale, 100 * scale); 
         if(optionPlayerX[2] == 2)        
@@ -3018,8 +2803,6 @@ function render() {//ctx
         ctx.drawImage(optionArrow, (211 + optionX) * scale, (151 + optionY*60) * scale, 32 * scale, 52 * scale);
         ctx.drawImage(menuPlayerImage, 0, 0, gameWidth, gameHeight);  
 
-        
-
         //ctx.drawImage(controls[0], gameWidth - 256 * scale, gameHeight - 256 * scale, 256 * scale, 256 * scale);
     }
         //choose map
@@ -3074,10 +2857,23 @@ function render() {//ctx
             ctx.font = "30px Arial";
             ctx.fillStyle = "rgb(211, 211, 211)"; //light gray
             if (onlineState == CONNECTED) {
-                if (kills[0] >= kills[1]) {
-                    winner = "You Win!!!!"
+                if (onlineWinner > 0) { //teams
+                    if (onlineWinner == 1) {
+                        if(onlinePlayerNum == 0 || onlinePlayerNum == 1)
+                            winner = "You Win!!!!";
+                        else
+                            winner = "You Lose!";
+                    } else if (onlineWinner == 2) {
+                        if(onlinePlayerNum == 2 || onlinePlayerNum == 3)
+                            winner = "You Win!!!!";
+                        else
+                            winner = "You Lose!";
+                    }
                 } else {
-                    winner = "You Lose!"
+                    if (onlineWinner == -onlinePlayerNum)
+                        winner = "You Win!!!!";
+                    else
+                        winner = "You Lose!";
                 }
                 ctx.fillText(winner, 280 * scale, 60 * scale);
             }
@@ -3136,51 +2932,69 @@ function render() {//ctx
 
     }
 
-    if (menu == 10) { // searching for game
-        //ctx.font = ("60px Arial");
-        //ctx.fillStyle = "rgb(0, 0, 0)"; 
-        //ctx.fillText("Searching for match...", 100 * scale, 260 * scale);
+    if (menu == 9) { // Select Online game mode (surv vs kill lim)
+        //bg
+        ctx.drawImage(menuBackgroundImage, 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(cloudsImage, cloudsX[0], 0, gameWidth, 100 * scale);
+        ctx.drawImage(cloudsImage, cloudsX[1], 0, gameWidth, 100 * scale);
+        ctx.drawImage(menuImage[6], 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(menuPlayerImage, 0, 0, gameWidth, gameHeight);
+
+        ctx.drawImage(onlineOption[0], 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(optionArrow, (211 + optionX) * scale, (151 + optionY * 60) * scale, 32 * scale, 52 * scale);
+    }//end if menu 10
+    if (menu == 10) { // Select Online game type (1v1 ffa tdm)
+        //bg
+        ctx.drawImage(menuBackgroundImage, 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(cloudsImage, cloudsX[0], 0, gameWidth, 100 * scale);
+        ctx.drawImage(cloudsImage, cloudsX[1], 0, gameWidth, 100 * scale);
+        ctx.drawImage(menuImage[6], 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(menuPlayerImage, 0, 0, gameWidth, gameHeight);
+
+        ctx.drawImage(onlineOption[1], 0, 0, gameWidth, gameHeight);
+        ctx.drawImage(optionArrow, (211 + optionX) * scale, (151 + optionY * 60) * scale, 32 * scale, 52 * scale);
+    }//end if menu 10
+
+    if (menu == 11) { // searching for game
         //bg
         ctx.drawImage(menuBackgroundImage, 0, 0, gameWidth, gameHeight);
         ctx.drawImage(cloudsImage, cloudsX[0], 0, gameWidth, 100 * scale);
         ctx.drawImage(cloudsImage, cloudsX[1], 0, gameWidth, 100 * scale);
 
-        //console.log("Online state currently: " + onlineState);
         ctx.drawImage(searchingScreen, 0, 0, gameWidth, gameHeight);
     }//end if menu 10
-    else if (menu == 11) { // searching for game
-        /*ctx.font = ("60px Arial");
-        ctx.fillStyle = "rgb(0, 0, 0)"; 
-        ctx.fillText("Found game, connecting...", 100 * scale, 260 * scale);*/
+    else if (menu == 12) { // game found connnecting
         //bg
         ctx.drawImage(menuBackgroundImage, 0, 0, gameWidth, gameHeight);
         ctx.drawImage(cloudsImage, cloudsX[0], 0, gameWidth, 100 * scale);
         ctx.drawImage(cloudsImage, cloudsX[1], 0, gameWidth, 100 * scale);
 
         ctx.drawImage(connectingScreen, 0, 0, gameWidth, gameHeight);
+
+        var outOfText = '' + players + '/';
+        if (onlineGameType == 1)
+            outOfText = outOfText + '2';
+        else if(onlineGameType == 2 || onlineGameType == 3)
+            outOfText = outOfText + '4';
+
+        ctx.fillStyle = "rgb(18, 0, 98)";
+        ctx.font = ("24px Arial");
+        ctx.fillText(outOfText, gameWidth / 2 - 20 * scale, gameHeight / 2 + 100 * scale);
+
+        ctx.drawImage(onlinePlayerControlsImage, (20) * scale, (20) * scale, 230 * scale, 120 * scale);
     }//end if menu 11
-    else if (menu == 12) { // searching for game
-        /*ctx.font = ("60px Arial");
-        ctx.fillStyle = "rgb(0, 0, 0)"; 
-        ctx.fillText("No matches found, hosting game...", 0, 260 * scale);*/
+    else if (menu == 13) { // waiting for more player
         //bg
         ctx.drawImage(menuBackgroundImage, 0, 0, gameWidth, gameHeight);
         ctx.drawImage(cloudsImage, cloudsX[0], 0, gameWidth, 100 * scale);
         ctx.drawImage(cloudsImage, cloudsX[1], 0, gameWidth, 100 * scale);
 
         ctx.drawImage(hostingScreen, 0, 0, gameWidth, gameHeight);
+
+        //ctx.fillText("Current joined: " + currentOnlinePlayers, 10 , 50);
     }//end if menu 12
 
-    //ctx.fillStyle = "rgb(0, 0, 0)";
-    //ctx.fillRect(299, 200, 20 * scale, 20 * scale);
-    //ctx.fillRect(299, 410, 20 * scale, 20 * scale);
-
     if (loadingPActivated) { //draw loading poppums
-        //console.log("We will draw pops!");
-        //ctx.fillStyle = "rgb(200, 200, 0)";
-        //ctx.fillRect(pop.xPos * scale, 410 * scale, 20 * scale, 20 * scale);
-        //ctx.fillStyle = "rgb(255, 0, 0)";
-        //ctx.fillRect(pop.xPos * scale, pop.yPos * scale, 20 * scale, 20 * scale);
         if (pop.left && pop.yDir == 0) {
             if (pop.runCount <= 7) {
                 ctx.drawImage(dogLm[0], pop.xPos * scale, pop.yPos * scale, 20 * scale, 20 * scale);
@@ -3203,13 +3017,13 @@ function render() {//ctx
     }//popXPos , popYPos , popXDir , popYDir , popFacing(0 or 1) , runCount
 
     if (onlineState == 'Connected') {//displaying ping status
-        ctx.fillStyle = "rgb(255, 255, 255)";
+        ctx.fillStyle = "rgb(0, 0, 0)";
         ctx.font = ("10px Arial");
         ctx.fillText("Ping: " + netPing, 0, 15 * scale);
 
         if(netPing > 120) {
-            ctx.font = ("12px Arial");
-            ctx.fillText("Your ping is very high. This will result in poor performance.", gameWidth/2 - 300*scale, gameHeight);
+            ctx.font = ("14px Arial");
+            ctx.fillText("Your ping is very high. This will result in poor performance.", gameWidth/2 - 300*scale, gameHeight - 3);
         }
     }
 }
@@ -5218,10 +5032,15 @@ function keyPressed(e) {
                 
         }
         if (play == true && cpu[0] == false) {
-            if (onlineState == 'Connected')
-                directionFacing[0] = 1;
-            right[0] = true;
-            left[0] = false;
+            if (onlineState == 'Connected') {
+                directionFacing[onlinePlayerNum] = 1;
+                right[onlinePlayerNum] = true;
+                left[onlinePlayerNum] = false;
+            }
+            else {
+                right[0] = true;
+                left[0] = false;
+            }
         }
     }
     //left
@@ -5250,10 +5069,14 @@ function keyPressed(e) {
             if(optionY == 3 && optionSettingsX[3] > 0) optionSettingsX[3]--;
         }
         if (play == true && cpu[0] == false) {
-            if (onlineState == 'Connected')
-                directionFacing[0] = 0;
-            left[0] = true;
-            right[0] = false;
+            if (onlineState == 'Connected') {
+                directionFacing[onlinePlayerNum] = 0;
+                left[onlinePlayerNum] = true;
+                right[onlinePlayerNum] = false;
+            } else {
+                left[0] = true;
+                right[0] = false;
+            }
         }
     }
     if (key == 38) {
@@ -5267,7 +5090,7 @@ function keyPressed(e) {
 
 
         } 
-        else if (menu == 6) {
+        else if (menu == 6 || menu == 9 || menu == 10) {
              if(optionY > 0) optionY--;
         } 
         else if (menu == 7) {
@@ -5278,10 +5101,18 @@ function keyPressed(e) {
         }
         //in game
         if (play == true && cpu[0] == false) {
-            if (ydir[0] == 0 && ypos[0] == ground[0] - 20) {
-                ydir[0] = -jumpSpeed;
+            if (onlineState == 'Connected') {
+                if (ydir[onlinePlayerNum] == 0 && ypos[onlinePlayerNum] == ground[onlinePlayerNum] - 20) {
+                    ydir[onlinePlayerNum] = -jumpSpeed;
+                } else {
+                    if (fuel[onlinePlayerNum] > 0 && streak[onlinePlayerNum] >= 3) jetpack[onlinePlayerNum] = true;
+                }
             } else {
-                if (fuel[0] > 0 && streak[0] >= 3) jetpack[0] = true;
+                if (ydir[0] == 0 && ypos[0] == ground[0] - 20) {
+                    ydir[0] = -jumpSpeed;
+                } else {
+                    if (fuel[0] > 0 && streak[0] >= 3) jetpack[0] = true;
+                }
             }
         }
     }
@@ -5292,7 +5123,7 @@ function keyPressed(e) {
         } else if (menu == 2) {
             if (boxy == 78) boxy = 195;
             else if (boxy == 195) boxy = 313;
-        } else if (menu == 6) {
+        } else if (menu == 6 || menu == 9 || menu == 10) {
             if(optionY < 2) optionY++;
         } else if (menu == 7) {
             if(optionY < 4)
@@ -5302,11 +5133,13 @@ function keyPressed(e) {
         }
         //ingame
         if (play == true && cpu[0] == false) {
-            down[0] = true;
-            //if(reload[0] == false)
-            //{
-            swap[0] = true;
-            //}
+            if (onlineState == 'Connected') {
+                down[onlinePlayerNum] = true;
+                swap[onlinePlayerNum] = true;
+            } else {
+                down[0] = true;
+                swap[0] = true;
+            }
         }
     }
     if (key == 222 || key == 96) {
@@ -5492,89 +5325,9 @@ function keyPressed(e) {
                 boxy = 70;
             } 
             else if (optionY == 1) {
-                //disconnecting from server for safety
-                //ondisconnect();
-
-                players = 2;
-                level = 1;
-
-                //set the random guns!
-                //we get no guns!
-                for (i = 0; i <= 9; i++) {
-	            gunx[i] = -3000;
-	            guny[i] = 3000;
-                }
-                swords = false;
-                zombie = false;
-                teams = false;
-                survival = false;
-                split = false;
-                equip[0] = 0;
-                gun[0][0] = 1;
-                ammo[0][0] = 10;
-                clips[0][0] = 3;
-                gun[0][1] = 0;
-                clips[0][1] = 0;
-                ammo[0][1] = 0;
-
-                equip[1] = 0;
-                gun[1][0] = 1;
-                ammo[1][0] = 10;
-                clips[1][0] = 3;
-                gun[1][1] = 0;
-                clips[1][1] = 0;
-                ammo[1][1] = 0;
-
-                //maybe false?
-                custom = true;
-
-                menu = 10;
-
-                //onlineState = "Searching for game";
-
-                loadingPActivated = true;
-                //window.onmousemove = mouseMove;
-                console.log("Online state is before: " + onlineState);
-                connect_to_server(1);
-                console.log("Online state is after: " + onlineState);
-                checked[0] = false;
-                //menu = 1;
-
-                boxx = 255;
-                boxy = 70;
+                optionY = 0;
+                menu = 9; //game mode select
             } 
-            /*SEARCH TEAMS FOR LATER USE  else if (boxy == 283) {
-                menu = 1;
-
-                teams = true;
-                split = false;
-                xpos[0] = 0;
-                ypos[0] = 410;
-                xpos[1] = 40;
-                ypos[1] = 410;
-
-                directionFacing[0] = 1;
-                directionFacing[1] = 1;
-                directionFacing[2] = 0;
-                directionFacing[3] = 0;
-
-                xpos[2] = 680;
-                ypos[2] = 410;
-                xpos[3] = 640;
-                ypos[3] = 410;
-
-                level = 0;
-                for (k = 0; k <= 9; k++) {
-                    gunx[k] = (Math.random() * 680) + 2;
-                    guny[k] = -20 - ((Math.random() * 1500));
-                }
-                checked[0] = false;
-                //menu = 1;
-
-                boxx = 255;
-                boxy = 70;
-            } 
-            */
         }
         else if (menu == 6) //choose zombie or multiplayer
         {
@@ -5883,18 +5636,9 @@ function keyPressed(e) {
             if (mapSelect + 1 == 4 && mapSelectSpeed == 0) {
                 startThatMap(4);
             }
-            //if (mapSelect+1 == 5 && mapSelectSpeed == 0) {
-            //    startThatMap(5);
-            //}
             if (mapSelect + 1 == 6 && mapSelectSpeed == 0) {
                 startThatMap(6);
             }
-            //if (mapSelect+1 == 7 && mapSelectSpeed == 0) {
-            //    startThatMap(7);
-            //}
-            //if (mapSelect+1 == 8 && mapSelectSpeed == 0) {
-            //    startThatMap(8);
-            //}
             if (mapSelect + 1 == 9 && mapSelectSpeed == 0) {
                 var rrr = Math.floor((Math.random() * 5) + 1);
                 if (rrr == 1) {
@@ -5913,14 +5657,6 @@ function keyPressed(e) {
                     startThatMap(6);
                 }
             }
-            /*if (onlineState == 'Hosting game, waiting') {
-                console.log("Map chosen by host (me)!!");
-                loadingPActivated = true;
-                mapChosen = true;
-                menu = 12;
-            }*/
-
-
         }
         else if (menu == 5) //post game screen
         {
@@ -5937,6 +5673,55 @@ function keyPressed(e) {
                     rematch = true;
                 }
             }
+        }
+        else if (menu == 9) { //online game mode select (srv vs kill lim)
+            if (optionY == 0) { //1v1 quick
+                loadingPActivated = true;
+                //window.onmousemove = mouseMove;
+                connect_to_server('1.1');
+                checked[0] = false;
+
+                boxx = 255;
+                boxy = 70;
+                onlineGameMode = 1;
+                onlineGameType = 1;
+
+                onlineState = 'Searching for game';
+                menu = 11;
+            } else if (optionY == 1) { //kill lim
+                onlineGameMode = 1;
+                menu = 10;
+                optionY = 0;
+            } else if (optionY == 2) { //surv
+                survival = true;
+                onlineGameMode = 2;
+                menu = 10;
+                optionY = 0;
+            }
+        }
+        else if (menu == 10) { //online game type select ffa tdm
+            loadingPActivated = true;
+            checked[0] = false;
+
+            boxx = 255;
+            boxy = 70;
+
+            onlineState = 'Searching for game';
+            menu = 11;
+            if (optionY == 0) { //1v1 quick
+                //window.onmousemove = mouseMove;
+                connect_to_server('1.1');
+                onlineGameType = 1;
+            } else if (optionY == 1) { //FFA
+                connect_to_server(onlineGameMode + '.2');
+                onlineGameType = 2;
+                teams = false;
+            } else if (optionY == 2) { //TDM
+                connect_to_server(onlineGameMode + '.3');
+                onlineGameType = 3;
+                teams = true;
+            }
+
         }
     }
 }
@@ -6189,577 +5974,3 @@ function mouseMove(event) {
 
     lastMouseY = mouseY;
 }
-
-/*
-    //var scaledNorm = 1.4;
-
-    document.getElementById("p1").innerHTML = "New mouse click! X: "+mouseX + " Y: " + mouseY;
-
-    /*if (false) {
-        if (menu == 1) { //player select
-            if(mouseX > )
-        }//menu = 1 player select
-        if (menu == 2) {//map select 
-
-        }//menu = 2 map select
-
-        //3 is game countdown
-        //4 is empty
-
-        if (menu == 5) {//post game screen
-
-        }//menu = 5 post game screen
-
-        if (menu == 6) {//mode select
-
-        }//menu = 6 mode select
-
-        if (menu == 7) {//multiplayer settings select
-
-        }//menu = 7 multiplayer settings select
-
-        if (menu == 8) {//select multiplayer mode
-
-        }//menu = 7 select multiplayer mode
-
-
-
-        if (key == 39) {//RIGHT KEY
-            if (menu == 1) {
-                if (boxx == 255) boxx = 414;
-                else if (boxx == 414 && boxy > 165) boxx = 579;
-            }
-            if (menu == 2) {
-                if (boxx == 42) boxx = 259;
-                else if (boxx == 259) boxx = 470;
-            }
-            if (menu == 5) {
-                boxx = 508;
-            }
-            if (menu == 7) {
-                if (boxy == 85 && boxx == 374) {
-                    boxx = 638;
-                }
-                if (boxy == 173 && boxx < 190 + (113 * 4)) {
-                    boxx = boxx + 113;
-                }
-                if (boxy == 315 && boxx < 190 + (113 * 3)) {
-                    boxx = boxx + 113;
-                }
-            }
-        }
-        if (key == 37) {//LEFT KEY
-            if (menu == 1) {
-                if (boxx == 579) boxx = 414;
-                else if (boxx == 414) boxx = 255;
-            }
-            if (menu == 2) {
-                if (boxx == 470) boxx = 259;
-                else if (boxx == 259) boxx = 42;
-            }
-            if (menu == 5) {
-                boxx = 275;
-            }
-            if (menu == 7) {
-                if (boxy == 85 && boxx == 638) {
-                    boxx = 374;
-                }
-                if (boxy == 173 && boxx > 190) {
-                    boxx = boxx - 113;
-                }
-                if (boxy == 315 && boxx > 190) {
-                    boxx = boxx - 113;
-                }
-            }
-        }
-        if (key == 38) {//UPKEY
-            //menu
-            if (menu == 1) {
-                if (boxy == 332) boxy = 245;
-                else if (boxy == 245 && boxx < 579) boxy = 157;
-                else if (boxy == 157) boxy = 70;
-                else if (boxx == 368 && boxy == 400) {
-                    boxx = 255;
-                    boxy = 332;
-                }
-            } else if (menu == 2) {
-                if (boxy == 313) boxy = 195;
-                else if (boxy == 195) boxy = 78;
-
-
-
-            } else if (menu == 6) {
-                if (boxy == 400) {
-                    boxx = 458;
-                    boxy = 228;
-                } else if (boxy == 228) {
-                    boxx = 420;
-                    boxy = 140;
-                }
-            } else if (menu == 7) {
-                if (boxy == 173) {
-                    boxx = 374;
-                    boxy = 85;
-                } else if (boxy == 315) {
-                    boxy = 173;
-                    boxx = 190;
-                } else if (boxy == 400) {
-                    boxx = 190;
-                    boxy = 315;
-                }
-            } else if (menu == 8) {
-                if (boxy == 204) {
-                    boxx = 424;
-                    boxy = 120;
-                } else if (boxy == 283) {
-                    boxy = 204;
-                    boxx = 466;
-                } else if (boxy == 400) {
-                    boxy = 283;
-                    boxx = 449;
-                }
-            }
-        }
-        if (key == 40) {///DOWN
-            //menu
-            if (menu == 1) {
-                if (boxy == 70) boxy = 157;
-                else if (boxy == 157) boxy = 245;
-                else if (boxy == 245) boxy = 332;
-                else if (boxy == 332) {
-                    boxx = 368;
-                    boxy = 400;
-                }
-            } else if (menu == 2) {
-                if (boxy == 78) boxy = 195;
-                else if (boxy == 195) boxy = 313;
-            } else if (menu == 6) {
-                if (boxy == 140) {
-                    boxx = 458;
-                    boxy = 228;
-                } else if (boxy == 228) {
-                    boxx = 368;
-                    boxy = 400;
-                }
-            } else if (menu == 7) {
-                if (boxy == 85) {
-                    boxy = 173;
-                    boxx = 190;
-                } else if (boxy == 173) {
-                    boxx = 190;
-                    boxy = 315;
-                } else if (boxy == 315) {
-                    boxx = 368;
-                    boxy = 400;
-                }
-            } else if (menu == 8) {
-                if (boxy == 120) {
-                    boxx = 466;// stun
-                    boxy = 204;
-                } else if (boxy == 204) {
-                    boxy = 283;
-                    boxx = 449;
-                } else if (boxy == 283) {
-                    boxy = 400;
-                    boxx = 368;
-                }
-            }
-        }
-
-        //menu/space bar
-        if (key == 32) {
-            if (menu == 8) {
-                if (boxy == 120) {
-                    checked[0] = true;
-                    checkedx[0] = boxx;
-                    checkedy[0] = boxy;
-                    boxx = 368;
-                    boxy = 400;
-                } else if (boxy == 204) {
-                    checked[0] = true;
-                    checkedx[0] = boxx;
-                    checkedy[0] = boxy;
-                    boxx = 368;
-                    boxy = 400;
-                } else if (boxy == 283) {
-                    checked[0] = true;
-                    checkedx[0] = boxx;
-                    checkedy[0] = boxy;
-                    boxx = 368;
-                    boxy = 400;
-                } else if (checked[0] == true && boxx == 368 && boxy == 400) {
-                    if (checkedy[0] == 120) {//dm
-                        menu = 1;
-
-                        teams = false;
-                        split = false;
-                        level = 1;
-                        for (k = 0; k <= 9; k++) {
-                            gunx[k] = (Math.random() * 680) + 2;
-                            guny[k] = -20 - ((Math.random() * 1500));
-                        }
-                    }
-                    if (checkedy[0] == 204) { //1v1 mode chosen
-                        players = 2;
-                        level = 1;
-
-                        //set the random guns!
-                        //we get no guns!
-                        for (i = 0; i <= 9; i++) {
-                            gunx[i] = -3000;
-                            guny[i] = 3000;
-                        }
-                        swords = false;
-                        zombie = false;
-                        teams = false;
-                        survival = false;
-                        split = false;
-                        equip[0] = 0;
-                        gun[0][0] = 1;
-                        ammo[0][0] = 10;
-                        clips[0][0] = 3;
-                        gun[0][1] = 0;
-                        clips[0][1] = 0;
-                        ammo[0][1] = 0;
-
-                        equip[1] = 0;
-                        gun[1][0] = 1;
-                        ammo[1][0] = 10;
-                        clips[1][0] = 3;
-                        gun[1][1] = 0;
-                        clips[1][1] = 0;
-                        ammo[1][1] = 0;
-
-                        //maybe false?
-                        custom = true;
-
-                        menu = 10;
-
-                        onlineState = "Searching for game";
-
-                        connect_to_server(1);
-                    }
-                    if (checkedy[0] == 283) {//tdm
-                        menu = 1;
-
-                        teams = true;
-                        split = false;
-                        xpos[0] = 0;
-                        ypos[0] = 410;
-                        xpos[1] = 40;
-                        ypos[1] = 410;
-
-                        directionFacing[0] = 1;
-                        directionFacing[1] = 1;
-                        directionFacing[2] = 0;
-                        directionFacing[3] = 0;
-
-                        xpos[2] = 680;
-                        ypos[2] = 410;
-                        xpos[3] = 640;
-                        ypos[3] = 410;
-
-                        level = 0;
-                        for (k = 0; k <= 9; k++) {
-                            gunx[k] = (Math.random() * 680) + 2;
-                            guny[k] = -20 - ((Math.random() * 1500));
-                        }
-
-
-                    }
-                    checked[0] = false;
-                    //menu = 1;
-                    boxx = 255;
-                    boxy = 70;
-                }
-            } else if (menu == 6) //choose zombie or multiplayer
-            {
-                if (checked[0] == true && boxx == 368 && boxy == 400) {
-                    if (checkedy[0] == 140) {
-                        menu = 8;
-                        boxx = 424;
-                        boxy = 120;
-                        custom = true;
-                        zombie = false;
-                    } else if (checkedy[0] == 228) {
-                        menu = 2;
-                        boxx = 42;
-                        boxy = 78;
-                        level = 0;
-                        for (i = 0; i <= 9; i++) {
-                            if (level != 5) gunx[i] = (Math.random() * 680) + 2;
-                            if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
-                            guny[i] = -20 - ((Math.random() * 1500));
-                        }
-                        swords = false;
-                        zombie = true;
-                        teams = false;
-                        survival = false;
-                        split = false;
-                        equip[0] = 0;
-                        gun[0][0] = 1;
-                        ammo[0][0] = 10;
-                        clips[0][0] = 3;
-                        gun[0][1] = 0;
-                        clips[0][1] = 0;
-                        ammo[0][1] = 0;
-
-                        custom = false;
-                        health[1] = 10;
-                        health[2] = 10;
-                        health[3] = 10;
-
-                        if (zombie == true) {
-                            players = 2;
-                            for (i = 1; i <= players; i++) {
-                                cpu[i] = true;
-                                if (play == false) {//what
-                                    health[i] = 10;
-                                }
-                            }
-                            //cpu[0] = false;
-
-                        }
-                    }
-                    checked[0] = false;
-                    checkedx[0] = -50;
-                }
-                if (boxy == 228) {
-                    checked[0] = true;
-                    checkedx[0] = 458;
-                    checkedy[0] = 228;
-                    boxx = 368;
-                    boxy = 400;
-                }
-                if (boxy == 140) {
-                    checked[0] = true;
-                    checkedx[0] = 420;
-                    checkedy[0] = 140;
-                    boxx = 368;
-                    boxy = 400;
-                }
-            } else if (menu == 1) //player select screen
-            {
-                if (boxy == 70) {
-                    checked[0] = true;
-                    checkedx[0] = boxx;
-                    checkedy[0] = boxy;
-                    boxy = 157;
-                } else if (boxy == 157) {
-                    checked[1] = true;
-                    checkedx[1] = boxx;
-                    checkedy[1] = boxy;
-                    boxy = 245;
-                } else if (boxy == 245) {
-                    checked[2] = true;
-                    checkedx[2] = boxx;
-                    checkedy[2] = boxy;
-                    boxy = 332;
-                } else if (boxy == 332) {
-                    checked[3] = true;
-                    checkedx[3] = boxx;
-                    checkedy[3] = boxy;
-                    boxy = 400;
-                    boxx = 368;
-                } else if (boxx == 368 && boxy == 400 && checked[0] == true && checked[1] == true && checked[2] == true && checked[3] == true && ((checkedx[2] < 579 && checkedx[3] < 579) || (checkedx[2] == 579 && checkedx[3] == 579) || (checkedx[2] < 579 && checkedx[3] == 579))) {
-                    for (i = 0; i <= 3; i++) {
-                        if (checkedx[i] == 255) {
-                            checkCount++;
-                            cpu[i] = false;
-                        }
-                        if (checkedx[i] == 414) {
-                            checkCount++;
-                            cpu[i] = true;
-                        }
-                    }
-                    players = checkCount;
-                    menu = 7;
-                    boxx = 374;
-                    boxy = 85;
-                    for (i = 0; i <= 3; i++) {
-                        checked[i] = false;
-                    }
-                    if (zombie == true) {
-                        players = 2;
-                        for (i = 1; i <= players; i++) {
-                            cpu[i] = true;
-                            if (play == false) {//what
-                                health[i] = 10;
-                            }
-                        }
-                        //cpu[0] = false;
-
-                    }
-                }
-            } else if (menu == 7) //multiplayer settings screen
-            {
-                if (boxy == 85) {
-                    checked[0] = true;
-                    checkedx[0] = boxx;
-                    checkedy[0] = boxy;
-                    boxy = 173;
-                    boxx = 190 + 113 * 2;
-                } else if (boxy == 173 || boxy == 315) {
-                    checked[1] = true;
-                    checkedx[1] = boxx;
-                    checkedy[1] = boxy;
-                    boxy = 400;
-                    boxx = 368;
-                } else if (checked[0] == true && checked[1] == true && boxx == 368 && boxy == 400) {
-                    if (checkedx[0] == 374) {
-                        swords = false;
-                        for (i = 0; i <= 9; i++) {
-                            if (level != 5) gunx[i] = (Math.random() * 680) + 2;
-                            if (level == 5) gunx[i] = (Math.random() * 1380) + 2;
-                            guny[i] = -20 - ((Math.random() * 1500));
-                        }
-                        for (i = 0; i < players; i++) {
-                            gun[i][0] = 1;
-                            ammo[i][0] = 10;
-                            clips[i][0] = 3;
-                            gun[i][1] = 0;
-                            clips[i][1] = 0;
-                            ammo[i][1] = 0;
-                        }
-                    } else {
-                        swords = true;
-                        for (i = 0; i < players; i++) {
-                            gun[i][0] = 7;
-                            gun[i][1] = 8;
-                            clips[i][0] = 2;
-                            clips[i][1] = 2;
-                            ammo[i][0] = 4;
-                            ammo[i][1] = 6;
-                        }
-                    }
-                    if (checkedy[1] == 173) {
-                        survival = false;
-                        if (checkedx[1] == 190) killLimit = 5;
-                        if (checkedx[1] == 190 + 113 * 1) killLimit = 10;
-                        if (checkedx[1] == 190 + 113 * 2) killLimit = 15;
-                        if (checkedx[1] == 190 + 113 * 3) killLimit = 20;
-                        if (checkedx[1] == 190 + 113 * 4) killLimit = 25;
-                    }
-                    if (checkedy[1] == 315) {
-                        survival = true;
-                        for (i = 0; i < players; i++) {
-                            if (checkedx[1] == 190) {
-                                lives[i] = 3;
-                                tempLives = 3;
-                            }
-                            if (checkedx[1] == 190 + 113 * 1) {
-                                lives[i] = 5;
-                                tempLives = 5;
-                            }
-                            if (checkedx[1] == 190 + 113 * 2) {
-                                lives[i] = 10;
-                                tempLives = 10;
-                            }
-                            if (checkedx[1] == 190 + 113 * 3) {
-                                lives[i] = 15;
-                                tempLives = 15;
-                            }
-                        }
-                    }
-                    if (split == false) {
-                        boxx = 42;
-                        boxy = 78;
-                        menu = 2;
-                    } else if (split == true) {
-                        menu = 3;
-                    }
-                }
-            } else if (menu == 2) //select map screen
-            {
-                if (boxx == 42 && boxy == 78) {
-                    startThatMap(1);
-                }
-                if (boxx == 259 && boxy == 78) {
-                    startThatMap(2);
-                }
-                if (boxx == 42 && boxy == 195) {
-                    startThatMap(3);
-                }
-                if (boxx == 259 && boxy == 195) {
-                    startThatMap(4);
-                }
-                if (boxx == 470 && boxy == 78) {
-                    startThatMap(6);
-                }
-                if (boxx == 470 && boxy == 195) {
-                    startThatMap(7);
-                }
-
-            } else if (menu == 5) //post game screen
-            {
-                if (boxx == 275) {
-                    reset = true;
-                } else if (boxx == 508) {
-                    rematch = true;
-                }
-            }
-        }
-    }
-}*/
-
-
-
-
-
-
-
-
-
-//// OLD SETTING UP THE FLAG MODE
-//OLD CODE
-/*split = true;
-teams = true;
-for (i = 0; i <= 24; i++) {
-    hold[i] = false;
-}
-score[0] = 0;
-score[1] = 0;
-
-flagx[0] = 10;
-flagy[0] = 330;
-
-flagx[1] = 1370;
-flagy[1] = 330;
-
-
-leader[0] = true;
-leader[1] = false;
-leader[2] = true;
-leader[3] = false;
-
-xpos[0] = 1;
-ypos[0] = 410;
-xpos[1] = 40;
-ypos[1] = 410;
-
-directionFacing[0] = 1;
-directionFacing[1] = 1;
-directionFacing[2] = 0;
-directionFacing[3] = 0;
-
-
-xpos[2] = 1380;
-ypos[2] = 410;
-xpos[3] = 1340;
-ypos[3] = 410;
-
-level = 5;
-wx[0] = 0;
-wy[0] = 0;
-wx[1] = -350;
-wy[1] = 0;
-
-wx[2] = 1050;
-wy[2] = 225;
-wx[3] = 700;
-wy[3] = 225;
-
-for (k = 0; k <= 9; k++) {
-    gunx[k] = (Math.random() * 1380) + 2;
-    guny[k] = -20 - ((Math.random() * 1500));
-}*/
